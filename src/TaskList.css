@@ -1,0 +1,141 @@
+.task-card {
+  width: min(100%, 400px);
+  padding: 36px 32px 32px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+
+.task-card__header {
+  margin-bottom: 28px;
+}
+
+.task-card__header h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  letter-spacing: -0.5px;
+  color: var(--text-h);
+}
+
+.task-card__header p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.task-item {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  transition:
+    border-color 0.2s,
+    transform 0.15s;
+}
+
+.task-item:hover {
+  border-color: var(--accent-border);
+  transform: translateY(-1px);
+}
+
+.task-item__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.task-item h3 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--text-h);
+}
+
+.task-status {
+  max-width: 100%;
+  flex-shrink: 0;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.task-status:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.task-deadline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.task-deadline input {
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+  color-scheme: dark;
+  cursor: pointer;
+}
+
+.task-deadline input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.task-state {
+  margin: 0;
+  padding: 28px 12px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--text);
+}
+
+@media (max-width: 1024px) {
+  .task-card {
+    padding: 28px 22px 24px;
+  }
+
+  .task-card__header h2 {
+    font-size: 24px;
+  }
+
+  .task-item__top {
+    flex-direction: column;
+  }
+}
