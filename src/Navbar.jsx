@@ -30,7 +30,9 @@ function Navbar({ activePage, onNavigate }) {
     { label: "Pagrindinis", page: "home", disabled: false },
     { label: "Užduotys", page: null, disabled: true },
     { label: "Progresas", page: null, disabled: true },
+    { label: "Orai", page: "weather", disabled: false },
     { label: "Profilis", page: "profile", disabled: false },
+    { label: "Delfi", page: "news", disabled: false },
   ];
 
   return (

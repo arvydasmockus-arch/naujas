@@ -4,6 +4,8 @@ import ProgressBar from "./ProgressBar";
 import Navbar from "./Navbar";
 import AddTaskForm from "./AddTaskForm";
 import Profile from "./Profile";
+import Weather from "./Weather";
+import News from "./News";
 import { getTasks, saveTask } from "./tasksApi";
 import "./App.css";
 
@@ -213,6 +215,8 @@ function App() {
       )}
 
       {activePage === "profile" && <Profile user={user} tasks={tasks} />}
+      {activePage === "weather" && <main className="login-page"><Weather /></main>}
+      {activePage === "news" && <News />}
     </>
   );
 }
