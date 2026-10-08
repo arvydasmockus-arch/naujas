@@ -1,6 +1,6 @@
 import "./TaskList.css";
 
-function TaskList({ tasks = [], loading = false, onStatusChange, onDeadlineChange }) {
+function TaskList({ tasks = [], loading = false, disabled = false, onStatusChange, onDeadlineChange }) {
   if (loading) {
     return (
       <section className="task-card">
@@ -37,6 +37,7 @@ function TaskList({ tasks = [], loading = false, onStatusChange, onDeadlineChang
                     .toLowerCase()
                     .replace(" ", "-")}`}
                   value={task.status}
+                  disabled={disabled}
                   onChange={(event) =>
                     onStatusChange?.(task.id, event.target.value)
                   }
@@ -54,6 +55,7 @@ function TaskList({ tasks = [], loading = false, onStatusChange, onDeadlineChang
               <input
                 type="date"
                 value={task.deadline}
+                disabled={disabled}
                 onChange={(event) =>
                   onDeadlineChange?.(task.id, event.target.value)
                 }

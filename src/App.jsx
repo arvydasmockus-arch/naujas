@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TaskList from "./TaskList";
 import ProgressBar from "./ProgressBar";
 import Navbar from "./Navbar";
 import AddTaskForm from "./AddTaskForm";
 import Profile from "./Profile";
+import { getTasks, saveTask } from "./tasksApi";
 import "./App.css";
 
 function App() {
@@ -18,20 +19,35 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loginError, setLoginError] = useState("");
 
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Sukurti prisijungimo formą",
-      status: "Atlikta",
-      deadline: "2026-10-01",
-    },
-    {
-      id: 2,
-      title: "Sukurti užduočių sąrašą",
-      status: "Vykdoma",
-      deadline: "2026-10-05",
-    },
-  ]);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [taskError, setTaskError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const saveInProgress = useRef(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    getTasks(controller.signal)
+      .then(setTasks)
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          setTaskError(`Nepavyko įkelti užduočių. ${error.message}`);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [loadAttempt]);
+
+  function handleRetry() {
+    setTaskError("");
+    setLoading(true);
+    setLoadAttempt((attempt) => attempt + 1);
+  }
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -45,24 +61,40 @@ function App() {
     setLoginError("Neteisingas vartotojo vardas arba slaptažodis.");
   }
 
+  async function persistTask(task, method) {
+    if (saveInProgress.current || loading) return false;
+
+    saveInProgress.current = true;
+    setSaving(true);
+    setTaskError("");
+
+    try {
+      const savedTask = await saveTask(task, method);
+      setTasks((currentTasks) => method === "POST"
+        ? [...currentTasks, savedTask]
+        : currentTasks.map((item) => item.id === task.id ? savedTask : item));
+      return true;
+    } catch (error) {
+      setTaskError(`Nepavyko išsaugoti užduoties. ${error.message}`);
+      return false;
+    } finally {
+      saveInProgress.current = false;
+      setSaving(false);
+    }
+  }
+
   function handleAddTask(newTask) {
-    setTasks((currentTasks) => [...currentTasks, newTask]);
+    return persistTask(newTask, "POST");
   }
 
   function handleTaskStatusChange(taskId, status) {
-    setTasks((currentTasks) =>
-      currentTasks.map((task) =>
-        task.id === taskId ? { ...task, status } : task,
-      ),
-    );
+    const task = tasks.find((item) => item.id === taskId);
+    if (task) return persistTask({ ...task, status }, "PUT");
   }
 
   function handleTaskDeadlineChange(taskId, deadline) {
-    setTasks((currentTasks) =>
-      currentTasks.map((task) =>
-        task.id === taskId ? { ...task, deadline } : task,
-      ),
-    );
+    const task = tasks.find((item) => item.id === taskId);
+    if (task) return persistTask({ ...task, deadline }, "PUT");
   }
 
   const today = new Date();
@@ -152,14 +184,26 @@ function App() {
                   </p>
                 </section>
 
+                {taskError && (
+                  <section className="dashboard-summary">
+                    <p className="login-error" role="alert">{taskError}</p>
+                    <button type="button" className="login-submit" onClick={handleRetry} disabled={saving || loading}>
+                      Įkelti iš naujo
+                    </button>
+                  </section>
+                )}
+
+                {saving && <p role="status">Išsaugoma užduotis...</p>}
+
                 <TaskList
                   tasks={tasks}
-                  loading={false}
+                  loading={loading}
+                  disabled={saving}
                   onStatusChange={handleTaskStatusChange}
                   onDeadlineChange={handleTaskDeadlineChange}
                 />
 
-                <AddTaskForm onAddTask={handleAddTask} />
+                <AddTaskForm onAddTask={handleAddTask} disabled={loading || saving} />
 
                 <ProgressBar initialProgress={50} />
               </>

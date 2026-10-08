@@ -1,23 +1,24 @@
 import { useState } from "react";
 import "./AddTaskForm.css";
 
-function AddTaskForm({ onAddTask }) {
+function AddTaskForm({ onAddTask, disabled = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [deadline, setDeadline] = useState("");
   const [status, setStatus] = useState("Nepradėta");
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    if (disabled || !title.trim()) return;
 
     const newTask = {
-      id: Date.now(),
-      title,
+      title: title.trim(),
       status,
       deadline,
     };
 
-    onAddTask(newTask);
+    const saved = await onAddTask(newTask);
+    if (!saved) return;
 
     setTitle("");
     setDeadline("");
@@ -39,6 +40,7 @@ function AddTaskForm({ onAddTask }) {
           type="button"
           className="add-task__open-button"
           onClick={() => setIsOpen(true)}
+          disabled={disabled}
         >
           + Nauja užduotis
         </button>
@@ -59,6 +61,7 @@ function AddTaskForm({ onAddTask }) {
             type="button"
             className="add-task__close"
             onClick={handleCancel}
+            disabled={disabled}
             aria-label="Uždaryti"
           >
             ×
@@ -73,6 +76,7 @@ function AddTaskForm({ onAddTask }) {
               type="text"
               placeholder="Pvz. Sukurti profilio puslapį"
               value={title}
+              disabled={disabled}
               onChange={(event) => setTitle(event.target.value)}
               required
             />
@@ -84,6 +88,7 @@ function AddTaskForm({ onAddTask }) {
             <input
               type="date"
               value={deadline}
+              disabled={disabled}
               onChange={(event) => setDeadline(event.target.value)}
               required
             />
@@ -94,6 +99,7 @@ function AddTaskForm({ onAddTask }) {
 
             <select
               value={status}
+              disabled={disabled}
               onChange={(event) => setStatus(event.target.value)}
             >
               <option value="Nepradėta">Nepradėta</option>
@@ -107,11 +113,12 @@ function AddTaskForm({ onAddTask }) {
               type="button"
               className="add-task__cancel"
               onClick={handleCancel}
+              disabled={disabled}
             >
               Atšaukti
             </button>
 
-            <button type="submit" className="add-task__submit">
+            <button type="submit" className="add-task__submit" disabled={disabled}>
               Pridėti užduotį
             </button>
           </div>
