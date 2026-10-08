@@ -32,7 +32,9 @@ function Navbar({ activePage, onNavigate }) {
     { label: "Progresas", page: null, disabled: true },
     { label: "Orai", page: "weather", disabled: false },
     { label: "Profilis", page: "profile", disabled: false },
-    { label: "Delfi", page: "news", disabled: false },
+    { label: "ML mokykla", page: "news", disabled: false },
+    { label: "Turnyrai", page: "tournaments", disabled: false },
+    { label: "Matplus", page: "matplus", disabled: false },
   ];
 
   return (
@@ -41,7 +43,7 @@ function Navbar({ activePage, onNavigate }) {
         <div className="navbar__brand">
           <FlowlyLogo />
 
-          <span className="navbar__brand-name">Flowly</span>
+          <span className="navbar__brand-name">ML mokykla</span>
         </div>
 
         <div className="navbar__links">

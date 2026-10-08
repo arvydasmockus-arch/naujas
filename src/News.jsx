@@ -1,17 +1,20 @@
 import "./News.css";
 
-function News() {
+function News({
+  url = "https://vilniuschess.lt/lt/martyno-limonto-stovykla/",
+  title = "Martyno Limonto mokykla",
+}) {
   return (
-    <main className="news-page" aria-label="Delfi naujienos">
+    <main className="news-page" aria-label={title}>
       <iframe
         className="news-page__frame"
-        src="https://www.delfi.lt/"
-        title="Delfi naujienų portalas"
+        src={url}
+        title={title}
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
         allow="fullscreen"
       />
       <p className="news-page__help">
-        Jei portalas neatsidaro, <a href="https://www.delfi.lt/" target="_blank" rel="noopener noreferrer">atidarykite Delfi atskirai</a>.
+        Jei puslapis neatsidaro, <a href={url} target="_blank" rel="noopener noreferrer">atidarykite puslapį atskirai</a>.
       </p>
     </main>
   );

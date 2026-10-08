@@ -1,0 +1,54 @@
+.matplus-page {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 32px 20px;
+}
+
+.matplus-panel {
+  width: min(100%, 560px);
+  box-sizing: border-box;
+  padding: 28px;
+  border: 1px solid #2e303a;
+  border-radius: 16px;
+  background: #16171d;
+  color: #9ca3af;
+}
+
+.matplus-panel h1 {
+  margin: 0 0 16px;
+  color: #f3f4f6;
+  font-size: 26px;
+}
+
+.matplus-panel a {
+  display: inline-block;
+  margin: 20px 0 16px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #c084fc;
+  color: #16171d;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.matplus-panel a:hover {
+  filter: brightness(1.08);
+}
+
+.matplus-panel a:focus-visible {
+  outline: 2px solid #c084fc;
+  outline-offset: 4px;
+}
+
+.matplus-panel__hint {
+  font-size: 13px;
+}
+
+@media (max-width: 480px) {
+  .matplus-panel {
+    padding: 20px;
+  }
+}
