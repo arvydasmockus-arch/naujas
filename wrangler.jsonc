@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ml-academy-api",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-10-09",
+  "compatibility_flags": ["nodejs_compat"],
+  "define": { "__filename": "\"/bundle/worker.js\"" },
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ml-academy",
+      "database_id": "5eb93687-f4ce-4d9e-8b66-bccbfa12407d",
+      "migrations_dir": "cloudflare/migrations"
+    }
+  ],
+  "queues": {
+    "producers": [{ "binding": "PUZZLE_VERIFY_QUEUE", "queue": "ml-academy-verify" }],
+    "consumers": [{ "queue": "ml-academy-verify", "max_batch_size": 1, "max_retries": 3 }]
+  },
+  "triggers": { "crons": ["0 * * * *"] }
+}

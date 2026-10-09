@@ -33,6 +33,8 @@ jobs:
       - name: Check code
         run: npm run lint
       - name: Build website
+        env:
+          VITE_API_BASE_URL: https://ml-academy-api.arvydasmockus.workers.dev
         run: npm run build -- --base=/naujas/
       - name: Configure Pages
         uses: actions/configure-pages@v5

@@ -1,5 +1,7 @@
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '');
+
 export async function tournamentRequest(action, { key = '', signal, data, params = {} } = {}) {
-  const response = await fetch(`/api/tournaments/${action}?${new URLSearchParams(params)}`, {
+  const response = await fetch(`${API_BASE_URL}/api/tournaments/${action}?${new URLSearchParams(params)}`, {
     method: data === undefined ? 'GET' : 'POST', signal,
     headers: { ...(key ? { Authorization: `Bearer ${key}` } : {}), ...(data ? { 'Content-Type': 'application/json' } : {}) },
     ...(data === undefined ? {} : { body: JSON.stringify(data) }),
@@ -10,7 +12,7 @@ export async function tournamentRequest(action, { key = '', signal, data, params
   return result;
 }
 export async function downloadTournamentPdf(id, kind, key = '') {
-  const response = await fetch(`/api/tournaments/pdf?${new URLSearchParams({ id, kind })}`, {
+  const response = await fetch(`${API_BASE_URL}/api/tournaments/pdf?${new URLSearchParams({ id, kind })}`, {
     headers: key ? { Authorization: `Bearer ${key}` } : {},
   });
   if (!response.ok) { const data = await response.json(); throw new Error(data.error); }
