@@ -9,6 +9,7 @@ import { verifyPuzzle } from '../server/puzzleTools.mjs';
 const DEFAULT_TITLE = 'Solving tournament of Martynas Limontas';
 const ALLOWED_ORIGINS = new Set([
   'https://arvydasmockus-arch.github.io',
+  'https://ml-mokykla.pages.dev',
   'http://localhost:5173',
   'http://localhost:5174',
 ]);
