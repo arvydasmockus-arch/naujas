@@ -6,7 +6,8 @@ import AddTaskForm from "./AddTaskForm";
 import Profile from "./Profile";
 import Weather from "./Weather";
 import News from "./News";
-import Matplus from "./Matplus";
+import SolvingPlatform from "./SolvingPlatform";
+import TournamentPlatform from "./TournamentPlatform";
 import { getTasks, saveTask } from "./tasksApi";
 import "./App.css";
 
@@ -16,7 +17,14 @@ function App() {
     email: "jonas@flowly.lt",
   };
 
-  const [activePage, setActivePage] = useState("home");
+  const [activePage, setActivePage] = useState(() => {
+    const page = new URLSearchParams(window.location.search).get('page');
+    return ['solving', 'training'].includes(page) ? page : 'home';
+  });
+  const [solvingLanguage, setSolvingLanguage] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('ml-solving-preferences-v2'))?.language === 'lt' ? 'lt' : 'en'; }
+    catch { return 'en'; }
+  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -28,6 +36,14 @@ function App() {
   const [saving, setSaving] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const saveInProgress = useRef(false);
+
+  function handleLanguageChange(language) {
+    setSolvingLanguage(language);
+    try {
+      const stored = JSON.parse(localStorage.getItem('ml-solving-preferences-v2')) || {};
+      localStorage.setItem('ml-solving-preferences-v2', JSON.stringify({ ...stored, language }));
+    } catch { /* The current language still works without local storage. */ }
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -114,7 +130,7 @@ function App() {
 
   return (
     <>
-      <Navbar activePage={activePage} onNavigate={setActivePage} />
+      <Navbar activePage={activePage} onNavigate={setActivePage} language={['solving', 'training'].includes(activePage) ? solvingLanguage : 'lt'} />
 
       {activePage === "home" && (
         <>
@@ -218,7 +234,8 @@ function App() {
       {activePage === "profile" && <Profile user={user} tasks={tasks} />}
       {activePage === "weather" && <main className="login-page"><Weather /></main>}
       {activePage === "news" && <News />}
-      {activePage === "matplus" && <Matplus />}
+      {activePage === "solving" && <SolvingPlatform language={solvingLanguage} onLanguageChange={handleLanguageChange} />}
+      {activePage === "training" && <TournamentPlatform language={solvingLanguage} onLanguageChange={handleLanguageChange} />}
       {activePage === "tournaments" && (
         <News
           url="https://solving.wfcc.ch/wsc/2026-2027/info.html"

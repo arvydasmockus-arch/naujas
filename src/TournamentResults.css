@@ -1,0 +1,8 @@
+.tournament-results > p { font-size: 12px; margin: 8px 0 14px; color: #6c7868; }
+.tournament-results__scroll { overflow-x: auto; border: 1px solid #d8e2d2; border-radius: 8px; }
+.tournament-results table { width: 100%; min-width: 940px; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.tournament-results th, .tournament-results td { border: 1px solid #d8e2d2; padding: 7px 6px; text-align: center; }
+.tournament-results thead { background: #edf4e9; }
+.tournament-results tbody th { text-align: left; white-space: nowrap; }
+.tournament-results tbody tr:nth-child(even) { background: #f7faf5; }
+.tournament-results button { padding: 4px; border: 0; background: none; color: #087a3b; font: inherit; cursor: pointer; }

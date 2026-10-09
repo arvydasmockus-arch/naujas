@@ -1,0 +1,68 @@
+.solving-page { flex: 1; padding: 30px clamp(16px, 3vw, 40px); background: #f4f7f3; color: #656571; font-size: 14px; color-scheme: light; }
+.solving-page__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; max-width: 1280px; margin: 0 auto 22px; }
+.solving-page__eyebrow { color: #087a3b; font-size: 12px; font-weight: 600; letter-spacing: 0.3px; }
+.solving-page h1 { margin: 6px 0 10px; font-size: clamp(26px, 4vw, 34px); letter-spacing: -0.7px; color: #26372c; }
+.solving-page h2 { color: #2b3c30; font-size: 19px; font-weight: 650; }
+.solving-page h3 { color: #2b3c30; font-size: 16px; margin: 0 0 12px; }
+.solving-page p { line-height: 1.6; }
+.solving-language { display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #6f7c70; }
+.solving-language select { padding: 8px 12px; font: inherit; font-size: 13px; border: 1px solid #d7e2d5; border-radius: 7px; color: #38503c; background: #fff; }
+.solving-player-bar { max-width: 1280px; margin: 0 auto 24px; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 18px; border: 1px solid #dce5d9; border-radius: 11px; background: #fff; box-sizing: border-box; }
+.solving-player-bar label { color: #354d3c; font-size: 13px; font-weight: 600; }
+.solving-player-bar input { padding: 9px 12px; border-radius: 7px; border: 1px solid #d3dfcf; background: #fff; color: #2d3d31; font: inherit; width: 200px; box-sizing: border-box; }
+.solving-player-bar > span { font-size: 12px; color: #788575; }
+.solving-player-bar__active { color: #087a3b; margin-left: auto; font-size: 13px; }
+.solving-page__layout { display: grid; grid-template-columns: 218px minmax(0, 1fr); gap: 22px; max-width: 1280px; margin: auto; align-items: start; }
+.solving-page__content { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.solving-panel { background: #fff; border: 1px solid #dce5d9; border-radius: 12px; padding: 22px; min-width: 0; box-shadow: 0 2px 6px #214a2706; }
+.solving-button { padding: 10px 15px; border: 1px solid #087a3b; border-radius: 7px; background: #087a3b; color: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.solving-button--secondary { background: #eef6ec; color: #216e3c; border-color: #c8dec0; }
+.solving-button:hover:not(:disabled) { filter: brightness(1.08); }
+.solving-button:disabled { opacity: 0.45; cursor: default; }
+.solving-page button:focus-visible, .solving-page input:focus-visible, .solving-page select:focus-visible, .solving-page summary:focus-visible { outline: 2px solid #15994c; outline-offset: 3px; }
+.solving-page__warning { max-width: 1240px; padding: 14px; border: 1px solid #e7c997; border-radius: 8px; background: #fff6e4; color: #885c22; margin: 0 auto 20px; }
+.solving-page__warning button { padding: 6px 10px; margin-left: 10px; border: 1px solid #d5b780; border-radius: 6px; background: #fff; cursor: pointer; }
+.solving-dates { padding: 16px; }
+.solving-dates > p { font-size: 12px; margin-bottom: 14px; }
+.solving-dates__list { display: flex; flex-direction: column; gap: 6px; max-height: 605px; overflow-y: auto; padding: 3px; }
+.solving-dates__list button { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 10px; border: 1px solid #e0e8dc; border-radius: 7px; color: #415343; background: #f8faf6; text-align: left; font: inherit; font-size: 12px; cursor: pointer; }
+.solving-dates__list button:disabled { opacity: 0.55; cursor: default; }
+.solving-dates__list small { color: #7b8777; font-size: 10px; }
+.solving-dates__list .solving-dates__active { border-color: #81b785; background: #e8f3e3; }
+.solving-library { border-top: 1px solid #e0e8dc; padding-top: 12px; margin-top: 14px; font-size: 11px; }
+.solving-library strong { color: #496d4a; }
+.solving-library p { margin: 3px 0; }
+.solving-library small { color: #58845c; }
+.solving-intro__symbol { display: inline-block; color: #087a3b; background: #edf5e9; border: 1px solid #d3e4cb; padding: 15px; border-radius: 12px; font-size: 28px; font-weight: 600; margin-bottom: 20px; }
+.solving-intro .solving-button { margin: 20px 0 8px; }
+.solving-intro ul { padding-left: 20px; line-height: 1.9; font-size: 13px; }
+.solving-test__heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+.solving-test__heading p { font-size: 12px; }
+.solving-timer { display: flex; align-items: baseline; gap: 6px; padding: 10px 15px; border: 1px solid #d1e2cb; background: #f4f9ef; border-radius: 8px; font-variant-numeric: tabular-nums; }
+.solving-timer strong { color: #087a3b; font-size: 26px; }
+.solving-timer span { font-size: 11px; }
+.solving-test__board-layout { display: grid; grid-template-columns: minmax(0, 430px) minmax(160px, 1fr); align-items: start; gap: 26px; }
+.solving-test__note { margin: 18px 0; font-size: 12px; color: #7d887b; }
+.solving-feedback { padding: 15px; border-radius: 8px; margin-top: 20px; }
+.solving-feedback--correct { border: 1px solid #bbdfc4; background: #f0faf3; color: #307447; }
+.solving-feedback--wrong { border: 1px solid #ebc6c6; background: #fff4f4; color: #ac4a4a; }
+.solving-feedback p { margin-top: 6px; font-size: 12px; }
+.solving-complete strong { display: block; color: #087a3b; font-size: 30px; margin-bottom: 12px; }
+.solving-complete button { margin-top: 14px; }
+.solving-results-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 11px; color: #7e897b; }
+.solving-results-toolbar button { border: 0; padding: 0; background: transparent; color: #087a3b; font: inherit; cursor: pointer; }
+.solving-statistics-hint { color: #7e897b; font-size: 12px; text-align: center; }
+@media (max-width: 1050px) { .solving-test__board-layout { grid-template-columns: minmax(0, 390px) minmax(120px, 1fr); gap: 18px; } }
+@media (max-width: 900px) { .solving-test__board-layout { grid-template-columns: 1fr; } }
+@media (max-width: 760px) {
+  .solving-page { padding: 22px 12px; }
+  .solving-page__layout { grid-template-columns: 1fr; gap: 14px; }
+  .solving-page__content { gap: 14px; }
+  .solving-dates__list { flex-direction: row; max-height: none; overflow-x: auto; padding-bottom: 9px; }
+  .solving-dates__list button { flex: 0 0 158px; }
+  .solving-panel { padding: 17px; }
+  .solving-test__heading { align-items: flex-start; }
+  .solving-player-bar input { flex: 1 1 140px; min-width: 0; }
+  .solving-player-bar > span { width: 100%; }
+  .solving-player-bar__active { margin-left: 0; }
+}

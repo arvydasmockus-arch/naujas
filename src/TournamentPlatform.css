@@ -1,0 +1,69 @@
+.tournament-page { flex: 1; padding: 28px clamp(12px, 3vw, 40px); background: #f4f7f3; color: #3e4e3c; color-scheme: light; font-size: 14px; }
+.tournament-page > * { max-width: 1280px; margin-left: auto; margin-right: auto; }
+.tournament-page h1 { margin: 0 0 12px; font-size: clamp(25px, 4vw, 34px); color: #26372c; }
+.tournament-page h2 { color: #2b3c30; font-size: 19px; font-weight: 650; }
+.tournament-page__header, .tournament-event-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 22px; }
+.tournament-page p { line-height: 1.6; }
+.tournament-page__header small { display: block; margin-top: 8px; color: #697c64; }
+.tournament-page button:not(.chess-board__square) { font: inherit; font-size: 13px; padding: 9px 13px; border: 1px solid #087a3b; background: #087a3b; color: #fff; border-radius: 7px; cursor: pointer; }
+.tournament-page button:disabled:not(.chess-board__square) { opacity: .5; cursor: default; }
+.tournament-page input, .tournament-page select, .tournament-page textarea { box-sizing: border-box; font: inherit; font-size: 13px; padding: 9px 10px; border: 1px solid #cadac3; background: #fff; color: #30422e; border-radius: 6px; min-width: 0; max-width: 100%; }
+.tournament-page textarea { width: 100%; resize: vertical; }
+.tournament-page label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.tournament-page :focus-visible { outline: 2px solid #15994c; outline-offset: 3px; }
+.tournament-page__views { display: flex; justify-content: space-between; align-items: start; gap: 15px; margin-bottom: 20px; }
+.tournament-page__views details { max-width: 430px; }
+.tournament-page summary { cursor: pointer; color: #087a3b; }
+.tournament-page__views form { margin-top: 15px; display: grid; gap: 10px; }
+.tournament-page__error { background: #fff3e5; border: 1px solid #ebc88f; padding: 14px; border-radius: 8px; margin-bottom: 20px; }
+.tournament-panel { border: 1px solid #dce5d9; border-radius: 12px; background: #fff; padding: 22px; margin-bottom: 20px; min-width: 0; }
+.tournament-generate, .tournament-start { display: flex; gap: 14px; align-items: end; flex-wrap: wrap; }
+.tournament-generate > p { flex-basis: 100%; font-size: 12px; }
+.tournament-selector { margin-bottom: 20px; }
+.tournament-selector select { width: 100%; }
+.tournament-downloads { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.tournament-set-brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.tournament-set-brand img { width: 116px; height: 66px; object-fit: contain; flex-shrink: 0; }
+.tournament-downloads button:not(:first-child) { color: #216e3c; background: #eef6ec; border-color: #c8dec0; }
+.tournament-note { font-size: 12px; color: #70806a; margin-top: 8px; }
+.tournament-problems { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-bottom: 20px; }
+.tournament-problem { margin-bottom: 0; }
+.tournament-problem > h2 { text-align: center; width: min(100%, 430px); }
+.tournament-history__list { display: grid; gap: 12px; margin-top: 16px; }
+.tournament-history__list article { padding: 16px; border: 1px solid #dce5d9; border-radius: 8px; background: #fafcf8; }
+.tournament-history__list article.tournament-history__selected { border-color: #86b98b; background: #f1f8ed; }
+.tournament-history__list article p, .tournament-history small { font-size: 12px; color: #6c7c66; }
+.tournament-history small { align-self: center; }
+.tournament-problem > p { font-size: 12px; margin-top: 9px; }
+.tournament-problem .chess-board-wrap { max-width: 100%; }
+.tournament-diagram { width: min(100%, 430px); }
+.tournament-diagram__caption { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding-top: 5px; font-size: 13px; color: #26372c; }
+.tournament-diagram__caption > span { white-space: nowrap; }
+.tournament-diagram__caption small { font-size: 11px; text-align: center; }
+.tournament-source { border-top: 1px solid #e0e8dc; margin-top: 12px; padding-top: 10px; font-size: 12px; }
+.tournament-source a { color: #087a3b; }
+.tournament-source details { margin: 10px 0; }
+.tournament-page pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.6 Consolas, monospace; background: #f4f7f3; padding: 10px; border-radius: 6px; max-height: 400px; overflow-y: auto; }
+.tournament-problem label { margin: 14px 0; }
+.tournament-solution-editor { font-family: Consolas, monospace !important; }
+.tournament-draft-warning { color: #b25020; font-size: 12px; }
+.tournament-check { flex-direction: row !important; align-items: center; margin: 14px 0; }
+.tournament-clock { display: flex; justify-content: space-between; gap: 15px; flex-wrap: wrap; }
+.tournament-clock span { color: #087a3b; font-size: 20px; font-variant-numeric: tabular-nums; }
+.tournament-clock p { flex-basis: 100%; }
+.tournament-answers { margin-top: 20px; }
+.tournament-answers > div:first-of-type { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; margin: 16px 0; }
+.tournament-result-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 15px 0; }
+.tournament-scores { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin: 12px 0 20px; }
+.tournament-result-form input { width: 100%; }
+.tournament-submission { padding: 12px 0; border-bottom: 1px solid #e0e8dc; }
+@media (max-width: 1000px) { .tournament-problems { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tournament-event-heading { flex-direction: column; } }
+@media (max-width: 600px) {
+  .tournament-page { padding: 20px 12px; }
+  .tournament-panel { padding: 16px; }
+  .tournament-problems, .tournament-answers > div:first-of-type, .tournament-result-fields { grid-template-columns: 1fr; }
+  .tournament-scores { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tournament-page__header { flex-wrap: wrap; }
+  .tournament-page__views { flex-direction: column; }
+  .tournament-set-brand { flex-direction: column; align-items: flex-start; }
+}

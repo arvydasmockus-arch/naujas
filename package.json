@@ -4,14 +4,22 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node server/dev.mjs",
+    "start": "node server/dev.mjs --production",
+    "backup:data": "node scripts/backup-data.mjs",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:solving": "node --test tests/*.test.mjs",
+    "import:puzzles": "node scripts/import-yacpdb.mjs",
+    "import:tournaments": "node scripts/import-tournament-puzzles.mjs"
   },
   "dependencies": {
+    "chess.js": "^1.4.0",
+    "pdfkit": "^0.20.2",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "svg-to-pdfkit": "^0.1.8"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

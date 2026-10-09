@@ -1,0 +1,2411 @@
+[
+  {
+    "id": "4",
+    "fen": "7n/3NR3/1P3p2/1p1kbN1B/1p6/1K6/6b1/1Q6 w - - 0 1",
+    "key": "b1f1",
+    "keySan": "Qf1",
+    "authors": [
+      "Abbott, Joseph William"
+    ],
+    "source": "The Illustrated London News",
+    "year": 1875,
+    "sourceUrl": "https://www.yacpdb.org/#4",
+    "solution": "1.Qb1-f1 ! threat:\n        2.Qf1*g2 #\n    1...Bg2*f1\n        2.Bh5-f3 #\n    1...Bg2-h1\n        2.Qf1*h1 #\n    1...Bg2-h3\n        2.Bh5-f3 #\n        2.Qf1-f3 #\n    1...Bg2-e4\n        2.Qf1*b5 #\n    1...Bg2-f3\n        2.Bh5*f3 #\n        2.Qf1*f3 #\n    1...Kd5-e4\n        2.Sd7*f6 #"
+  },
+  {
+    "id": "5",
+    "fen": "3R4/4K3/5p2/5p2/8/3BkNQ1/8/8 w - - 0 1",
+    "key": "d3e4",
+    "keySan": "Be4",
+    "authors": [
+      "Abbott, Joseph William"
+    ],
+    "source": "Counties Chess Association",
+    "year": 1886,
+    "sourceUrl": "https://www.yacpdb.org/#5",
+    "solution": "1.Bd3-e4 ! zugzwang.\n    1...Ke3-e2\n        2.Qg3-e1 #\n    1...Ke3*e4\n        2.Sf3-d2 #\n    1...f5-f4\n        2.Qg3-e1 #\n    1...f5*e4\n        2.Sf3-g1 #"
+  },
+  {
+    "id": "6",
+    "fen": "3K4/4B3/3Rp3/8/4pk2/1Qp1Np2/2p2P2/2R5 w - - 0 1",
+    "key": "d6d7",
+    "keySan": "Rd7",
+    "authors": [
+      "Abbott, Joseph William"
+    ],
+    "source": "English Chess Problems",
+    "year": 1876,
+    "sourceUrl": "https://www.yacpdb.org/#6",
+    "solution": "1.Rd6-d7 ! zugzwang.\n    1...Kf4-e5\n        2.Qb3-b8 #\n    1...e6-e5\n        2.Qb3-f7 #"
+  },
+  {
+    "id": "9",
+    "fen": "6r1/5Q2/1n1p2pB/4k2b/3b3r/8/1NBRp2N/1K2R3 w - - 0 1",
+    "key": "d2d1",
+    "keySan": "Rdd1",
+    "authors": [
+      "Abbott, Joseph William"
+    ],
+    "source": "The Illustrated London News",
+    "year": 1889,
+    "sourceUrl": "https://www.yacpdb.org/#9",
+    "solution": "1.Rd2-d1 ! {display-departure-file} zugzwang.\n    1...Bd4*b2 {(Bd~)}\n        2.Qf7-e7 #\n    1...Rh4*h2 {(Rh~)}\n        2.Bh6-f4 #\n    1...Rh4-e4\n        2.Sb2-d3 #\n    1...Rh4-g4\n        2.Sh2-f3 #\n    1...Bh5-f3\n        2.Sh2*f3 #\n    1...Bh5-g4\n        2.Bh6-f4 #\n    1...Sb6-a4 {(Sb~)}\n        2.Sb2-c4 #\n    1...d6-d5\n        2.Qf7-e7 #\n    1...g6-g5\n        2.Qf7-f5 #\n    1...Rg8-g7 {(Rg~)}\n        2.Bh6*g7 #"
+  },
+  {
+    "id": "10",
+    "fen": "8/1Rp5/K3P3/2B2Q2/n1kP4/P3r3/P3PN2/1N2bB2 w - - 0 1",
+    "key": "f2d1",
+    "keySan": "Nd1",
+    "authors": [
+      "Abdurahmanović, Fadil"
+    ],
+    "source": "problem (Zagreb)",
+    "year": 1956,
+    "sourceUrl": "https://www.yacpdb.org/#10",
+    "solution": "1.Sf2-d1 ! threat:\n       2.Sd1*e3 #\n   1...Re3-d3\n       2.e2*d3 #\n   1...Re3-e4 {Rg3,Rh3}\n       2.e2-e3 #\n   1...Re3-e5\n       2.e2-e4 #\n   1...Re3-f3\n       2.e2*f3 #\n   1...Be1-d2 {Bf2}\n       2.Sb1*d2 #\n   1...Re3*a3\n       2.Sb1*a3 #\n   1...Re3-b3\n       2.a2*b3 #\n   1...Re3-c3\n       2.Rb7-b4 #\n   1...Re3*e6 +\n       2.Qf5*e6 #\n   1...Sa4*c5 +\n       2.Qf5*c5 #"
+  },
+  {
+    "id": "12",
+    "fen": "3KN3/2B2R2/6n1/8/4k2n/4p3/4B3/3R4 w - - 0 1",
+    "key": "c7b8",
+    "keySan": "Bb8",
+    "authors": [
+      "Abdurahmanović, Fadil"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1975,
+    "sourceUrl": "https://www.yacpdb.org/#12",
+    "solution": "1.Rf7-f1 ? threat:\n      2.Se8-f6 # \n but 1...Sh4-f3 ! {(2.Bxf3?)}\n\n1.Bc7-h2 ? threat:\n      2.Se8-d6 #\n but 1...Sg6-f4 ! {(2.Rxf4?)}\n\n1.Rd1-d7 ? {display-departure-file} threat:\n      2.Be2-d3 #\n but 1...Sg6-e5 ! {(2.Sd6?)}\n\n1.Bc7-b8 ! zugzwang.\n   1...Sh4-f3\n       2.Be2*f3 #\n   1...Sh4-g2\n       2.Be2-f3 #\n   1...Sh4-f5\n       2.Se8-f6 #\n   1...Sg6-e5\n       2.Se8-d6 #\n   1...Sg6-f4\n       2.Rf7*f4 #\n   1...Sg6-h8 {(Sf8, Se7)}\n       2.Rf7-f4 #"
+  },
+  {
+    "id": "13",
+    "fen": "5B2/3p1n2/R2p4/1P1NRBQ1/1KPkrb2/1p6/2Pp1Pn1/4r3 w - - 0 1",
+    "key": "d5c7",
+    "keySan": "Nc7",
+    "authors": [
+      "Abdurahmanović, Fadil"
+    ],
+    "source": "Schach-Echo",
+    "year": 1975,
+    "sourceUrl": "https://www.yacpdb.org/#13",
+    "solution": "1.Sd5-c3 ?     but\n    1...Re4*e5 !\n\n  1.Sd5-f6 ?     but\n    1...Kd4*e5 !\n\n 1.Sd5-e7 ?     but\n    1...d6*e5 !\n\n 1.Sd5-b6 ?    but\n    1...Sf7*e5 !\n\n  1.Sd5-e3 ? threat:\n  but\n    1...Bf4*e5 !\n\n 1.Sd5-c7 ! threat:\n        2.Re5-d5 #\n    1...Re4*e5\n        2.c2-c3 #\n    1...Kd4*e5\n        2.Bf8-g7 #\n    1...d6*e5\n        2.Bf8-c5 #\n    1...Sf7*e5\n        2.Ra6*d6 #\n    1...Bf4*e5\n        2.Qg5*d2 #\n    1...Sg2-e3\n        2.Re5*e4 #"
+  },
+  {
+    "id": "14",
+    "fen": "rqr5/1B1N3p/2n1p2K/b2P4/RB1Nkn1R/1P6/2P2PP1/1Q6 w - - 0 1",
+    "key": "d4e2",
+    "keySan": "Ne2",
+    "authors": [
+      "Abdurahmanović, Fadil"
+    ],
+    "source": "The Problemist",
+    "year": 1976,
+    "sourceUrl": "https://www.yacpdb.org/#14",
+    "solution": "1.Bb4-c5 ? threat:\n     2.c2-c4 #\n   1...Sc6-b4 2.Qb1-e1 #\n   1...Sc6*d4 2.c2-c3 #\n   1...Sc6-e5 2.Sd7-f6 #\nbut 1...Ba5-c3 !\n\n1.Sd4-e2 ! threat:\n       2.c2-c4 #\n   1...Ke4-f5\n       2.Se2-g3 #\n   1...Sc6*b4\n       2.c2-c3 #\n   1...Sc6-d4\n       2.Se2-g3 #\n   1...Sc6-e5\n       2.Rh4*f4 #"
+  },
+  {
+    "id": "18",
+    "fen": "2B5/8/4pN1K/R1B1qkP1/4p3/7p/5P1P/4Q3 w - - 0 1",
+    "key": "c5e3",
+    "keySan": "Be3",
+    "authors": [
+      "Abraham, J. D."
+    ],
+    "source": "American Chess-Nuts",
+    "year": 1868,
+    "sourceUrl": "https://www.yacpdb.org/#18",
+    "solution": "1.Bc5-e3 ! zugzwang.\n   1...Qe5*a5\n       2.Qe1*a5 #\n   1...Qe5-b5\n       2.Ra5*b5 #\n   1...Qe5-c5\n       2.Ra5*c5 #\n   1...Qe5-d5\n       2.Ra5*d5 #"
+  },
+  {
+    "id": "19",
+    "fen": "5Q2/8/8/8/8/5p2/2N1Np2/2K2k2 w - - 0 1",
+    "key": "f8h6",
+    "keySan": "Qh6",
+    "authors": [
+      "Achbar, Selim"
+    ],
+    "source": "Apprenti Sorcier",
+    "year": 1994,
+    "sourceUrl": "https://www.yacpdb.org/#19",
+    "solution": "1.Qf8-a8 ?? zugzwang.\n   1...Kf1*e2 2.Qa8-a6 #\n   1...f3*e2 2.Qa8-h1 #\nbut 1...Kf1-g2 !\n\n1.Qf8-g8 ?? zugzwang.\n   1...Kf1*e2 2.Qg8-c4 #\nbut 1...f3*e2 !\n\n1.Qf8-h8 ?? zugzwang.\n   1...Kf1-g2 2.Sc2-e3 #\n   1...f3*e2 2.Qh8-h1 #\nbut 1...Kf1*e2 !\n\n1.Qf8-h6 ! zugzwang.\n   1...Kf1-g2\n       2.Sc2-e3 #\n   1...Kf1*e2\n       2.Qh6-a6 #\n   1...f3*e2\n       2.Qh6-h1 #"
+  },
+  {
+    "id": "20",
+    "fen": "8/8/1R6/2p5/8/2Bk1NRN/3P4/K6B w - - 0 1",
+    "key": "b6b1",
+    "keySan": "Rb1",
+    "authors": [
+      "Achbar, Selim"
+    ],
+    "source": "Apprenti Sorcier",
+    "year": 1992,
+    "sourceUrl": "https://www.yacpdb.org/#20",
+    "solution": "1.Rb6-b1 ! zugzwang.\n   1...Kd3-c2\n       2.Sf3-e1 #\n   1...Kd3-e2\n       2.Sf3-g1 #\n   1...Kd3-e4\n       2.Sf3-h4 #\n   1...Kd3-c4\n       2.Sf3-e5 #\n   1...c5-c4\n       2.Sf3-d4 #"
+  },
+  {
+    "id": "23",
+    "fen": "8/8/8/p7/kPr4R/N1P5/2P5/1K5Q w - - 0 1",
+    "key": "h1d5",
+    "keySan": "Qd5",
+    "authors": [
+      "Myers, Arthur C."
+    ],
+    "source": "Toronto Globe",
+    "year": 1882,
+    "sourceUrl": "https://www.yacpdb.org/#23",
+    "solution": "1.Qh1-d5 ! threat:\n       2.Qd5*a5 #\n   1...Rc4*b4 +\n       2.Qd5-b3 #\n   1...Rc4-c5\n       2.Qd5-b3 #\n   1...a5*b4\n       2.Qd5-a8 #"
+  },
+  {
+    "id": "72",
+    "fen": "3Rb3/B4NpB/4N1n1/3P1P1R/1r2kP2/1p1np3/8/3Q2K1 w - - 0 1",
+    "key": "g1h2",
+    "keySan": "Kh2",
+    "authors": [
+      "Адабашев, Марк Иванович"
+    ],
+    "source": "Els Escacs a Catalunya",
+    "year": 1935,
+    "sourceUrl": "https://www.yacpdb.org/#72",
+    "solution": "1.Kg1-h2 ! threat:\n        2.Qd1-h1 #\n    1...Sd3-b2 {(Sd~)}\n        2.Sf7-d6 # !\n    1...Sd3*f4 {display-departure-file}\n        2.Se6-c5 #\n    1...Sg6-e5 {display-departure-file}\n        2.Sf7-g5 # ! {display-departure-file}\n    1...Sg6*f4 {display-departure-file}\n        2.Se6-g5 # {display-departure-file}\n    1...Sg6-h4\n        2.Sf7-g5 # {display-departure-file}\n    1...Pe3-e2 \n        2.Qd1*e2 #"
+  },
+  {
+    "id": "75",
+    "fen": "7Q/3B4/1B3R2/3pk3/1Nr1P2r/2n5/5nq1/K2R4 w - - 0 1",
+    "key": "b6e3",
+    "keySan": "Be3",
+    "authors": [
+      "Адабашев, Марк Иванович"
+    ],
+    "source": "Western Morning News",
+    "year": 1935,
+    "sourceUrl": "https://www.yacpdb.org/#75",
+    "solution": "1.Bb6-e3 ! threat:\n       2.Rf6-e6 #\n   1...Ke5*e4\n       2.Qh8-e8 #\n   1...Qg2*e4\n       2.Rf6-h6 #\n   1...Rc4*e4 {display-departure-file}\n       2.Sb4-c6 #\n   1...Rh4*e4 {display-departure-file}\n       2.Rf6-g6 #\n   1...Sc3*e4 {display-departure-file}\n       2.Rd1*d5 #\n   1...Sf2*e4 {display-departure-file}\n       2.Sb4-d3 #\n   1...d5*e4\n       2.Rf6-f5 #"
+  },
+  {
+    "id": "89",
+    "fen": "8/5n2/4N3/8/4R2P/4P1Pk/4bP2/6K1 w - - 0 1",
+    "key": "h4h5",
+    "keySan": "h5",
+    "authors": [
+      "Адабашев, Марк Иванович"
+    ],
+    "source": "Шахматы в СССР",
+    "year": 1938,
+    "sourceUrl": "https://www.yacpdb.org/#89",
+    "solution": "1.h4-h5 ! threat:\n       2.Re4-h4 #\n   1...Be2-g4\n       2.Se6-f4 #"
+  },
+  {
+    "id": "94",
+    "fen": "8/8/8/2pK1N2/4B1b1/4p1p1/2PpkP2/3R1R1n w - - 0 1",
+    "key": "f2f4",
+    "keySan": "f4",
+    "authors": [
+      "Балановський, Валентин"
+    ],
+    "source": "Jornal do Solucionismo",
+    "year": 1991,
+    "sourceUrl": "https://www.yacpdb.org/#94",
+    "solution": "1.f2*g3 ?? threat: \n       2.Be4-d3 #\n   1...c5-c4 2.Sf5-d4 #\n   1...Bg4-f3 {(Bxf5)} 2.Be4*f3 #\nbut 1...Sh1-f2 !\n\n1.f2-f3 ?? threat:\n      2.Be4-d3 #\n   1...c5-c4 2.Sf5-d4 #\n   1...Sh1-f2 2.Sf5*g3 #\n   1...Bg4*f3 2.Be4*f3 #\nbut 1...Bg4*f5 !\n\n1.f2-f4 ! threat:\n       2.Be4-d3 #\n   1...c5-c4\n       2.Sf5-d4 #\n   1...Sh1-f2\n       2.Sf5*g3 #\n   1...Bg4-f3\n       2.Be4*f3 #\n   1...Bg4*f5\n       2.Be4-f3 #"
+  },
+  {
+    "id": "96",
+    "fen": "5b2/B4K2/bpR1B3/N3k3/1P6/5PP1/8/8 w - - 0 1",
+    "key": "c6d6",
+    "keySan": "Rd6",
+    "authors": [
+      "Adda, J."
+    ],
+    "source": "British Chess Magazine",
+    "year": 1885,
+    "sourceUrl": "https://www.yacpdb.org/#96",
+    "solution": "1.Rc6-d6 ! threat:\n       2.Rd6-d5 #\n   1...Ke5*d6\n       2.Ba7-b8 # {(Model mate)}\n   1...Ba6-c4\n       2.Sa5*c4 #\n   1...Ba6-b7\n       2.Sa5-c4 #\n   1...Bf8*d6\n       2.Sa5-c6 #"
+  },
+  {
+    "id": "97",
+    "fen": "B5b1/4R3/2n5/N4p2/pN1kpP2/Bp6/1P2P3/2R1K3 w - - 0 1",
+    "key": "b4d5",
+    "keySan": "Nd5",
+    "authors": [
+      "Addison, W."
+    ],
+    "source": "Chess",
+    "year": 1946,
+    "sourceUrl": "https://www.yacpdb.org/#97",
+    "solution": "1.Sb4*c6 + ??\n   1...Kd4-d5 \n      2.Rc1-d1 #\n      2.Re7-e5 #\nbut 1...Kd4-e3 !\n\n1.Ke1-d2 ?? threat: \n      2.e2-e3 #\n      2.Sa5*c6 #\n   1...Bg8-d5 {(S~)} \n      2.e2-e3 #\n   1...Bg8-c4 2.Rc1*c4 #\nbut 1...e4-e3 + !\n\n1.Rc1-c3 ?? threat:\n      2.Sa5*c6 #\n      2.e2-e3 #\n   1...Bg8-d5 {(S~)} \n      2.e2-e3 #\n   1...e4-e3 2.Sa5*c6 #\nbut 1...Bg8-c4 !\n\n1.Sb4-d5 ! threat:\n       2.Rc1-d1 #\n   1...Sc6*a5\n       2.Ba3-c5 #\n   1...Sc6-e5\n       2.Ba3-c5 #\n   1...Sc6-b4\n       2.Rc1-c4 #\n   1...Bg8*d5\n       2.Ba3-c5 #"
+  },
+  {
+    "id": "98",
+    "fen": "2r1r1q1/2np1bn1/8/1p3pB1/1Q4N1/3kp3/3p4/R2B2K1 w - - 0 1",
+    "key": "g5f6",
+    "keySan": "Bf6",
+    "authors": [
+      "Агеев, Геннадий Михайлович",
+      "Этмишев, Эдуард Артемьевич"
+    ],
+    "source": "Sakkélet",
+    "year": 1988,
+    "sourceUrl": "https://www.yacpdb.org/#98",
+    "solution": "1.Bg5-f6 ! threat:\n        2.Qb4-d4 #\n    1...Sc7-e6 {display-departure-file}\n        2.Sg4-e5 #\n    1...Sg7-e6 {display-departure-file}\n        2.Ra1-a3 #\n    1...Bf7-c4\n        2.Qb4-b1 #\n    1...Re8-e4\n        2.Qb4-c3 #\n    1...Re8-e5\n        2.Sg4*e5 #"
+  },
+  {
+    "id": "100",
+    "fen": "3B4/4RN2/3n4/3r1n2/5k2/5P2/5PK1/7R w - - 0 1",
+    "key": "e7e5",
+    "keySan": "Re5",
+    "authors": [
+      "Admiral, A. A."
+    ],
+    "source": "Manitoba Free Press",
+    "year": 1928,
+    "sourceUrl": "https://www.yacpdb.org/#100",
+    "solution": "1... Sd6*f7 {(Sd6~)} 2. Re7-e4#\n\n\n1.Re7-e5 ! threat:\n       2.Bd8-g5 #\n   1...Sf5-e3 +\n       2.f2*e3 #\n   1...Sf5-h4 + {(Se7)}\n       2.Rh1*h4 #\n   1...Sd6*f7 {(Se4)}\n       2.Re5-e4 #"
+  },
+  {
+    "id": "101",
+    "fen": "8/KN6/8/8/1k6/4B3/8/3Q4 w - - 0 1",
+    "key": "b7c5",
+    "keySan": "Nc5",
+    "authors": [
+      "Adolphi, Heinrich Leonhard"
+    ],
+    "source": "Austrums",
+    "year": 1892,
+    "sourceUrl": "https://www.yacpdb.org/#101",
+    "solution": "1. Qd1-c2? {- zugzwang}\n1... Kb4-a3 2. Be3-c5#\nbut 1... Kb4-b5!\n\n1.Sb7-c5 ! {- zugzwang}\n   1...Kb4-a3  {(Kc3)}\n       2.Qd1-b3 #\n   1...Kb4-a5 {(Kb5, Kc4)}\n       2.Qd1-a4 #"
+  },
+  {
+    "id": "102",
+    "fen": "5B2/8/2p5/5Q2/4N3/4k1p1/8/3K4 w - - 0 1",
+    "key": "e4f2",
+    "keySan": "Nf2",
+    "authors": [
+      "Adolphi, Heinrich Leonhard"
+    ],
+    "source": "Austrums",
+    "year": 1897,
+    "sourceUrl": "https://www.yacpdb.org/#102",
+    "solution": "1.Se4*g3 ? threat:\n       2.Bf8-c5 #\n but\n   1...Ke3-d4 !\n1.Se4-g5 ? threat:\n       2.Bf8-c5 #\n but\n   1...Ke3-d4 !\n1.Se4-f6 ? threat:\n       2.Bf8-c5 #\n but\n   1...Ke3-d4 !\n1.Se4-c3 ? threat:\n       2.Bf8-c5 #\n but\n   1...Ke3-d4 !\n1.Se4-d2 ? threat:\n       2.Bf8-c5 #\n but\n   1...Ke3-d4 !\n1.Se4-f2 ! threat:\n       2.Bf8-c5 #\n   1...Ke3-d4\n       2.Qf5-c5 #"
+  },
+  {
+    "id": "103",
+    "fen": "8/pkN5/4K3/8/Q1P5/8/8/8 w - - 0 1",
+    "key": "c7a6",
+    "keySan": "Na6",
+    "authors": [
+      "Adolphi, Heinrich Leonhard"
+    ],
+    "source": "Baltische Jugendschrift",
+    "year": 1899,
+    "sourceUrl": "https://www.yacpdb.org/#103",
+    "solution": "1.Sc7-a6 ! zugzwang.\n   1...Kb7-c8\n       2.Qa4-d7 #\n   1...Kb7-a8\n       2.Qa4-c6 #\n   1...Kb7-b6\n       2.Qa4-b5 #"
+  },
+  {
+    "id": "104",
+    "fen": "8/8/8/4Q3/8/6R1/2n1pkBK/8 w - - 0 1",
+    "key": "g3d3",
+    "keySan": "Rd3",
+    "authors": [
+      "Afek, Yochanan"
+    ],
+    "source": "L'Italia Scacchistica",
+    "year": 1978,
+    "sourceUrl": "https://www.yacpdb.org/#104",
+    "solution": "1.Qe5-c3 ? threat:\n2.Rg3-f3 # {[A]}\n1...e2-e1=Q {[a]}\n    2.Qc3-f3 # {[B]}\n1...e2-e1=S {[b]}\n    2.Qc3-d2 # {[C]}\n1...Sc2-e1\n2.Qc3-c5 #\n2.Qc3-e3 #\n2.Qc3-d4 #\nbut 1...Sc2-d4 !\n\n1.Rg3-d3 ! threat:\n2.Qe5-g3 #\n1...e2-e1=Q {[a]}\n2.Rd3-f3 # {[A]}\n1...e2-e1=S {[b]}\n2.Rd3-d2 # {[D]}"
+  },
+  {
+    "id": "105",
+    "fen": "k2K4/1R6/2P5/1P2R3/2P5/B2P4/Q7/q7 w - - 0 1",
+    "key": "d8c7",
+    "keySan": "Kc7",
+    "authors": [
+      "Afek, Yochanan"
+    ],
+    "source": "Probleemblad",
+    "year": 1980,
+    "sourceUrl": "https://www.yacpdb.org/#105",
+    "solution": "1.b5-b6 ? threat:\n       2.Re5-a5 #\n   1...Qa1*e5 {[a]} 2.Ba3-c5 # {[A]}\n   1...Qa1-d4 + {[b]} 2.Ba3-d6 # {[B]}\nbut 1...Qa1-c3 !\n\n1.Kd8-c7 ! threat:\n       2.Re5-e8 #\n   1...Qa1*e5 + {[a]}\n       2.Ba3-d6 # {[B]}\n   1...Qa1-d4 {[b]}\n       2.Ba3-c5 # {[A]}\n   1...Qa1-e1\n       2.Ba3-b4 #"
+  },
+  {
+    "id": "106",
+    "fen": "2N5/1n1NBBp1/rRn1Pp2/p3PkPP/p5R1/2p1KP2/2P5/1Q6 w - - 0 1",
+    "key": "b1b5",
+    "keySan": "Qb5",
+    "authors": [
+      "Afek, Yochanan"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1981,
+    "sourceUrl": "https://www.yacpdb.org/#106",
+    "solution": "1.Qb1-g1 ? threat:\n       2.Rg4-f4 # {[B]}\n   1...f6*g5 2.Rg4*g5 #\nbut 1...f6*e5 {[a]}!\n\n1.Qb1-a2 ? threat:\n      2.Bf7-g6 # {[A]}\n   1...Sc6*e7 2.Sc8*e7 #\nbut 1...Sc6*e5 {[b]}!\n\n1.Qb1-b5 ! threat:\n       2.Qb5-d3 #\n   1...Sc6*e5 {[b]}\n       2.Bf7-g6 # {[A]}\n   1...f6*e5 {[a]}\n       2.Rg4-f4 # {[B]}\n   1...Sc6-b4\n       2.Bf7-g6 #\n   1...Sb7-c5\n       2.Sc8-d6 #\n   1...Sb7-d6\n       2.Sc8*d6 #"
+  },
+  {
+    "id": "107",
+    "fen": "4bb2/RBpkPP1Q/R2q4/3N4/3n4/8/7B/3K4 w - - 0 1",
+    "key": "a7a8",
+    "keySan": "Ra8",
+    "authors": [
+      "Афонин, А. А."
+    ],
+    "source": "Шахматы в СССР",
+    "year": 1952,
+    "sourceUrl": "https://www.yacpdb.org/#107",
+    "solution": "1.Ra7-a8 ! threat:\n       2.Bb7-c8 #\n   1...Qd6*e7\n       2.f7*e8=Q #\n       2.f7*e8=B #\n   1...Qd6*d5\n       2.f7*e8=Q #\n       2.f7*e8=B #\n   1...Qd6*a6\n       2.e7*f8=S #\n   1...Qd6-b6\n       2.e7*f8=S #\n   1...Kd7-e6\n       2.e7*f8=S #\n   1...Be8*f7\n       2.e7-e8=Q #\n   1...Bf8*e7\n       2.f7-f8=S #"
+  },
+  {
+    "id": "108",
+    "fen": "8/8/6pp/2Q5/6k1/3K1R2/8/3B4 w - - 0 1",
+    "key": "c5e3",
+    "keySan": "Qe3",
+    "authors": [
+      "Агапов, Игорь Алексеевич"
+    ],
+    "source": "Ленінське плем’я",
+    "year": 1986,
+    "sourceUrl": "https://www.yacpdb.org/#108",
+    "solution": "1.Qc5-f2 ? zugzwang.\n   1...Kg4-h5 2.Rf3-f5 # \n   1...h6-h5 2.Qf2-g3 # \n   1...g6-g5 2.Rf3-e3 #\nbut 1...Kg4-g5 !\n\n1.Qc5-e3 ! zugzwang.\n   1...Kg4-h5\n       2.Rf3-h3 # \n   1...g6-g5\n       2.Rf3-f4 # {(Model mate)}\n   1...h6-h5\n       2.Qe3-f4 #\n   1...Kg4-h4\n       2.Rf3-h3 #"
+  },
+  {
+    "id": "112",
+    "fen": "5r1N/Q1p4B/n6R/8/2rP1k1K/8/1B3P2/3b2N1 w - - 0 1",
+    "key": "h6e6",
+    "keySan": "Re6",
+    "authors": [
+      "Агарков, Анатолий Яковлевич",
+      "Корнев, Сергей Алексеевич"
+    ],
+    "source": "Buletin Problemistic",
+    "year": 1973,
+    "sourceUrl": "https://www.yacpdb.org/#112",
+    "solution": "1.Rh6-e6 ! threat:\n       2.Re6-e4 #\n   1...Bd1-f3\n       2.Sg1-h3 #\n   1...Bd1-c2\n       2.Bb2-c1 #\n   1...Rc4*d4\n       2.Qa7*d4 #\n   1...Sa6-c5\n       2.Qa7*c7 #\n   1...Rf8-f5\n       2.Sh8-g6 #\n   1...Rf8-e8\n       2.Re6-f6 #"
+  },
+  {
+    "id": "113",
+    "fen": "6b1/8/4n3/4k3/1K5R/5Q1B/8/4B3 w - - 0 1",
+    "key": "h4d4",
+    "keySan": "Rd4",
+    "authors": [
+      "Ager, G. C."
+    ],
+    "source": "The Observer",
+    "year": 1956,
+    "sourceUrl": "https://www.yacpdb.org/#113",
+    "solution": "1.Rh4-d4 ! threat:\n       2.Rd4-d5 #\n   1...Ke5*d4\n       2.Be1-c3 #\n   1...Se6-c5\n       2.Qf3-f4 #\n   1...Se6*d4\n       2.Be1-g3 #\n   1...Se6-f4\n       2.Qf3*f4 #\n   1...Se6-g5\n       2.Qf3-f4 #\n   1...Se6-g7\n       2.Qf3-f4 #\n   1...Se6-f8\n       2.Qf3-f4 #\n   1...Se6-d8\n       2.Qf3-f4 #\n   1...Se6-c7\n       2.Qf3-f4 #"
+  },
+  {
+    "id": "114",
+    "fen": "B7/8/8/8/3k4/2p5/2KP3Q/8 w - - 0 1",
+    "key": "h2c7",
+    "keySan": "Qc7",
+    "authors": [
+      "Agnel, Hyacinth R."
+    ],
+    "source": "American Chess-Nuts",
+    "year": 1868,
+    "sourceUrl": "https://www.yacpdb.org/#114",
+    "solution": "1.Qh2-c7 ! threat:\n       2.Qc7*c3 #"
+  },
+  {
+    "id": "115",
+    "fen": "6K1/4Q3/3NP2p/4k3/Rb2Pp2/1bP4B/1n1n3B/3R4 w - - 0 1",
+    "key": "h2g1",
+    "keySan": "Bg1",
+    "authors": [
+      "Agostini, Valerio"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1982,
+    "sourceUrl": "https://www.yacpdb.org/#115",
+    "solution": "1...Sd2*e4 {[a]} 2.Sd6-f7 # {[A]}\n1...Bb4*d6 {[b]} 2.Qe7-g7 # {[B]}\n\n1.Ra4-a6 ? threat:\n      2.Qe7-g7 # {[B]}\n   1...Sd2*e4 {[a]} 2.Sd6-f7 # {[A]}\nbut 1...Bb4*d6 {[b]} !\n\n1.Rd1-e1 ? threat:\n      2.Sd6-f7 # {[A]}\n   1...Bb4*d6 {[b]} 2.Qe7-g7 # {[B]}\nbut 1...Sd2*e4 {[a]} !\n\n1.Bh2-g1 ! threat:\n       2.Bg1-d4 #\n   1...Sd2*e4 {[a]}\n       2.Sd6-f7 # {[A]}\n   1...Bb4*d6 {[b]}\n       2.Qe7-g7 # {[B]}\n   1...Sd2-f3\n       2.Qe7-g7 # {[B]}\n   1...Bb3*e6 +\n       2.Qe7*e6 #\n   1...Bb4*c3\n       2.Sd6-f7 # {[A]}\n   1...Bb4-c5\n       2.Sd6-f7 # {[A]}\n   1...f4-f3\n       2.Bg1-h2 #"
+  },
+  {
+    "id": "116",
+    "fen": "6K1/8/5RP1/6Np/2N3kq/7R/5PP1/1B6 w - - 0 1",
+    "key": "g5e6",
+    "keySan": "Ne6",
+    "authors": [
+      "Ahlberg, Ragnar"
+    ],
+    "source": "Tidskrift för Schack",
+    "year": 1968,
+    "sourceUrl": "https://www.yacpdb.org/#116",
+    "solution": "1.Sg5-e6 ! threat:\n       2.Rf6-f4 #\n       2.Sc4-e3 #\n       2.Sc4-e5 #\n       2.f2-f3 #\n       2.Bb1-f5 #\n   1...Qh4*f2\n       2.Sc4-e5 #\n   1...Qh4-g3\n       2.Bb1-f5 #\n   1...Qh4*f6\n       2.Sc4-e3 #\n   1...Qh4-g5\n       2.f2-f3 #\n   1...Qh4*h3\n       2.Rf6-f4 #"
+  },
+  {
+    "id": "117",
+    "fen": "1R2B1Q1/5r2/N2k4/5P2/5P2/6N1/8/6K1 w - - 0 1",
+    "key": "e8b5",
+    "keySan": "Bb5",
+    "authors": [
+      "Ahlbom, Adolf Leonard"
+    ],
+    "source": "Hemvånnen",
+    "year": 1889,
+    "sourceUrl": "https://www.yacpdb.org/#117",
+    "solution": "1.Qg8-f8 + ?\n   1...Kd6-d5\n       2.Qf8-c5 #\n   1...Rf7-e7\n       2.Rb8-d8 #\n but\n   1...Rf7*f8 !\n1.Be8-b5 ! zugzwang.\n   1...Kd6-e7\n       2.Qg8-d8 #\n   1...Kd6-d5\n       2.Rb8-d8 #\n   1...Rf7*f5\n       2.Sg3*f5 #\n   1...Rf7-f6\n       2.Qg8-d8 #\n   1...Rf7-e7\n       2.Rb8-b6 #\n   1...Rf7-a7 {(R~7)}\n       2.Qg8-e6 #"
+  },
+  {
+    "id": "118",
+    "fen": "5R2/8/4P1pp/QBK3k1/3P2pr/7p/8/8 w - - 0 1",
+    "key": "c5d6",
+    "keySan": "Kd6",
+    "authors": [
+      "Ahlheim, Karl-Heinz"
+    ],
+    "source": "stella polaris",
+    "year": 1967,
+    "sourceUrl": "https://www.yacpdb.org/#118",
+    "solution": "1.Kc5-b4 ? threat:\n        2.Bb5-a4 # {(B~ )}\n  but\n    1...h6-h5 !\n\n1.Kc5-b6 ? threat:\n        2.Bb5-a4 # {(B~ )}\n  but\n    1...Rh4-h5 !\n\n1.Kc5-c4 ? threat:\n        2.Bb5-a4 # {(B~ )}\n  but\n    1...g4-g3 !\n\n1.Kc5-c6 ? threat:\n        2.Bb5-a4 # {(B~ )}\n  but\n    1...Kg5-h5 !\n\n1.Kc5-d6 ! threat:\n        2.Bb5-a4 # {(B~ )}\n    1...g4-g3\n        2.Bb5-e2 #\n    1...Rh4-h5\n        2.Qa5-d8 #\n    1...Kg5-h5\n        2.Bb5-e8 #\n    1...h6-h5\n        2.Qa5-d2 #"
+  },
+  {
+    "id": "120",
+    "fen": "3Rn3/8/4kP1N/K2pp2N/3R4/B7/2B3r1/1b1Q2n1 w - - 0 1",
+    "key": "d4f4",
+    "keySan": "Rf4",
+    "authors": [
+      "Ahlheim, Karl-Heinz"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1975,
+    "sourceUrl": "https://www.yacpdb.org/#120",
+    "solution": "1.Rd4-a4 ? {(Rh4?)} threat:\n        2.Qd1*d5 #\n  but\n    1...Se8*f6 !\n\n1.Rd4-b4 ? threat:\n        2.Qd1*d5 #\n   1...Se8*f6\n      2.Rb4-b6 #\n  but\n    1...Se8-d6 ! {(2.Rxd6?)}\n\n1.Rd4-c4 ? threat:\n        2.Qd1*d5 #\n   1...Se8*f6\n      2.Rc4-c6 #\n  but\n    1...d5-d4 ! {(2.Bb3?)}\n \n1.Rd4-g4 ? threat:\n        2.Qd1*d5 #\n   1...Se8*f6\n      2.Sh5-g7 #\n  but\n    1...Rg2-d2 ! {(Qg4?)}\n\n  1.Rd4-e4 ? threat:\n        2.Qd1*d5 #\n     1...Se8*f6\n        2.Sh5-f4 #\n  but\n    1...Bb1-a2 ! {(Bf5?)}\n\n1.Rd4-f4 ! threat:\n        2.Qd1*d5 #\n    1...Se8*f6\n        2.Rf4*f6 #\n    1...Se8-d6 {(Sc7)}\n        2.Rd8*d6 #\n    1...d5-d4\n        2.Bc2-b3 #\n    1...Rg2-d2\n        2.Qd1-g4 #\n    1...Bb1-a2\n        2.Bc2-f5 #"
+  },
+  {
+    "id": "121",
+    "fen": "8/3p3p/qR1bk1p1/r2n2B1/4NQ2/3r1p2/B3N1PK/8 w - - 0 1",
+    "key": "g2g3",
+    "keySan": "g3",
+    "authors": [
+      "Ahmels, Christian"
+    ],
+    "source": "Deutsche Schachblätter",
+    "year": 1986,
+    "sourceUrl": "https://www.yacpdb.org/#121",
+    "solution": "1.Se4-g3 ?? {display-departure-rank} threat:\n      2.Qf4-f6 #\n   1...Rd3-b3 2.Se2-d4 #\n   1...Qa6-c4 2.Rb6*d6 #\nbut 1...Ra5*a2 !\n\n1.Se2-g3 ?? {display-departure-rank} threat:\n      2.Qf4-f6 #\n   1...Ra5*a2 2.Se4-c5 #\n   1...Qa6-c4 2.Rb6*d6 #\nbut 1...Rd3-b3 ! \n\n1.Se4*d6 ?? threat:\n      2.Qf4-f6 #\n      2.Qf4-e4 #\n   1...Rd3-d4 \n      2.Qf4-f6 #\n      2.Se2*d4 #\n   1...Rd3-b3 \n      2.Se2-d4 #\n      2.Qf4-e4 #\n   1...Rd3-e3 \n      2.Se2-d4 #\n      2.Qf4-f6 #\n      2.Qf4*e3 #\n   1...Ra5-a4 {(Qxb6)} \n      2.Qf4-f6 #\n   1...Ra5*a2 \n      2.Qf4-e4 #\nbut 1...Qa6-c4 !\n\n1.g2-g3 ! threat:\n       2.Qf4-f6 #\n   1...Rd3-b3\n       2.Se2-d4 #\n   1...Ra5*a2\n       2.Se4-c5 #\n   1...Qa6-c4\n       2.Rb6*d6 #"
+  },
+  {
+    "id": "123",
+    "fen": "7K/p2Q1p2/4nN1p/1Pp5/2k2qR1/R2NpP2/4n2r/8 w - - 0 1",
+    "key": "f6d5",
+    "keySan": "Nd5",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Deutsche Schachblätter",
+    "year": 1938,
+    "sourceUrl": "https://www.yacpdb.org/#123",
+    "solution": "1.Sf6-d5 ! threat:\n       2.Sd5*e3 #\n   1...Se2-d4 {display-departure-rank}\n       2.Ra3-c3 #\n   1...Se6-d4 {display-departure-rank}\n       2.Sd3-b2 #\n   1...Kc4-d4\n       2.Sd5-b6 #\n   1...Qf4-d4 +\n       2.Sd3-e5 #"
+  },
+  {
+    "id": "125",
+    "fen": "5N2/1P5B/2n1P2R/1bP1k1K1/4Pp2/2prn3/Q1N1R3/6B1 w - - 0 1",
+    "key": "c2e1",
+    "keySan": "Ne1",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Vårt Hem",
+    "year": 1939,
+    "sourceUrl": "https://www.yacpdb.org/#125",
+    "solution": "1.Sc2-e1 ! threat:\n       2.Se1-f3 #\n   1...Se3-c2 {(Se~)}\n       2.Sf8-g6 #\n   1...Se3-d5\n       2.Sf8-d7 #\n   1...Se3-c4\n       2.Se1*d3 #\n   1...Ke5-d4\n       2.Qa2-d5 #\n   1...Sc6-d4\n       2.b7-b8=Q #\n       2.b7-b8=B #"
+  },
+  {
+    "id": "126",
+    "fen": "B7/B1nRQ2P/2r1n2K/1q4p1/2N1k1P1/3Nb3/4P3/8 w - - 0 1",
+    "key": "e7f7",
+    "keySan": "Qf7",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Mitteldeutsche Zeitung",
+    "year": 1939,
+    "sourceUrl": "https://www.yacpdb.org/#126",
+    "solution": "1.Qe7-f7 ! threat:\n       2.Qf7-f3 #\n   1...Se6-d4 + {(S~+)}\n       2.Sc4-d6 #\n   1...Se6-c5 +\n       2.Qf7-g6 #\n   1...Be3-f4\n       2.Sd3-f2 #\n   1...Qb5-f5\n       2.Qf7*f5 #"
+  },
+  {
+    "id": "129",
+    "fen": "2Rn1B2/8/r6q/b1NP1B1p/8/Q6r/pnNk1P2/K3R2b w - - 0 1",
+    "key": "f2f3",
+    "keySan": "f3",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Chess",
+    "year": 1948,
+    "sourceUrl": "https://www.yacpdb.org/#129",
+    "solution": "1.f2-f3 ! threat:\n       2.Sc5-b3 #\n       2.Sc5-e4 #\n   1...Bh1*f3\n       2.Sc5-b3 #\n   1...Rh3*f3\n       2.Sc5-e4 #\n   1...Rh3-h4\n       2.Sc5-b3 #\n   1...Sb2-c4\n       2.Qa3-d3 #\n   1...Ba5-c3\n       2.Sc5-b3 #\n   1...Ba5-c7\n       2.Qa3-b4 #\n   1...Ra6-e6\n       2.Sc5-b3 #\n       2.Qa3*a5 #\n   1...Ra6-c6\n       2.Qa3*a5 #\n   1...Ra6-b6\n       2.Sc5-e4 #\n   1...Qh6-e3\n       2.Qa3*e3 #\n   1...Qh6-f4\n       2.Sc5-b3 #\n   1...Qh6-b6\n       2.Sc5-e4 #\n       2.Qa3-e3 #\n   1...Qh6-c6\n       2.Qa3-e3 #\n   1...Qh6-e6\n       2.Sc5-b3 #\n   1...Sd8-c6\n       2.Bf8*h6 #"
+  },
+  {
+    "id": "131",
+    "fen": "8/2pbKp2/1p6/1r2k3/1r1NP2R/2P3p1/1N1B1n1n/Q7 w - - 0 1",
+    "key": "a1e1",
+    "keySan": "Qe1",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1950,
+    "sourceUrl": "https://www.yacpdb.org/#131",
+    "solution": "1.Qa1-a8 ? threat: \n       2.Bd2-f4 #\n   1...Rb5-d5 2.Qa8*d5 #\n   1...c7-c6 2.Qa8-b8 #\nbut 1...Bd7-g4 ! {(2.Sc6?)}\n\n1.Qa1-b1 ? threat:\n      2.Bd2-f4 # \nbut 1...Sf2-g4 ! {display-departure-file} {(2.Sd3?)}\n\n1.Qa1-h1 ? threat:\n      2.Bd2-f4 #\n   1...g3-g2 2.Qh1*h2 #\nbut 1...Sh2-g4 ! {display-departure-file} {(2.Sf3?)}\n\n1.Qa1-e1 ! threat:\n       2.Bd2-f4 #\n   1...Sf2-g4 {display-departure-file}\n       2.Sb2-d3 #\n   1...Sh2-g4 {display-departure-file}\n       2.Sd4-f3 #\n   1...Bd7-g4\n       2.Sd4-c6 #\n   1...Sf2-h3\n       2.Sb2-d3 #\n   1...Sf2*e4\n       2.Qe1*e4 #\n   1...Sf2-d3\n       2.Sb2*d3 #"
+  },
+  {
+    "id": "133",
+    "fen": "2BR4/7p/r3p3/1n1r1PQK/4kNN1/6p1/qn1R2Pb/Bb6 w - - 0 1",
+    "key": "f4h3",
+    "keySan": "Nh3",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Schackklubben Kamraterna",
+    "year": 1949,
+    "sourceUrl": "https://www.yacpdb.org/#133",
+    "solution": "1.Sf4-e2 ? threat:\n       2.Qg5-f4 #\nbut 1...Rd5*f5 !\n\n1.Sf4-h3 ! threat:\n       2.Qg5-f4 #\n   1...e6-e5\n       2.Qg5-e3 # {2.Sf6#?}\n   1...Sb2-d3\n       2.Sg4-f6 # {2.Re2#?}\n   1...Rd5*f5\n       2.Rd2-e2 # {2.Qe3#?}"
+  },
+  {
+    "id": "135",
+    "fen": "1br1r3/3B4/5Bb1/3k3p/1PN5/1P1P1K2/3R2N1/7Q w - - 0 1",
+    "key": "h1a1",
+    "keySan": "Qa1",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Lippische Landeszeitung",
+    "year": 1949,
+    "sourceUrl": "https://www.yacpdb.org/#135",
+    "solution": "1.Qh1-h4 ? threat:\n       2.Qh4-d4 #\nbut 1...Re8-e5 ! 2.Sg2-f4 ?\n\n1.Qh1-g1 ? threat:\n      2.Qg1-d4 #\nbut 1...Bb8-e5 ! 2.Sg2-e3 ? {display-departure-file}\n\n1.Qh1-a1 ! threat:\n       2.Qa1-d4 #\n   1...Re8-e5\n       2.Sg2-f4 #\n   1...Bb8-e5\n       2.Sg2-e3 # {display-departure-file}{\n   }1...Bg6-e4 +\n       2.d3*e4 #\n   1...Re8-e4\n       2.d3*e4 #\n   1...Rc8*c4\n       2.d3*c4 #\n   1...Bb8-a7\n       2.Sg2-f4 #\n   1...Re8-e3 +\n       2.Sg2*e3 # {display-departure-file}"
+  },
+  {
+    "id": "137",
+    "fen": "q7/3p4/3b4/2n4R/pQ1n1kB1/K1R5/5N1P/1b6 w - - 0 1",
+    "key": "c3g3",
+    "keySan": "Rg3",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Tidskrift för Schack",
+    "year": 1949,
+    "sourceUrl": "https://www.yacpdb.org/#137",
+    "solution": "1.Rc3-g3 ! threat:\n       2.Qb4-d2 #\n   1...Sc5-b3 {(Sc5~)}\n       2.Qb4*d6 #\n   1...Sc5-b7 !\n       2.Rg3-f3 #\n   1...Sc5-d3 !\n       2.Rh5-f5 #\n   1...Sc5-e4 !!\n       2.Sf2-h3 #\n   1...Qa8-f3 +\n       2.Rg3*f3 #\n   1...Qa8-e4\n       2.Sf2-h3 #\n   1...Qa8-a5\n       2.Rg3-f3 #\n   1...Qa8-e8\n       2.Rg3-f3 #\n   1...Bb1-f5\n       2.Rh5*f5 #"
+  },
+  {
+    "id": "145",
+    "fen": "1r1n1r2/3R4/2ppp3/3k4/3P4/2pK1p2/3N4/3Bbn2 w - - 0 1",
+    "key": "d2e4",
+    "keySan": "Ne4",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Le Courrier des Échecs",
+    "year": 1956,
+    "sourceUrl": "https://www.yacpdb.org/#145",
+    "solution": "1.Sd2-c4 ? threat:\n       2.Rd7*d6 #\n   1...Sd8-f7 2.Bd1*f3 #\n   1...Sd8-b7 2.Sc4-b6 #\nbut 1...Be1-g3 !\n\n1.Sd2-e4 ! threat:\n       2.Rd7*d6 #\n   1...Sd8-f7\n       2.Se4-f6 #\n   1...Sd8-b7\n       2.Bd1-b3 #\n   1...Be1-g3\n       2.Se4*c3 #"
+  },
+  {
+    "id": "149",
+    "fen": "8/5p2/3p1p1R/bn1Qpk2/1rN1rppK/3R1N2/1B6/1B5b w - - 0 1",
+    "key": "c4e5",
+    "keySan": "Ncxe5",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Arbejder-Skak",
+    "year": 1960,
+    "sourceUrl": "https://www.yacpdb.org/#149",
+    "solution": "1.Bb2*e5 ? threat:\n       2.Rh6*f6 #\n   1...Re4*e5 2.Rd3-b3 #\nbut 1...Ba5-d8 !\n\n1.Sf3*e5 ? threat:\n      2.Rh6-h5 #\n   1...Re4*e5 2.Rd3-f3 #\nbut 1...f4-f3 !\n\n1.Sc4*e5 ! threat:\n       2.Rh6-h5 #\n   1...Re4*e5\n       2.Rd3-d4 #\n   1...d6*e5\n       2.Qd5-d7 #\n   1...f6*e5\n       2.Qd5*f7 #"
+  },
+  {
+    "id": "154",
+    "fen": "8/4N3/B4p2/3P2P1/4k3/7n/pBprN1KQ/3rR3 w - - 0 1",
+    "key": "h2d6",
+    "keySan": "Qd6",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Arbejder-Skak",
+    "year": 1961,
+    "sourceUrl": "https://www.yacpdb.org/#154",
+    "solution": "1.g5*f6 ? threat:\n       2.Qh2-e5 #\nbut 1...Rd2*d5 ! \n\n1.Bb2*f6 ? threat:\n      2.Qh2-e5 #\n   1...Rd2*d5 2.Se2-c3 #\nbut 1...a2-a1=Q !\n\n1.Qh2-d6 ! threat:\n       2.Qd6-e6 #\n   1...Rd2*d5\n       2.Se2-g3 #\n   1...Rd2*e2 +\n       2.Re1*e2 #\n   1...Sh3*g5\n       2.Qd6-f4 #\n   1...Sh3-f4 +\n       2.Qd6*f4 #"
+  },
+  {
+    "id": "155",
+    "fen": "8/3p1Br1/3p4/1R3P2/r3k3/1R5N/N1p1P3/QbK2n1n w - - 0 1",
+    "key": "a1f6",
+    "keySan": "Qf6",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Schweizerische Arbeiter-Schachzeitung",
+    "year": 1961,
+    "sourceUrl": "https://www.yacpdb.org/#155",
+    "solution": "1.Rb3-f3 ? threat:\n       2.Bf7-d5 #\n   1...Sf1-e3 2.Rf3-f4 #\n   1...Ra4-d4 2.Sa2-c3 #\n   1...Rg7*f7 2.Sh3-g5 #\nbut 1...Bb1*a2 !\n\n1.Qa1-f6 ! threat:\n       2.Bf7-d5 #\n   1...Sf1-e3\n       2.Sa2-c3 #\n   1...Ra4-d4\n       2.Qf6-e7 #\n   1...Rg7*f7\n       2.Qf6-h4 #"
+  },
+  {
+    "id": "179",
+    "fen": "2q1r3/2pb3R/p7/r2NQ1B1/p4N2/6k1/KR3b2/3Bn3 w - - 0 1",
+    "key": "d5e3",
+    "keySan": "Ne3",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "British Chess Federation",
+    "year": 1964,
+    "sourceUrl": "https://www.yacpdb.org/#179",
+    "solution": "1.Sd5-e3 ! threat:\n       2.Se3-f1 #\n   1...Se1-f3\n       2.Sf4-e2 #\n   1...Bf2*e3\n       2.Bg5-h4 #\n   1...Bd7-b5\n       2.Sf4-e6 #\n   1...Bd7-h3\n       2.Sf4-h5 #\n   1...Bd7-e6 +\n       2.Sf4-d5 #"
+  },
+  {
+    "id": "189",
+    "fen": "3Q4/8/1b2q3/3bN3/1BR3p1/Kp2P2p/5P2/3k1B1R w - - 0 1",
+    "key": "c4e4",
+    "keySan": "Re4",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1969,
+    "sourceUrl": "https://www.yacpdb.org/#189",
+    "solution": "1.e3-e4 ?? threat:\n       2.Bf1-d3 #\nbut 1...Bb6*f2 !\n\n1.f2-f3 ?? threat:\n      2.Bf1-d3 #\nbut 1...Bb6*e3 !\n\n1.Se5-f3 ?? threat:\n      2.Bf1-d3 #\nbut 1...Qe6*e3 !\n\n1.Rh1-g1 ?? threat:\n      2.Bf1-d3 #\nbut 1...h3-h2 !\n\n1.Rc4-e4 ! threat:\n       2.Bf1-d3 #"
+  },
+  {
+    "id": "195",
+    "fen": "4bR2/2p5/5N1K/3P1kP1/2Np2R1/4p1P1/1q2n1rb/3B1r1Q w - - 0 1",
+    "key": "g4e4",
+    "keySan": "Re4",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Schweizerische Arbeiter-Schachzeitung",
+    "year": 1970,
+    "sourceUrl": "https://www.yacpdb.org/#195",
+    "solution": "1.g5-g6 ? threat: \n       2.Rg4-g5 #\n   1...Rg2*g3 2.Qh1-e4 #\n   1...Se2*g3 2.Sf6*e8 #\n   1...Bh2*g3 2.Qh1-h5 #\nbut 1...Be8-f7 !\n\n1.Rg4-e4 ! threat:\n       2.Re4-e5 #\n   1...Rg2*g3\n       2.Sf6*e8 #\n   1...Se2*g3\n       2.Bd1-g4 #\n   1...Bh2*g3\n       2.Qh1-h3 #\n   1...d4-d3\n       2.Sc4*e3 #"
+  },
+  {
+    "id": "198",
+    "fen": "1nR1K2B/4N3/3kP3/2NBR3/2P1p2p/2r4q/1r5p/1bn5 w - - 0 1",
+    "key": "d5a8",
+    "keySan": "Ba8",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Schweizerische Arbeiter-Schachzeitung",
+    "year": 1971,
+    "sourceUrl": "https://www.yacpdb.org/#198",
+    "solution": "1.Re5-h5 ? {(Re~)} threat:\n       2.Bh8-e5 #\nbut 1...Qh3*e6 ! \n\n1.Re5-f5 ? threat: \n      2.Bh8-e5 #\nbut 1...Qh3-g3 !\n\n1.Re5*e4 ? threat:\n      2.Bh8-e5 #\nbut 1...Sc1-d3 !\n\n1.Bd5*e4 ? threat:\n      2.Re5-d5 #\nbut 1...Rc3-d3 !\n\n1.Bd5-c6 ? threat:\n      2.Re5-d5 #\nbut 1...Qh3*e6 !\n\n1.Bd5-b7 ? threat:\n      2.Re5-d5 #\nbut 1...Rb2-d2 !\n\n1.Bd5-a8 ! threat:\n       2.Re5-d5 #\n   1...Rb2-d2\n       2.Sc5-b7 #\n   1...Rc3-d3\n       2.Sc5*e4 #\n   1...Qh3*e6\n       2.Re5*e6 #\n   1...Qh3-f5\n       2.Se7*f5 #\n   1...Qh3-d3\n       2.Se7-f5 #"
+  },
+  {
+    "id": "212",
+    "fen": "1R6/3pr3/p2N2R1/kN1p3p/6nQ/K3p3/4prq1/3b4 w - - 0 1",
+    "key": "b5a7",
+    "keySan": "Na7",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1976,
+    "sourceUrl": "https://www.yacpdb.org/#212",
+    "solution": "1...a6*b5 2.Sd6-b7 #\n\n1.Sb5-c3 ? threat:\n      2.Sd6-b7 #\nbut 1...Rf2-f6 !\n1.Sb5-d4 ? threat:\n      2.Sd6-b7 #\nbut 1...Sg4-f6 !\n1.Sb5-c7 ? threat:\n      2.Sd6-b7 #\nbut 1...Re7-e6 !\n\n1.Sb5-a7 ! threat:\n       2.Sd6-b7 #\n   1...Rf2-f6\n       2.Qh4-e1 #\n   1...Sg4-f6\n       2.Qh4-b4 #\n   1...Re7-e6\n       2.Qh4-d8 #\n   1...d5-d4\n       2.Sd6-c4 #"
+  },
+  {
+    "id": "227",
+    "fen": "3NR2B/qpb2p2/Qp6/3p1k1K/2p2p2/5p2/3N3n/r7 w - - 0 1",
+    "key": "d8c6",
+    "keySan": "Nc6",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Deutsche Schachzeitung",
+    "year": 1980,
+    "sourceUrl": "https://www.yacpdb.org/#227",
+    "solution": "1.Sd2-b3 ? threat: \n       2.Sb3-d4 #\n   1...b7-b5 2.Qa6-f6 #\n   1...c4*b3 2.Qa6-d3 #\nbut 1...Ra1-d1 !\n\n1.Sd8-e6 ? threat: \n      2.Se6-d4 #\n   1...b7-b5 2.Se6-g7 #\n   1...f7*e6 2.Re8-f8 #\nbut 1...Bc7-e5 !\n\n\n1.Sd8-c6 ! threat:\n       2.Sc6-d4 #\n   1...b6-b5\n       2.Sc6-e7 #\n   1...b7*c6\n       2.Qa6-c8 #\n   1...Bc7-e5\n       2.Re8*e5 #"
+  },
+  {
+    "id": "247",
+    "fen": "3R4/2K1p3/2p2P2/4k1P1/N5Qn/2Npr3/B2p2n1/5q2 w - - 0 1",
+    "key": "a4b6",
+    "keySan": "Nb6",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Schach-Aktiv",
+    "year": 1985,
+    "sourceUrl": "https://www.yacpdb.org/#247",
+    "solution": "1.Sa4-b2 ? threat:\n       2.Sb2-c4 #\nbut 1...Sh4-f5 !\n1.Sa4-c5 ? threat:\n      2.Sc5-d7 #\nbut 1...Sg2-f4 !\n\n1.Sa4-b6 ! threat:\n       2.Sb6-c4 #\n       2.Sb6-d7 #\n   1...Sh4-f5\n       2.Sb6-d7 #\n   1...Sg2-f4\n       2.Sb6-c4 #\n   1...Qf1-f4\n       2.Qg4-e6 #\n   1...Re3-e4\n       2.Qg4*e4 #\n   1...Qf1-f5\n       2.Qg4-d4 #"
+  },
+  {
+    "id": "251",
+    "fen": "5n2/1pR5/1Rq2p2/N2kPB2/1Pp2p2/2Q2P1K/8/2n5 w - - 0 1",
+    "key": "c7e7",
+    "keySan": "Re7",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Thema Danicum",
+    "year": 1986,
+    "sourceUrl": "https://www.yacpdb.org/#251",
+    "solution": "1.Rc7-e7 ! threat:\n       2.Bf5-e4 #\n   1...Qc6-d7\n       2.Qc3*c4 #\n   1...Qc6-c8\n       2.Rb6-d6 #\n   1...Qc6-e6\n       2.Rb6-b5 #\n   1...f6*e5\n       2.Qc3*e5 #"
+  },
+  {
+    "id": "256",
+    "fen": "7B/1pr1p3/5R1b/1Qp1r3/3k1pN1/3p1B2/1K2p2N/8 w - - 0 1",
+    "key": "f3d5",
+    "keySan": "Bd5",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Schach-Echo",
+    "year": 1988,
+    "sourceUrl": "https://www.yacpdb.org/#256",
+    "solution": "1.Bf3-e4 ? threat:\n       2.Qb5*d3 # {[A]}\n   1...Kd4*e4 {[a]} 2.Qb5-c4 # {[B]}\n   1...Re5*e4 2.Rf6-d6 #\n   1...c5-c4 2.Qb5*e5 #\nbut 1...e2-e1=S !\n\n1.Bf3-d5 ! threat:\n       2.Qb5-c4 # {[B]}\n   1...Kd4*d5 {[b]}\n       2.Qb5*d3 # {[A]}\n   1...c5-c4\n       2.Sh2-f3 #\n   1...Re5*d5\n       2.Rf6*f4 #"
+  },
+  {
+    "id": "264",
+    "fen": "1B1R4/8/2q2r2/4N3/1bp1p2R/1n2k2p/1Q2Np2/5BnK w - - 0 1",
+    "key": "e2d4",
+    "keySan": "Nd4",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1992,
+    "sourceUrl": "https://www.yacpdb.org/#264",
+    "solution": "1.Se2-d4 ! threat:\n       2.Se5-g4 #\n       2.Sd4-c2 #\n   1...Qc6-d6\n       2.Se5*c4 #\n   1...Rf6-d6\n       2.Sd4-f5 #\n   1...Bb4-d6\n       2.Qb2-c3 #\n   1...Sg1-e2\n       2.Sd4-c2 #\n       2.Qb2*e2 #\n   1...Sb3-a1\n       2.Se5-g4 #\n   1...Sb3*d4\n       2.Qb2*d4 #\n   1...Qc6-d5\n       2.Se5-g4 #\n   1...Qc6-d7\n       2.Se5*c4 #\n   1...Qc6-c8 {(Qc7, Qe6)}\n       2.Sd4-c2 #\n   1...Rf6-f4\n       2.Sd4-c2 #\n   1...Rf6-g6\n       2.Sd4-c2 #\n       2.Sd4-f5 #"
+  },
+  {
+    "id": "274",
+    "fen": "3R2K1/8/4p2p/nQ2NpnB/3PkB2/1p1NP3/2r4p/1b3R2 w - - 0 1",
+    "key": "e5d7",
+    "keySan": "Nd7",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1996,
+    "sourceUrl": "https://www.yacpdb.org/#274",
+    "solution": "1.Bh5-e2 ? threat:\n      2.Sd3-f2 # {[A]}\n   1...Rc2*e2 {[b]} 2.Sd3-c5 # {[B]}\n   1...Sg5-h3 2.Be2-f3 #\nbut 1...h2-h1=S !\n\n1.Qb5-c4 ? threat:\n      2.Sd3-c5 # {[B]}\n   1...Rc2*c4 {[a]} 2.Sd3-f2 # {[A]}\nbut 1...Sa5-b7 !\n\n1.Se5-g4 ? threat:\n      2.Sg4-f6 #\n   1...Rc2-c4 {[a]} 2.Sg4-f2 # {display-departure-file} {[C]}\n   1...Sa5-c4 {[c]} 2.Sd3-c5 # {[B]}\n   1...f5*g4 2.Bh5-g6 #\nbut 1...Sg5-h7 !\n\n1.Se5-d7 ! threat:\n       2.Sd7-f6 #\n   1...Rc2-c4\n       2.Sd3-f2 #\n   1...Sa5-c4\n       2.Sd7-c5 #\n   1...Sg5-h7\n       2.Bh5-f3 #"
+  },
+  {
+    "id": "279",
+    "fen": "5B2/2pKR2b/6p1/p1kN2nP/P1P3Rn/4P1b1/B1N5/5r2 w - - 0 1",
+    "key": "c2d4",
+    "keySan": "Nd4",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Scacco!",
+    "year": 1997,
+    "sourceUrl": "https://www.yacpdb.org/#279",
+    "solution": "1.Rg4-f4 ? threat:\n       2.Re7-e6 #\n       2.Re7-e5 # {[B]}\n       2.Re7-e4 # {display-departure-file}\n       2.Re7-e8 # \n       2.Re7-f7 #\n       2.Re7-g7 #\n       2.Re7*h7 #\n   1...Rf1*f4 2.Re7-f7 # {[A]}\n   1...Bg3*f4 2.Re7-e5 # {[B]}\n   1...Sg5-e4 2.Re7*e4 # {display-departure-file}\n   1...Sg5-e6 2.Re7*e6 #\nbut 1...Sh4-f5 !\n\n1.Sc2-e1 ? threat:\n      2.Se1-d3 #\n   1...Rf1*e1 2.Re7-e5 # {[B]}\n   1...Bg3*e1 2.Re7-f7 # {[A]}\nbut 1...g6*h5 !\n\n1.Sc2-a1 ? threat:\n      2.Sa1-b3 #\nbut 1...Sg5-e4 !\n\n1.Sc2-d4 ! threat:\n       2.Sd4-b3 #\n   1...Rf1-b1\n       2.Re7-e5 # {[B]}\n   1...Rf1-f4\n       2.Re7-f7 # {[A]}\n   1...Bg3-f4\n       2.Re7-e5 # {[B]}\n   1...Sg5-e4\n       2.Sd4-e6 #"
+  },
+  {
+    "id": "281",
+    "fen": "n2N2b1/3Q4/r2ppP2/3Pk1P1/1p4K1/6n1/3R2B1/b3N3 w - - 0 1",
+    "key": "d7a7",
+    "keySan": "Qa7",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Troll",
+    "year": 1991,
+    "sourceUrl": "https://www.yacpdb.org/#281",
+    "solution": "1.Qd7-h7 ? threat:\n       2.Se1-f3 # {[B]}\n   1...Ba1-d4 {[a]} 2.Se1-d3 # {[A]}\n   1...Bg8*h7 2.Sd8-f7 #\nbut 1...Sg3-f5 !\n\n1.Qd7-a7 ! threat:\n       2.Se1-d3 # {[A]}\n   1...Sg3-e4 {[b]}\n       2.Se1-f3 # {[B]}\n   1...Ra6-a3\n       2.Sd8-c6 #\n   1...Ra6*a7\n       2.Sd8-c6 #\n   1...Ra6-b6\n       2.Qa7*a1 #\n   1...Sa8-b6\n       2.Sd8-c6 #\n   1...Bg8-h7\n       2.Sd8-f7 #"
+  },
+  {
+    "id": "282",
+    "fen": "6b1/1n2K2n/4R1P1/1r1kN3/4NpQp/1P2p3/2B4q/B7 w - - 0 1",
+    "key": "e5d7",
+    "keySan": "Nd7",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Troll",
+    "year": 1993,
+    "sourceUrl": "https://www.yacpdb.org/#282",
+    "solution": "1.Se5-f7 ? threat:\n       2.Qg4-f5 #\nbut 1...f4-f3 {[b]}!\n\n1.Se5-f3 ? threat:\n      2.Qg4-f5 #\nbut 1...Qh2-h3 {[a]} !\n\n1.Se5-d3 ? threat:\n      2.Qg4-f5 #\n   1...Qh2-h3 {[a]} 2.Sd3*f4 # {[B]}\n   1...f4-f3 {[b]} 2.Se4-c3 # {[C]}\nbut 1...Sb7-d6 !\n\n1.Se5-c4 ? threat:\n      2.Qg4-f5 #\n   1...Qh2-h3 {[a]} 2.Qg4-d1 # {[A]}\n   1...f4-f3 {[b]} 2.Sc4*e3 # {[D]}\nbut 1...Rb5*b3 !\n\n1.Se5-d7 ! threat:\n       2.Qg4-f5 #\n   1...Qh2-h3 {[a]}\n       2.Qg4-d1 # {[A]}\n   1...f4-f3 {[b]}\n       2.Se4-c3 # {[C]}\n   1...Rb5*b3\n       2.Bc2*b3 #\n   1...Sb7-d6\n       2.Re6*d6 #\n   1...Bg8*e6\n       2.Qg4*e6 #"
+  },
+  {
+    "id": "283",
+    "fen": "8/4p1n1/1K1p4/Q2P2R1/b1pk2p1/1ppNR3/r1r2P1n/7B w - - 0 1",
+    "key": "d3e1",
+    "keySan": "Ne1",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Troll",
+    "year": 1995,
+    "sourceUrl": "https://www.yacpdb.org/#283",
+    "solution": "1.Sd3-e5 ? threat:\n       2.Re3-e4 #\n    1...d6*e5 2.Qa5-c5 #\nbut 1...Ba4-b5 !\n\n1.Sd3-c5 ? threat:\n      2.Re3-e4 #\n   1...d6*c5 2.Qa5*c5 #\n   1...Sg7-f5 2.Sc5-e6 #\nbut 1...e7-e5 !\n\n1.Sd3-f4 ? threat:\n      2.Re3-e4 #\nbut 1...Sh2-f3 !\n\n1.Sd3-b4 ? threat:\n      2.Re3-e4 #\nbut 1...Rc2-e2 !\n\n1.Sd3-e1 ! threat:\n       2.Re3-e4 #\n   1...Rc2-e2\n       2.Qa5*c3 #\n   1...Sh2-f3\n       2.Rg5*g4 #"
+  },
+  {
+    "id": "284",
+    "fen": "8/7K/R1R1pB1b/3kNn2/2p1p3/1n6/3qN3/3Q4 w - - 0 1",
+    "key": "e5d3",
+    "keySan": "Nd3",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Troll",
+    "year": 1995,
+    "sourceUrl": "https://www.yacpdb.org/#284",
+    "solution": "1.Se5-d7 ? threat:\n       2.Se2-c3 #\n    1...Sb3-d4 {display-departure-file} {(Sfd4)}\n       2.Rc6-c5 # \n       2.Rc6-d6 #\nbut 1...e6-e5 !  \n\n1.Se5-d3 ! threat:\n       2.Sd3-b4 #\n   1...Sb3-d4 {display-departure-file}\n       2.Rc6-c5 #\n   1...Sf5-d4 {display-departure-file}\n       2.Rc6-d6 #\n   1...Qd2*d3\n       2.Se2-c3 #\n   1...c4*d3\n       2.Qd1*b3 #\n   1...e4*d3\n       2.Qd1-h1 #\n   1...e4-e3\n       2.Qd1-h1 #\n   1...Bh6-f8\n       2.Sd3-f4 #"
+  },
+  {
+    "id": "285",
+    "fen": "3b1n2/5R1n/r2Q3K/3ppNp1/1N2k1P1/1p2P1R1/q1bP4/B7 w - - 0 1",
+    "key": "g3h3",
+    "keySan": "Rh3",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Troll",
+    "year": 1992,
+    "sourceUrl": "https://www.yacpdb.org/#285",
+    "solution": "1.Rg3-h3 ! threat:\n       2.Sf5-g3 #\n   1...Ra6*d6 +\n       2.Sf5*d6 #\n   1...Sh7-f6\n       2.Qd6*e5 #\n   1...Bd8-f6\n       2.Qd6*d5 #"
+  },
+  {
+    "id": "287",
+    "fen": "8/b3p1N1/2B5/r2q4/4kP1N/r3P3/2PQ4/n2KR3 w - - 0 1",
+    "key": "g7e6",
+    "keySan": "Ne6",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Troll",
+    "year": 2001,
+    "sourceUrl": "https://www.yacpdb.org/#287",
+    "solution": "1.Sg7-h5 ? threat:\n       2.Sh5-g3 #\n   1...Ra3*e3 2.Qd2-d3 #\nbut 1...Ba7*e3 !\n\n1.Sg7-f5 ? {display-departure-file} threat:\n      2.Sf5-g3 #\n   1...Ba7*e3 2.Qd2-d4 #\nbut 1...Ra3*e3 !\n\n1.Sg7-e6 ! threat:\n       2.Se6-g5 #\n   1...Ra3*e3\n       2.Qd2-d3 #\n   1...Ba7*e3\n       2.Qd2-d4 #\n   1...Qd5*c6\n       2.Qd2-g2 #"
+  },
+  {
+    "id": "291",
+    "fen": "bB2R3/n3b3/N5p1/3P4/1Ppk3r/2p2Q2/2K2P2/5n2 w - - 0 1",
+    "key": "a6c7",
+    "keySan": "Nc7",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1997,
+    "sourceUrl": "https://www.yacpdb.org/#291",
+    "solution": "1.Sa6-c5 ? threat:\n       2.Sc5-e6 #\n   1...Sf1-e3 + {[a]} 2.f2*e3 # {[A]}\n   1...Rh4-e4 {[b]} 2.Qf3*e4 # {[B]}\n   1...Ba8*d5 {[c]} 2.Qf3*c3 # {[C]}\n   1...Be7*c5 2.Bb8-e5 #\nbut 1...Be7-d6 !\n\n1.Sa6-c7 ! threat:\n       2.Sc7-e6 #\n   1...Sf1-e3 + {[a]}\n       2.Qf3*e3 # {[D]}\n   1...Rh4-e4 {[b]}\n       2.Qf3*c3 # {[C]}\n   1...Ba8*d5 {[c]}\n       2.Qf3*d5 # {[E]}\n   1...Kd4-e5\n       2.Sc7-b5 #\n   1...Be7-d6\n       2.Qf3*c3 #"
+  },
+  {
+    "id": "292",
+    "fen": "8/nQ4N1/1pr3qR/P2kP2r/1B1Pp2b/2R1P3/K1N5/8 w - - 0 1",
+    "key": "b4c5",
+    "keySan": "Bc5",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1997,
+    "sourceUrl": "https://www.yacpdb.org/#292",
+    "solution": "1.Bb4-f8 ? threat:\n       2.Sc2-b4 # \nbut 1...Bh4-e7 !\n\n1.Bb4-d6 ? threat: \n      2.Sc2-b4 #\n   1...b6*a5 {[a]} 2.Rc3-c5 # {[A]}\n   1...Qg6-g2 {[b]} 2.Qb7-f7 # {[C]}\n   1...Qg6*d6 2.Rh6*d6 # {[B]}\nbut 1...Rh5*e5 !\n\n1.Bb4-c5 ! threat:\n       2.Sc2-b4 #\n   1...b6*a5 {[a]}\n       2.Qb7-b3 # {[D]}\n   1...Qg6-g2 {[b]}\n       2.Rh6-d6 # {[B]}\n   1...b6*c5\n       2.Rc3*c5 # {[A]}"
+  },
+  {
+    "id": "293",
+    "fen": "8/3rrN2/Q4R2/2B1p1K1/q1P1k1p1/4P1nR/1pP1B2b/5N1b w - - 0 1",
+    "key": "c5d6",
+    "keySan": "Bd6",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1997,
+    "sourceUrl": "https://www.yacpdb.org/#293",
+    "solution": "1.Qa6-d6 ? threat:\n       2.Sf1-d2 # {[A]}\n       2.Be2-d3 # {[B]}\nbut 1...Qa4*c2 !\n\n1.Rf6-d6 ? threat:\n      2.Sf1-d2 # {[A]}\n   1...Sg3*f1 2.Be2-d3 # {[B]}\n   1...Qa4*c2 2.Qa6-c6 #\n   1...Rd7*d6 2.Sf7*d6 #\nbut 1...b2-b1=S ! \n\n1.Bc5-d6 ! threat:\n       2.Be2-d3 # {[B]}\n   1...Sg3*e2\n       2.Sf1-d2 # {[A]}\n   1...Qa4*c2\n       2.Qa6-c6 #\n   1...Qa4*c4\n       2.Qa6*c4 #\n   1...Rd7*d6\n       2.Sf7*d6 #\n   1...Qa4-b3\n       2.Qa6-c6 #\n   1...Qa4-a3\n       2.Qa6-c6 #"
+  },
+  {
+    "id": "294",
+    "fen": "3R2B1/r5n1/2P3K1/3PkpN1/3pN3/8/5Rbb/2B5 w - - 0 1",
+    "key": "e4d2",
+    "keySan": "Nd2",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Scacco!",
+    "year": 1997,
+    "sourceUrl": "https://www.yacpdb.org/#294",
+    "solution": "1.Se4-d6 ? threat:\n       2.Sd6-c4 #\n   1...Ra7-a4 {[a]} 2.Sd6-f7 # {display-departure-file} {[B]}\n   1...Bg2-f1 {[b]} 2.Sg5-f3 # {[A]}\nbut 1...Bg2*d5 !\n\n1.Se4-d2 ! threat:\n       2.Sd2-c4 #\n   1...Ra7-a4 {[a]}\n       2.Sg5-f7 # {[C]}\n   1...Bg2-f1 {[b]}\n       2.Sd2-f3 # {[D]}\n   1...Bg2*d5\n       2.Rd8*d5 #\n   1...d4-d3\n       2.Bc1-b2 #"
+  },
+  {
+    "id": "295",
+    "fen": "8/1p1K4/bR1PRB2/3k4/1P3Q2/8/r1pp3n/q1bNrB2 w - - 0 1",
+    "key": "f1b5",
+    "keySan": "Bb5",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1998,
+    "sourceUrl": "https://www.yacpdb.org/#295",
+    "solution": "1.Re6-e3 ? threat:\n      2.Qf4-e4 # {[A]}\n   1...Qa1-d4 2.Qf4*d4 # {[B]}\n   1...Qa1-e5 2.Qf4*e5 #\n   1...Re1*e3 2.Sd1*e3 #\nbut 1...Ba6-d3 !\n\n1.Bf6-c3 ? threat:\n      2.Qf4-d4 # {[B]}\n   1...Re1-e4 2.Qf4*e4 # {[A]}\n   1...Qa1*c3 2.Sd1*c3 #\nbut 1...Sh2-f3 !\n\n1.Bf1-b5 ! threat:\n       2.Qf4-c4 #\n   1...Re1-e4\n       2.Qf4*e4 # {[A]}\n   1...Qa1-d4\n       2.Qf4*d4 # {[B]}\n   1...Qa1-c3\n       2.Sd1*c3 #\n   1...Ba6*b5 +\n       2.Rb6*b5 #"
+  },
+  {
+    "id": "296",
+    "fen": "2q1rb2/r4p1B/1N1R1N2/3p4/R1pk1Pp1/Q2P1bK1/3B4/n7 w - - 0 1",
+    "key": "b6d5",
+    "keySan": "Nbxd5",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1998,
+    "sourceUrl": "https://www.yacpdb.org/#296",
+    "solution": "1.Sb6*c4 ? threat:\n       2.Bd2-c3 #\n   1...Qc8-f5 {[a]} 2.Sc4-a5 # {[C]}\n   1...Re8-e4 {[b]} 2.Rd6*d5 # {[A]}\n   1...Qc8*c4 2.Ra4*c4 # {[B]}\nbut 1...Sa1-b3 !\n\n1.Sf6*d5 ? {display-departure-file} threat:\n      2.Bd2-c3 #\n   1...Qc8-f5 {[a]} 2.Ra4*c4 # {[B]}\n   1...Re8-e4 {[b]} 2.Sd5-e7 # {[D]}\nbut 1...f7-f5 !\n\n1.Sb6*d5 ! {display-departure-file} threat:\n       2.Bd2-c3 #\n   1...Qc8-f5 {[a]}\n       2.Ra4*c4 # {[B]}\n   1...Re8-e4 {[b]}\n       2.Sd5-e7 # {[D]}\n   1...Bf3-e4\n       2.Bd2-e3 #\n   1...Bf3*d5\n       2.Rd6*d5 # {[A]}"
+  },
+  {
+    "id": "297",
+    "fen": "1n6/2pR3b/4p3/4k2N/1R1nP1pp/8/1K1N4/Q7 w - - 0 1",
+    "key": "a1a8",
+    "keySan": "Qa8",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1998,
+    "sourceUrl": "https://www.yacpdb.org/#297",
+    "solution": "1...Sd4-b3 2.Kb2*b3 #\n1...Sd4-c2 2.Kb2*c2 #\n\n1.Qa1-b1 ? threat: 2.Sd2-c4 # but 1...Sd4-c2 !\n1.Qa1-e1 ? threat:  2.Sd2-c4 # but 1...Sd4-e2 !\n1.Qa1-h1 ? threat: 2.Sd2-c4 # but 1...Sd4-f3 !\n\n1.Qa1-a8 ! threat:  2.Sd2-c4 #\n   1...Sb8-c6 {display-departure-file}\n     2.Qa8-h8 #\n   1...Sd4-c6 {display-departure-file}\n       2.Rb4-b5 #\n   1...c7-c6\n       2.Qa8*b8 #\n   1...Bh7*e4\n       2.Qa8*e4 #"
+  },
+  {
+    "id": "298",
+    "fen": "4N3/1p1n4/np5R/rk6/prp1p2K/P1RPB1p1/3N2Bb/3b4 w - - 0 1",
+    "key": "d2c4",
+    "keySan": "Nxc4",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Schach",
+    "year": 1998,
+    "sourceUrl": "https://www.yacpdb.org/#298",
+    "solution": "1.Rc3*c4 ? threat:\n     2.Se8-d6 # {[A]}\nbut 1...Sd7-c5 ! {display-departure-file}\n\n1.Bg2*e4 ? threat:\n      2.Se8-d6 # {[A]}\nbut 1...g3-g2 !\n\n1.Sd2*e4 ? threat:\n      2.Se4-d6 # {display-departure-rank}\n   1...c4*d3 2.Se8-d6 # {display-departure-rank} {(Thema B)}\nbut 1...Bd1-f3 ! {(Levman)}\n\n1.Sd2*c4 ! threat:\n       2.Sc4-d6 # {display-departure-file}\n   1...e4*d3\n       2.Se8-d6 # {display-departure-file} {[A] (Thema B)}\n   1...Sd7-c5\n       2.Rh6*b6 # {(Levman)}\n   1...Sa6-c5 {(Sb8)}\n       2.Se8-c7 #\n   1...Sa6-c7\n       2.Se8*c7 #\n   1...Rb4*c4\n       2.d3*c4 #"
+  },
+  {
+    "id": "299",
+    "fen": "8/6pb/B7/3p2K1/r2BkpN1/3n1Np1/p5P1/2nR4 w - - 0 1",
+    "key": "d4c3",
+    "keySan": "Bc3",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "idee & form",
+    "year": 1998,
+    "sourceUrl": "https://www.yacpdb.org/#299",
+    "solution": "1.Bd4-a1 ? threat:\n       2.Sf3-d2 #\nbut 1...Sd3-b2 !\n1.Bd4-a7 ? threat:\n      2.Sf3-d2 #\nbut 1...Sd3-c5 !\n1.Bd4*g7 ? threat:\n      2.Sf3-d2 #\nbut 1...Sd3-e5 !\n1.Bd4-g1 ? threat:\n      2.Sf3-d2 #\nbut 1...Sd3-f2 !\n\n1.Bd4-c3 ! threat:\n       2.Sf3-d2 #\n   1...Sc1-b3\n       2.Ba6*d3 #\n   1...d5-d4\n       2.Ba6-b7 #"
+  },
+  {
+    "id": "302",
+    "fen": "B4B2/2r1n3/Pp1Np3/1bk1P3/1N1p4/1PPpbQn1/8/1K6 w - - 0 1",
+    "key": "b4a2",
+    "keySan": "Na2",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1999,
+    "sourceUrl": "https://www.yacpdb.org/#302",
+    "solution": "1.Sb4-c6 ? threat:\n       2.b3-b4 #\nbut 1...Sg3-e4 ! {(Thema F)}\n1.Sb4-d5 ? threat:\n      2.b3-b4 #\nbut 1...Rc7-b7 ! {(Thema F)}\n\n1.Sb4-a2 ! threat:\n       2.b3-b4 #\n   1...Se7-c6\n       2.Sd6-b7 # {(Se4? - Java)}     \n   1...Se7-d5\n       2.Sd6-e4 # {(Sb7? - Java)}\n   1...d4*c3\n       2.Qf3*e3 #"
+  },
+  {
+    "id": "303",
+    "fen": "5K2/8/4p1p1/1N1np3/4k1N1/3p1R1Q/2p1b1P1/b1BnR3 w - - 0 1",
+    "key": "f3f5",
+    "keySan": "Rf5",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1999,
+    "sourceUrl": "https://www.yacpdb.org/#303",
+    "solution": "1.Qh3-h4 ? threat:\n       2.Sg4-f2 # {[A]}\n       2.Sg4-f6 # {[B]}\nbut 1...Sd5-f4 !\n\n1.Bc1-e3 ? threat: \n      2.Sb5-d6 # {[C]}\nbut 1...d3-d2 !\n\n1.Rf3-f2 ? threat:\n      2.Qh3-f3 #\nbut 1...Sd1-e3 ! {display-departure-rank}\n\n1.Rf3-f7 ? threat:\n      2.Qh3-f3 #\nbut 1...Sd5-e3 ! {display-departure-rank}\n\n1.Rf3-f5 ! threat:\n       2.Qh3-f3 #\n   1...Sd1-e3 {display-departure-rank}\n       2.Sg4-f2 # {[A]}\n   1...Sd5-e3 {display-departure-rank}\n       2.Sg4-f6 # {[B]}\n   1...Ke4*f5\n       2.Sb5-d6 # {[C]}\n   1...Sd5-f4\n       2.Sg4-f6 #"
+  },
+  {
+    "id": "306",
+    "fen": "1Kn5/2R2NpP/2ppNkPb/Rb3P2/n7/BQ1Bp3/7r/8 w - - 0 1",
+    "key": "e6c5",
+    "keySan": "Nc5",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Schach",
+    "year": 1999,
+    "sourceUrl": "https://www.yacpdb.org/#306",
+    "solution": "1.Se6*g7 ? threat:\n       2.Sg7-e8 #\n   1...Kf6*g7 2.h7-h8=Q #\n   1...Bh6*g7 2.Qb3-e6 #\nbut 1...c6-c5 !\n\n1.Se6-f8 ? threat:\n      2.Qb3-e6 #\n   1...d6-d5 2.Sf8-d7 #\nbut 1...Bb5-c4 !\n\n1.Se6-g5 ? {display-departure-file} threat:\n      2.Qb3-e6 #\n   1...Bb5-c4 2.Sg5-e4 #\nbut 1...d6-d5 !\n\n1.Se6-c5 ! threat:\n       2.Qb3-e6 #\n   1...Bb5-c4\n       2.Sc5-e4 #\n   1...d6-d5\n       2.Sc5-d7 #\n   1...Sa4*c5\n       2.Qb3-c3 #"
+  },
+  {
+    "id": "307",
+    "fen": "7K/6Bp/4P3/3b1N1p/R2N1k2/3P2R1/q2n1P2/8 w - - 0 1",
+    "key": "f5e3",
+    "keySan": "Ne3",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 2000,
+    "sourceUrl": "https://www.yacpdb.org/#307",
+    "solution": "1.Sf5-h4 ? threat:\n       2.Sd4-e2 #\n   1...Sd2-e4 2.Sh4-g2 #\nbut 1...Sd2-c4 !\n\n1.Sf5-e7 ? threat:\n      2.Sd4-e2 #\n   1...Sd2-c4 2.Se7*d5 #\nbut 1...Sd2-e4 !\n\n1.Sf5-e3 ! threat:\n       2.Sd4-e2 #\n   1...Sd2-e4\n       2.Se3-g2 #\n   1...Sd2-c4\n       2.Se3*d5 #"
+  },
+  {
+    "id": "308",
+    "fen": "r2N4/pb6/2Q1B2B/4p1r1/pP1k2p1/2n5/3P1NK1/8 w - - 0 1",
+    "key": "h6f8",
+    "keySan": "Bf8",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 2000,
+    "sourceUrl": "https://www.yacpdb.org/#308",
+    "solution": "1.Kg2-f1 ?? threat: \n       2.Qc6-c5 #\n       2.Qc6-c4 #\n       2.Qc6*c3 #\n    1...Sc3-d5 \n       2.Qc6-c5 #\n    1...Sc3-e4 \n       2.Qc6-c4 #\n    1...e5-e4 \n       2.Qc6*c3 #\nbut 1...Ra8-c8 !    \n\n1.Bh6-f8 ! threat:\n       2.Bf8-c5 #\n   1...Sc3-e4\n       2.Qc6-c4 #\n   1...Sc3-d5\n       2.Qc6-c5 #\n   1...e5-e4\n       2.Qc6*c3 #\n   1...Bb7*c6 +\n       2.Sd8*c6 #"
+  },
+  {
+    "id": "309",
+    "fen": "K6n/1n3p2/R7/3PkNbp/2R1P3/p3p3/1r6/B4Q2 w - - 0 1",
+    "key": "f5d4",
+    "keySan": "Nd4",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Problemas",
+    "year": 2000,
+    "sourceUrl": "https://www.yacpdb.org/#309",
+    "solution": "1.Sf5-h4 ? threat:\n       2.Qf1-f5 #\n   1...Bg5-f4 2.Sh4-f3 #\nbut 1...Sb7-d6 !\n\n1.Sf5-e7 ? threat:\n      2.Qf1-f5 #\n   1...Sb7-d6 2.Se7-c6 #\nbut 1...Bg5-f4 !\n\n1.Sf5-d4 ! threat:\n       2.Qf1-f5 #\n   1...Bg5-f4\n       2.Sd4-f3 #\n   1...Sb7-d6\n       2.Sd4-c6 #\n   1...Rb2-b6\n       2.Sd4-b5 #\n   1...Rb2-f2\n       2.Sd4-e2 #"
+  },
+  {
+    "id": "310",
+    "fen": "1r1rN2q/p1Q5/1p2p2p/2p5/P1kP2N1/P2R1B2/3K2n1/8 w - - 0 1",
+    "key": "c7f4",
+    "keySan": "Qf4",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "L'Italia Scacchistica",
+    "year": 2000,
+    "sourceUrl": "https://www.yacpdb.org/#310",
+    "solution": "1.Qc7-d6 ? threat:\n       2.Rd3-c3 #\n   1...Rd8*d6 2.Se8*d6 #\nbut 1...Qh8*d4 !\n\n1.Qc7-e5 ? threat:\n      2.Rd3-c3 #\n   1...Qh8*e5 2.Sg4*e5 #\nbut 1...Rd8*d4 !\n\n1.Qc7-f4 ! threat:\n       2.Rd3-c3 #\n   1...Sg2*f4\n       2.Sg4-e3 #\n   1...Rd8*d4\n       2.Se8-d6 #\n   1...Qh8*d4\n       2.Sg4-e5 #"
+  },
+  {
+    "id": "311",
+    "fen": "2b1nqQ1/8/4Rbn1/1P1k4/1pR5/1N3P2/8/1K3B2 w - - 0 1",
+    "key": "c4c6",
+    "keySan": "Rcc6",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "L'Italia Scacchistica",
+    "year": 2000,
+    "sourceUrl": "https://www.yacpdb.org/#311",
+    "solution": "1.Rc4-e4 ? {display-departure-file} threat:\n       2.Bf1-c4 #\n   1...Sg6-e5 \n         2.Re4-d4 #\n   1...Se8-d6  \n        2.Re6-e5 # {display-departure-rank} \nbut 1...Qf8-c5 !\n\n1.Rc4-c6 ! {display-departure-file} threat:\n       2.Bf1-c4 #\n   1...Sg6-e5 \n       2.Re6-d6 # {display-departure-file}\n   1...Se8-d6 \n       2.Rc6-c5 # \n   1...Bc8*e6\n       2.Qg8*e6 #\n   1...Qf8-c5\n       2.Rc6*c5 #"
+  },
+  {
+    "id": "312",
+    "fen": "2B2R1r/b2N1b2/6p1/2pp1P2/1r2kN2/1Q1pP1BP/3K1nP1/8 w - - 0 1",
+    "key": "f4e2",
+    "keySan": "Ne2",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Schach",
+    "year": 2000,
+    "sourceUrl": "https://www.yacpdb.org/#312",
+    "solution": "1.Sf4-h5 ? threat:\n       2.Sd7-f6 # {display-departure-file}\nbut 1...Bf7-e6 !\n\n1.Sf4*d3 ? threat: 2.Sd7-f6 #\n   1...Bf7-e6 2.Sd3*f2 #\nbut 1...Sf2-g4 !\n\n1.Sf4*d5 ? threat:\n      2.Sd7-f6 # {display-departure-rank}\n   1...Bf7-e6 2.Sd5-c3 #\nbut 1...Ke4*f5 !\n\n1.Sf4-e2 ! threat:\n       2.Sd7-f6 #\n   1...Bf7-e6\n       2.Se2-c3 #\n   1...Sf2-g4\n       2.Qb3*d3 #\n   1...Rb4-b6\n       2.Sd7*c5 #\n   1...Ke4*f5\n       2.Qb3*d5 #"
+  },
+  {
+    "id": "313",
+    "fen": "2b1R2K/6p1/1R2PPQ1/r2Nk3/1N1pnp2/Bq1p2p1/5P2/8 w - - 0 1",
+    "key": "d5e7",
+    "keySan": "Ne7",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 2001,
+    "sourceUrl": "https://www.yacpdb.org/#313",
+    "solution": "1.f2-f3 ? threat:\n      2.Qg6*e4 #\n   1...Qb3*d5 2.Sb4*d3 # \n   1...Ra5*d5 2.Sb4-c6 #\n   1...Se4-f2 {(S~)} 2.Qg6-g5 #\nbut 1...Se4-d6 !\n\n1.Sd5-e7 ! threat:\n       2.Qg6-f5 #\n   1...Se4-d6\n       2.Se7-c6 # {display-departure-file}\n   1...Bc8*e6\n       2.Sb4-c6 # {display-departure-file}\n   1...Qb3*e6\n       2.Sb4*d3 #"
+  },
+  {
+    "id": "314",
+    "fen": "B6K/B1p2N1p/2r5/3k1P2/2p1p2R/2Q1Pn2/3P1q2/bNR2n2 w - - 0 1",
+    "key": "h4h6",
+    "keySan": "Rh6",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Problem-Forum",
+    "year": 2001,
+    "sourceUrl": "https://www.yacpdb.org/#314",
+    "solution": "1.d2-d4 ? threat:\n        2.Qc3-a5 #\n        2.Qc3*c4 #\n    1...c4*d3 ep.\n        2.Ba8*c6 #\n    1...e4*d3 ep.\n        2.e3-e4 #\n  but\n    1...Qf2-a2 !\n\n 1.Ba7-d4 ? threat:\n        2.Qc3-a5 #\n        2.Qc3*c4 #\n   but\n    1...Sf1*e3 !\n\n 1.Rh4-h6 ! threat:\n        2.Ba8*c6 #\n    1...Sf3-e5\n        2.Qc3-a5 #\n    1...Sf3-d4\n        2.Qc3*c4 #\n   1...Ba1*c3 +\n        2.Sb1*c3 #"
+  },
+  {
+    "id": "316",
+    "fen": "K3R3/5p1q/2Bp4/8/2Nk4/Bp1P3r/3Q1P2/5b2 w - - 0 1",
+    "key": "c4a5",
+    "keySan": "Na5",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 2002,
+    "sourceUrl": "https://www.yacpdb.org/#316",
+    "solution": "1.Sc4-e5 ? threat:\n       2.Qd2-b2 # {[A]}\n       2.Qd2-b4 # {[B]}\n   1...d6*e5 2.Re8-d8 #\nbut 1...Qh7*d3 ! {(Nietvelt)}\n\n1.Sc4-b2 ? threat:\n      2.Qd2-b4 #\nbut 1...Bf1*d3 ! {(Nietvelt)}\n1.Ba3-b4 ? threat:\n      2.Qd2-c3 #\nbut 1...Rh3*d3 ! {(Nietvelt)}\n\n\n1.Sc4-a5 ! threat:\n       2.Sa5*b3 #\n   1...Bf1*d3\n       2.Qd2-b2 # {[A]}\n   1...Rh3*d3\n       2.Qd2-b4 # {[B]}\n   1...Qh7*d3\n       2.Re8-e4 #"
+  },
+  {
+    "id": "317",
+    "fen": "4r3/1r6/1p3Q2/pKpkNP2/1n1P4/4pP2/7b/BN6 w - - 0 1",
+    "key": "e5c4",
+    "keySan": "Nc4",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "L'Italia Scacchistica",
+    "year": 2002,
+    "sourceUrl": "https://www.yacpdb.org/#317",
+    "solution": "1.Se5-g4 ? threat:\n       2.Sb1-c3 #\nbut 1...Re8-e5 !\n1.Se5-f7 ? threat:\n      2.Sb1-c3 #\nbut 1...Bh2-e5 !\n1.Se5-c6 ? threat:\n      2.Sb1-c3 #\nbut 1...Sb4-a2\n\n1.Se5-c4 ! threat:\n       2.Sb1-c3 #\n   1...Bh2-e5\n       2.Sc4*e3 #\n   1...Re8-e5\n       2.Qf6-d6 #\n   1...Sb4-a2\n       2.Qf6-c6 #\n   1...c5*d4\n       2.Qf6*d4 #"
+  },
+  {
+    "id": "318",
+    "fen": "3N4/2r3p1/3p4/3k2K1/3Pb3/N1P1R3/8/5Q2 w - - 0 1",
+    "key": "d8c6",
+    "keySan": "Nc6",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "idee & form",
+    "year": 2003,
+    "sourceUrl": "https://www.yacpdb.org/#318",
+    "solution": "1.Sa3-b5 ? threat:\n       2.Sb5*c7 #\n   1...Rc7-c8 {(R~c)} 2.Qf1-f7 #\n   1...Rc7-a7 {(R~7)} 2.c3-c4 #\nbut 1...Be4-d3 !\n\n1.Sd8-c6 ! threat:\n       2.Qf1-c4 #\n   1...Kd5*c6\n       2.Qf1-b5 #\n   1...Kd5-e6\n       2.Qf1-f5 #\n   1...Rc7*c6\n       2.Qf1-f7 #\n   1...Be4-d3\n       2.Sc6-b4 #"
+  },
+  {
+    "id": "319",
+    "fen": "4N3/1n5r/ppQpp2B/Rb2kr1p/2P1N3/4P3/5p2/1Bn2K2 w - - 0 1",
+    "key": "e4c5",
+    "keySan": "Nc5",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Best Problems",
+    "year": 2003,
+    "sourceUrl": "https://www.yacpdb.org/#319",
+    "solution": "1.Se4-c3 ? {(Se~)} threat:\n       2.Qc6-e4 #\nbut 1...d6-d5 !\n1.Se4-g5 ? threat:\n      2.Qc6-e4 #\nbut 1...Rf5-f4 !\n1.Se4*d6 ? {display-departure-rank} threat:\n      2.Qc6-e4 #\nbut 1...Sb7-c5 !\n\n1.Se4-c5 ! threat:\n       2.Qc6-e4 #\n   1...Bb5*c4 +\n       2.Sc5-d3 #\n   1...Bb5*c6\n       2.Sc5-d7 #\n   1...Rf5-f4\n       2.Bh6*f4 #\n   1...d6-d5\n       2.Qc6*e6 #\n   1...Sb7*c5\n       2.Qc6*d6 #"
+  },
+  {
+    "id": "320",
+    "fen": "qb4b1/3R1p2/2P1k3/8/2P1PQN1/1nrN3p/3p3K/8 w - - 0 1",
+    "key": "g4e5",
+    "keySan": "Nge5",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Schweizerische Schachzeitung",
+    "year": 2004,
+    "sourceUrl": "https://www.yacpdb.org/#320",
+    "solution": "1.Sd3-e5 ? {display-departure-file} threat:\n       2.Qf4-f5 # {[A]}\n       2.Qf4-f6 # {[B]}\nbut 1...Rc3-f3 !\n\n1.e4-e5 ? threat:\n      2.Qf4-f6 # {[B]}\n   1...f7-f5 2.Qf4-h6 #\nbut 1...Qa8*c6 !\n\n1.Sg4-e5 ! {display-departure-file} threat:\n       2.Qf4-f5 # {[A]}\n   1...Sb3-d4\n       2.Sd3-c5 #\n   1...Bb8*e5\n       2.Qf4*e5 #\n   1...Bg8-h7\n       2.Qf4*f7 #"
+  },
+  {
+    "id": "321",
+    "fen": "2r1rb2/7b/1NnBRNn1/pp6/1p1k1p2/1Q1P4/5P2/K7 w - - 0 1",
+    "key": "b6a4",
+    "keySan": "Na4",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 2005,
+    "sourceUrl": "https://www.yacpdb.org/#321",
+    "solution": "1.Ka1-b2 ? threat: \n       2.Qb3-d5 #\n   1...Sc6-e7 {display-departure-file} 2.Re8-e4 #\nbut 1...Sg6-e7 ! {display-departure-file}\n\n1.Sf6-e4 ? threat:\n      2.Qb3-d5 #\n   1...Sg6-e7 {display-departure-file} 2.Bd6-c5 #\nbut 1...Sc6-e7 ! {display-departure-file}\n\n1.Sb6-a4 ! threat:\n       2.Qb3-d5 #\n   1...Sc6-e7 {display-departure-file}    \n       2.Re6-e4 #\n   1...Sg6-e7 {display-departure-file}\n       2.Bd6-c5 #\n   1...b5*a4\n       2.Qb3-c4 #"
+  },
+  {
+    "id": "322",
+    "fen": "B2r1r2/Q3R3/nn6/2N2p1b/5k1K/R2p1p2/8/B7 w - - 0 1",
+    "key": "a1c3",
+    "keySan": "Bc3",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Schach",
+    "year": 2005,
+    "sourceUrl": "https://www.yacpdb.org/#322",
+    "solution": "1.Re7-e1 ? threat:\n       2.Ba1-e5 #\n       2.Sc5-e6 #\n   1...Rd8-e8 {display-departure-file} 2.Sc5*d3 #\nbut 1...Rf8-e8 ! {display-departure-file}\n\n1.Ra3*d3 ? threat:\n      2.Ba1-e5 #\n      2.Sc5-e6 #\n   1...Rd8-d4 2.Rd3*d4 #\n   1...Rd8*d3 2.Sc5*d3 #\nbut 1...Rd8-d5 !\n\n1.Ba1-c3 ! threat:\n       2.Bc3-d2 #\n   1...d3-d2\n       2.Bc3-e5 #\n   1...Sb6-c4\n       2.Sc5-e6 #\n   1...Sb6-d5\n       2.Sc5*d3 #"
+  },
+  {
+    "id": "323",
+    "fen": "8/4R3/1n5B/R2N1p1n/1K1k2b1/1p2p2r/1N4B1/8 w - - 0 1",
+    "key": "d5c3",
+    "keySan": "Nc3",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 2003,
+    "sourceUrl": "https://www.yacpdb.org/#323",
+    "solution": "1.Sd5-c7 ? threat:\n       2.Sc7-e6 # {[A]}\n       2.Sc7-b5 # {[B]}\n    1...Bg4-f3 2.Bh6*e3 #\nbut 1...Rh3-f3 !\n\n1.Sd5-f4 ? threat:\n      2.Sf4-e6 # {[A]}\n   1...Rh3-f3 2.Sf4-e2 #\nbut 1...Bg4-f3 !\n\n1.Sd5-c3 ! threat:\n       2.Sc3-b5 # {[B]}\n   1...Rh3-f3\n       2.Sc3-e2 #\n   1...Bg4-f3\n       2.Bh6*e3 #\n   1...Bg4-e2\n       2.Sc3*e2 #\n   1...Sb6-d5 +\n       2.Ra5*d5 #"
+  },
+  {
+    "id": "324",
+    "fen": "1Q6/1p4pq/2p1P3/2RNnn2/1P1k3p/8/3P4/KB3b2 w - - 0 1",
+    "key": "d5e3",
+    "keySan": "Ne3",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 2006,
+    "sourceUrl": "https://www.yacpdb.org/#324",
+    "solution": "1.Sd5-f4 ? threat:\n       2.Qb8*e5 #\n    1...Se5-f7 {(Se~)} !\n1.Sd5-e7 ? threat:\n       2.Qb8*e5 #\n    1...Se5-f7 {(Se~)}\n       2.Qb8-f4 #\nbut 1...Se5-d3 !\n1.Sd5-b6 ?!  threat:\n       2.Qb8*e5 #\n    1...Se5-f7 {(Se~)}\n       2.Qb8-f4 #\n    1...Se5-d3\n       2.Rc5-c4 #\nbut 1...Se5-g6 !\n\n1.Sd5-e3 ! threat:\n       2.Qb8*e5 #\n   1...Se5-c4 {(Se~)}\n       2.Qb8-f4 #\n   1...Se5-d3\n       2.Rc5-c4 #\n   1...Se5-g6\n       2.Se3*f5 #\n   1...Sf5-d6\n       2.Qb8*d6 #"
+  },
+  {
+    "id": "325",
+    "fen": "8/2K1p3/1pRpp3/pB1kb3/1P5r/Nnp2n1r/b2PRB2/1N6 w - - 0 1",
+    "key": "c6b6",
+    "keySan": "Rxb6",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Die Schwalbe",
+    "year": 2006,
+    "sourceUrl": "https://www.yacpdb.org/#325",
+    "solution": "1.Sa3-c4 ? threat:\n       2.Sc4*b6 #\nbut 1...Be5-d4 !\n\n1.d2-d4 ? threat:\n      2.Sb1*c3 # {[A]}\n      2.Bb5-c4 # {[B]}\n   1...Rh4*d4 2.Sb1*c3 #\n   1...Be5*d4 2.Bb5-c4 #\nbut 1...Sf3-d2 ! {display-departure-file}\n\n1.Rc6-c4 ? threat:\n      2.Bb5-c6 #\n   1...Sb3-d4 {display-departure-file} 2.Sb1*c3 {[A]}\nbut 1...Sf3-d4 ! {display-departure-file}\n\n1.Rc6*c3 ? threat:\n      2.Bb5-c6 #\n   1...Sf3-d4 {display-departure-file} 2.Bb5-c4 {[B]}\nbut 1...Sb3-d4 ! {display-departure-file}\n\n1.Rc6*b6 ! threat:\n       2.Bb5-c6 #\n   1...Sb3-d4  {display-departure-file}\n       2.Sb1*c3 # {[A]}\n   1...Sf3-d4 {display-departure-file}\n       2.Bb5-c4 # {[B]}\n   1...Rh4-c4 +\n       2.Bb5*c4 #"
+  },
+  {
+    "id": "326",
+    "fen": "6Kn/b5Q1/3p2p1/1P1k3r/1Ppn1P2/r2bR3/4P1N1/3R3B w - - 0 1",
+    "key": "e3e8",
+    "keySan": "Re8",
+    "authors": [
+      "Ahues, Herbert Siegfried Oskar"
+    ],
+    "source": "Schweizerische Schachzeitung",
+    "year": 2007,
+    "sourceUrl": "https://www.yacpdb.org/#326",
+    "solution": "1.f4-f5 ? threat:\n       2.Sg2-f4 #\nbut 1...c4-c3 !\n\n1.Re3-e7 ? threat:\n      2.Sg2-e3 #\nbut 1...Bd3-e4 !\n\n1.Re3-e8 ! threat:\n       2.Sg2-e3 #\n   1...Bd3-e4\n       2.Qg7-b7 #\n   1...Sd4-f3\n       2.e2-e4 #"
+  },
+  {
+    "id": "331",
+    "fen": "4N3/r3p3/8/5k1K/2P5/4Q3/8/8 w - - 0 1",
+    "key": "e3d4",
+    "keySan": "Qd4",
+    "authors": [
+      "Аитов, Фатых Садыкович"
+    ],
+    "source": 64,
+    "year": 1970,
+    "sourceUrl": "https://www.yacpdb.org/#331",
+    "solution": "1.Qe3-d4 ! threat:\n       2.Se8-g7 #\n   1...Kf5-e6\n       2.Qd4-d5 #\n   1...e7-e5\n       2.Qd4-g4 #\n   1...e7-e6\n       2.Se8-d6 #"
+  },
+  {
+    "id": "334",
+    "fen": "3K1b2/3P2p1/N1pk2P1/1p1rR3/7Q/3pN3/B2P1B2/8 w - - 0 1",
+    "key": "a6c5",
+    "keySan": "Nc5",
+    "authors": [
+      "Aizikowitsch, Jakow"
+    ],
+    "source": "The Spectator",
+    "year": 1958,
+    "sourceUrl": "https://www.yacpdb.org/#334",
+    "solution": "1.Sa6-c5 ! zugzwang.\n   1...b5-b4\n       2.Se3-c4 #\n   1...Rd5-d4\n       2.Qh4*d4 #\n   1...Rd5*c5\n       2.Re5-e6 #\n   1...Rd5*e5\n       2.Sc5-b7 #\n   1...Kd6*c5\n       2.Se3-f5 #\n   1...Kd6*e5\n       2.Bf2-g3 #\n   1...Bf8-e7 +\n       2.Qh4*e7 #"
+  },
+  {
+    "id": "335",
+    "fen": "1Q4B1/5p2/2pR4/2k5/2b2K2/8/4P3/8 w - - 0 1",
+    "key": "d6d4",
+    "keySan": "Rd4",
+    "authors": [
+      "Aizikowitsch, Jakow"
+    ],
+    "source": "The Guardian",
+    "year": 1961,
+    "sourceUrl": "https://www.yacpdb.org/#335",
+    "solution": "1.Rd6-d4 ! zugzwang.\n   1...Bc4-a2\n       2.Qb8-b4 #\n   1...Bc4-b3\n       2.Qb8-b4 #\n   1...Bc4*e2\n       2.Qb8-b4 #\n   1...Bc4-d3\n       2.Qb8-b4 #\n   1...Bc4-e6\n       2.Qb8-b4 #\n   1...Bc4-d5\n       2.Qb8-b4 #\n   1...Bc4-a6\n       2.Qb8-b4 #\n   1...Bc4-b5\n       2.Qb8-a7 #\n   1...Kc5*d4\n       2.Qb8-e5 #\n   1...f7-f5\n       2.Rd4*c4 #\n   1...f7-f6\n       2.Rd4*c4 #"
+  },
+  {
+    "id": "336",
+    "fen": "8/1n2p3/3p4/5Q2/1P1k4/R7/3K4/8 w - - 0 1",
+    "key": "a3a4",
+    "keySan": "Ra4",
+    "authors": [
+      "Åkerblom, Johan Axel"
+    ],
+    "source": "Sveriges Schackförbund",
+    "year": 1924,
+    "sourceUrl": "https://www.yacpdb.org/#336",
+    "solution": "1.Ra3-a4 ! threat:\n       2.b4-b5 #\n   1...Kd4-c4\n       2.Qf5-d3 #\n   1...d6-d5\n       2.Qf5-f4 #\n   1...Sb7-a5\n       2.b4*a5 #\n   1...Sb7-c5\n       2.b4*c5 #\n   1...e7-e5\n       2.Qf5-d3 #"
+  },
+  {
+    "id": "337",
+    "fen": "8/8/4K2p/7N/3pk2p/2pr1b1R/2P5/6Q1 w - - 0 1",
+    "key": "g1h1",
+    "keySan": "Qh1",
+    "authors": [
+      "Åkerblom, Johan Axel"
+    ],
+    "source": "Allgemeine Zeitung (Chemnitz)",
+    "year": 1926,
+    "sourceUrl": "https://www.yacpdb.org/#337",
+    "solution": "1...Rd3-e3 2.Qg1-g6 #\n 1...Bf3-g4 2.Qg1*g4 #\n\n1.Qg1-h1 ! zugzwang.\n   1...Rd3-d1\n       2.Qh1*f3 #\n   1...Rd3-d2\n       2.Qh1*f3 #\n   1...Rd3-e3\n       2.Rh3*h4 #\n   1...Bf3*h1\n       2.c2*d3 # {(Model mate)}\n   1...Bf3-g2\n       2.c2*d3 #\n   1...Ke4-e3\n       2.Qh1-e1 #"
+  },
+  {
+    "id": "338",
+    "fen": "2BRr3/4p2b/KNp5/2p5/R1n1k3/1n2b1QP/4P3/2r5 w - - 0 1",
+    "key": "b6d7",
+    "keySan": "Nd7",
+    "authors": [
+      "Åkerblom, Johan Axel"
+    ],
+    "source": "De Problemist",
+    "year": 1928,
+    "sourceUrl": "https://www.yacpdb.org/#338",
+    "solution": "1...e7-e5\n       2.Qg3-f3 #\n1.Sb6-d7 ! Ke4-d4 {(threat:)}\n       2.Qg3-e5 #\n   1...Ke4-f5\n       2.Qg3-g4 #\n   1...Ke4-d5\n       2.Sd7-f6 #\n   1...Sb3-d4\n       2.Sd7*c5 #\n   1...Be3-f4\n       2.Qg3-d3 #\n   1...Be3-d4\n       2.Qg3-f3 #\n   1...e7-e5\n       2.Sd7-f6 #"
+  },
+  {
+    "id": "340",
+    "fen": "kB6/1b6/1R6/3NQ3/5p2/8/8/7K w - - 0 1",
+    "key": "b6b5",
+    "keySan": "Rb5",
+    "authors": [
+      "Åkerblom, Johan Axel"
+    ],
+    "source": "Nya Dagligt Allehanda",
+    "year": 1930,
+    "sourceUrl": "https://www.yacpdb.org/#340",
+    "solution": "1.Qe5-e8 ? zugzwang.\n   1...f4-f3\n       2.Sd5-c7 #\n   1...Bb7-a6\n       2.Sd5-c7 #\n   1...Bb7-c6\n       2.Qe8*c6 #\n   1...Bb7-c8\n       2.Sd5-c7 #\n but\n   1...Bb7*d5 + !\n\n1.Rb6-b5 ! zugzwang.\n   1...f4-f3\n       2.Sd5-b6 #\n   1...Bb7-a6\n       2.Sd5-c7 #\n   1...Bb7*d5 +\n       2.Qe5*d5 #\n   1...Bb7-c6\n       2.Qe5-a1 #\n   1...Bb7-c8\n       2.Sd5-c7 #"
+  },
+  {
+    "id": "348",
+    "fen": "N1Bbr3/Kpp2r1b/4p3/BP1kP1QN/1Pp2Pp1/2P5/4R3/8 w - - 0 1",
+    "key": "a5c7",
+    "keySan": "Bxc7",
+    "authors": [
+      "Аксьонов, Віталій Іванович"
+    ],
+    "source": "Probleemblad",
+    "year": 1998,
+    "sourceUrl": "https://www.yacpdb.org/#348",
+    "solution": "1...Rf7-e7\n       2.Sh5-f6 #\n   1...Bd8-e7\n       2.Sa8*c7 #\n1.f4-f5 ? threat:\n       2.Sh5-f4 #\n       2.Qg5-d2 #\n   1...Rf7*f5\n       2.Qg5-d2 #\n   1...Bh7*f5\n       2.Sh5-f4 #\n but\n   1...Bd8*g5 !\n1.Qg5-e7 ? threat:\n       2.Bc8*e6 #\n       2.Qe7-c5 #\n   1...Rf7*e7\n       2.Sh5-f6 #\n   1...Bd8*e7\n       2.Sa8*c7 #\n but\n   1...Re8*e7 !\n1.Ba5*c7 ! threat:\n       2.Bc8*b7 #\n       2.Sa8-b6 #\n   1...Rf7*c7\n       2.Sa8-b6 #\n   1...Bd8*c7\n       2.Bc8*b7 #"
+  },
+  {
+    "id": "349",
+    "fen": "5R2/8/4p3/4P2R/1pP1kPb1/bPP1N3/2KPrBP1/1B1N3Q w - - 0 1",
+    "key": "h5h3",
+    "keySan": "Rh3",
+    "authors": [
+      "Аксьонов, Віталій Іванович",
+      "Залокоцький, Роман Федорович"
+    ],
+    "source": "Probleemblad",
+    "year": 2005,
+    "sourceUrl": "https://www.yacpdb.org/#349",
+    "solution": "1.Rh5-h3 ! zugzwang.\n   1...Bg4-f3\n       2.g2*f3 #\n   1...Bg4-f5\n       2.g2-g3 #\n   1...Bg4-h5\n       2.g2-g4 #\n   1...Bg4*h3\n       2.g2*h3 #\n   1...Re2-e1\n       2.d2-d3 #\n   1...Re2*d2 +\n       2.Kc2*d2 #\n   1...Re2*e3\n       2.Rh3*e3 #\n   1...Re2*f2\n       2.Sd1*f2 #\n   1...Ba3-c1\n       2.Kc2*c1 #\n   1...Ba3-b2\n       2.Kc2*b2 #\n   1...b4*c3\n       2.Kc2*c3 #"
+  },
+  {
+    "id": "351",
+    "fen": "4K3/8/p3kp1p/7Q/8/8/7B/8 w - - 0 1",
+    "key": "h5f3",
+    "keySan": "Qf3",
+    "authors": [
+      "Акчурин, Михаил"
+    ],
+    "source": "Вечерний Харьков",
+    "year": 1982,
+    "sourceUrl": "https://www.yacpdb.org/#351",
+    "solution": "1...f6-f5\n       2.Qh5-f7 #\n1.Qh5-a5 ? zugzwang.\n   1...f6-f5\n       2.Qa5-e5 #\n but\n   1...h6-h5 !\n1.Qh5-d1 ? threat:\n       2.Qd1-d7 #\n   1...f6-f5\n       2.Qd1-d6 #\n but\n   1...Ke6-f5 !\n1.Qh5-f3 ! threat:\n       2.Qf3-e4 #\n   1...f6-f5\n       2.Qf3-c6 #"
+  },
+  {
+    "id": "353",
+    "fen": "rr5n/3PP3/2N2k1p/1P2R1p1/P5P1/2N5/Q3K3/BB6 w - - 0 1",
+    "key": "e5e3",
+    "keySan": "Re3",
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": "Problemista",
+    "year": 1965,
+    "sourceUrl": "https://www.yacpdb.org/#353",
+    "solution": "1.Sc3-d1 ? threat:\n       2.Re5-e3 #\n       2.Re5-c5 #\n   1...Rb8*b5\n       2.Re5*b5 #\n   1...Sh8-f7\n       2.Re5-e6 #\n   1...Sh8-g6\n       2.Re5-f5 #\n but\n   1...Ra8*a4 !\n1.Re5-c5 ? threat:\n       2.Sc3-d1 #\n   1...Ra8*a4\n       2.Sc3*a4 #\n   1...Rb8*b5\n       2.Sc3*b5 #\n   1...Sh8-g6\n       2.Sc3-e4 #\n but\n   1...Sh8-f7 !\n1.Re5-e3 ! threat:\n       2.Sc3-d1 #\n   1...Ra8*a4\n       2.Sc3*a4 #\n   1...Rb8*b5\n       2.Sc3*b5 #\n   1...Sh8-f7\n       2.Sc3-d5 #\n   1...Sh8-g6\n       2.Sc3-e4 #"
+  },
+  {
+    "id": "354",
+    "fen": "8/4K1p1/8/2k1N1Q1/1R6/2P5/4q1B1/8 w - - 0 1",
+    "key": "e7e6",
+    "keySan": "Ke6",
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": "Problemista",
+    "year": 1965,
+    "sourceUrl": "https://www.yacpdb.org/#354",
+    "solution": "1.Ke7-e6 ! threat:\n       2.Qg5-e7 #\n   1...Qe2-d1\n       2.Se5-d3 #\n       2.Se5-d7 #\n   1...Qe2-g4 +\n       2.Se5*g4 #\n   1...Qe2-a6 +\n       2.Se5-c6 #\n   1...Qe2-c4 +\n       2.Se5*c4 #\n   1...Qe2-d3\n       2.Se5*d3 #\n       2.Se5-d7 #\n   1...Qe2-a2 +\n       2.Se5-c4 #\n   1...Qe2-d2\n       2.Se5-d3 #\n       2.Se5-d7 #\n   1...Qe2*e5 +\n       2.Qg5*e5 #"
+  },
+  {
+    "id": "355",
+    "fen": "3B2N1/8/2K1Bp2/4b3/3Pkp2/3R1R2/4P3/8 w - - 0 1",
+    "key": "d8c7",
+    "keySan": "Bc7",
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": "Problemista",
+    "year": 1966,
+    "sourceUrl": "https://www.yacpdb.org/#355",
+    "solution": "1.Bd8-c7 ! zugzwang.\n   1...Be5*d4\n       2.Rf3*f4 #\n   1...Be5*c7\n       2.Sg8*f6 #\n   1...Be5-d6\n       2.Sg8*f6 #\n   1...f6-f5\n       2.Be6-d5 #"
+  },
+  {
+    "id": "356",
+    "fen": "8/k1K5/r1p2Q2/8/8/8/8/3R4 w - - 0 1",
+    "key": "d1a1",
+    "keySan": "Ra1",
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": "Problemista",
+    "year": 1966,
+    "sourceUrl": "https://www.yacpdb.org/#356",
+    "solution": "1.Qf6-a1 ? zugzwang.\n   1...Ra6*a1\n       2.Rd1*a1 #\n   1...Ra6-a2\n       2.Qa1*a2 #\n   1...Ra6-a3\n       2.Qa1*a3 #\n   1...Ra6-a4\n       2.Qa1*a4 #\n   1...Ra6-a5\n       2.Qa1*a5 #\n   1...Ka7-a8\n       2.Qa1*a6 #\n but\n   1...c6-c5 !\n1.Rd1-a1 ! zugzwang.\n   1...Ra6*a1\n       2.Qf6*a1 #\n   1...Ra6-a2\n       2.Ra1*a2 #\n   1...Ra6-a3\n       2.Ra1*a3 #\n   1...Ra6-a4\n       2.Ra1*a4 #\n   1...Ra6-a5\n       2.Ra1*a5 #\n   1...c6-c5\n       2.Qf6*a6 #\n       2.Ra1*a6 #\n   1...Ka7-a8\n       2.Ra1*a6 #"
+  },
+  {
+    "id": "357",
+    "fen": "3K4/8/1p1k1p2/1PpppP2/8/8/2R1R3/3Q4 w - - 0 1",
+    "key": "d1d4",
+    "keySan": "Qd4",
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": "Problemista",
+    "year": 1964,
+    "sourceUrl": "https://www.yacpdb.org/#357",
+    "solution": "1.Qd1-h1 ? zugzwang.\n   1...d5-d4\n       2.Qh1-c6 #\n   1...e5-e4\n       2.Qh1-h2 #\n but\n   1...c5-c4 !\n1.Qd1-d2 ? zugzwang.\n   1...c5-c4\n       2.Qd2-b4 #\n   1...e5-e4\n       2.Qd2-f4 #\n but\n   1...d5-d4 !\n1.Qd1-d3 ? zugzwang.\n   1...c5-c4\n       2.Qd3-a3 #\n   1...e5-e4\n       2.Qd3-g3 #\n but\n   1...d5-d4 !\n1.Qd1-d4 ! zugzwang.\n   1...c5-c4\n       2.Qd4*b6 #\n   1...c5*d4\n       2.Rc2-c6 #\n   1...e5-e4\n       2.Qd4*f6 #\n   1...e5*d4\n       2.Re2-e6 #"
+  },
+  {
+    "id": "358",
+    "fen": "2bBR3/8/r6b/1R6/3k3r/2pPpPNp/4PP1K/8 w - - 0 1",
+    "key": "e8e6",
+    "keySan": "Re6",
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": "Problemista",
+    "year": 1965,
+    "sourceUrl": "https://www.yacpdb.org/#358",
+    "solution": "1.f3-f4 ? threat:\n       2.Re8-e4 #\n       2.f2*e3 #\n   1...Rh4*f4\n       2.f2*e3 #\n   1...Bh6*f4\n       2.Re8-e4 #\n   1...Ra6-e6\n       2.Sg3-f5 #\n   1...Bc8-e6\n       2.Bd8-f6 #\n but\n   1...c3-c2 !\n\n1.Re8-e6 ! threat:\n       2.Bd8-f6 #\n       2.Sg3-f5 #\n   1...Bc8*e6\n       2.Bd8-f6 #\n   1...Ra6*e6\n       2.Sg3-f5 #\n   1...Rh4-f4\n       2.f2*e3 #\n   1...Bh6-f4\n       2.Re6-e4 #\n   1...Rh4-h5\n       2.Re6-e4 #"
+  },
+  {
+    "id": "362",
+    "fen": "4K2b/8/2N5/Q2p1pp1/3rk3/1R1R4/2n1N2B/3B4 w - - 0 1",
+    "key": "a5e1",
+    "keySan": "Qe1",
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": "Mat (Beograd)",
+    "year": 1979,
+    "sourceUrl": "https://www.yacpdb.org/#362",
+    "solution": "1.Qa5-c7 ? threat:\n       2.Se2-g3 #\n   1...f5-f4\n       2.Qc7-h7 #\n   1...Bh8-e5\n       2.Qc7*e5 #\n but\n   1...Rd4*d3 !\n1.Qa5-b5 ? threat:\n       2.Se2-c3 #\n   1...Rd4*d3\n       2.Qb5*d3 #\n   1...Rd4-a4\n       2.Qb5*d5 #\n   1...Rd4-b4\n       2.Qb5*d5 #\n   1...Rd4-c4\n       2.Qb5*d5 #\n but\n   1...f5-f4 !\n1.Qa5-e1 ! threat:\n       2.Qe1-h1 #\n   1...Sc2*e1\n       2.Rd3-e3 #\n   1...Sc2-e3\n       2.Rd3*e3 #\n   1...Rd4*d3\n       2.Se2-c3 #\n   1...f5-f4\n       2.Se2-g3 #"
+  },
+  {
+    "id": "365",
+    "fen": "1b1Q4/3N1NpK/4B1P1/rR1q3k/3BP3/8/6R1/3b4 w - - 0 1",
+    "key": "f7e5",
+    "keySan": "Nfe5",
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": "Magyar Sakkélet",
+    "year": 1982,
+    "sourceUrl": "https://www.yacpdb.org/#365",
+    "solution": "1.Bb8-e5? threat:\n       2.Qd8-g5 #\n       2.Rg2-h2 #\n1...Qd5-d2!\n1. Sd7-e5 ? {display-departure-file}  threat:\n       2.Qd8-g5 #\n       2.Rg2-h2 #\n1...Qd5*d8!\n1.e4-e5? threat:\n       2.Qd8-g5 #\n       2.Rg2-h2 #\n1...Qd5*g2!\n1.Sf7-e5 ! {display-departure-file} threat:\n       2.Qd8-g5 #\n       2.Rg2-h2 #\n   1...Qd5*e5\n       2.Rg2-h2 #\n   1...Bb8*e5\n       2.Qd8-g5 #\n   1...Bd1-g4\n       2.Be6*g4 #\n   1...Ra5-a2\n       2.Qd8-g5 #\n   1...Ra5-a3\n       2.Qd8-g5 #\n   1...Qd5-a2\n       2.Qd8-g5 #\n   1...Qd5-b3\n       2.Qd8-g5 #\n   1...Qd5*e4\n       2.Qd8-g5 #\n   1...Qd5*e6\n       2.Qd8-g5 #"
+  },
+  {
+    "id": "367",
+    "fen": "8/3B2N1/pp4p1/Qb4P1/4PkNB/2bR4/n3R2K/8 w - - 0 1",
+    "key": "g4e5",
+    "keySan": "Ne5",
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": "Israel Ring Tourney",
+    "year": 1982,
+    "sourceUrl": "https://www.yacpdb.org/#367",
+    "solution": "1.Kh2-g2 ? threat:\n       2.Rd3-f3 #\n   1...Bb5*d3\n       2.Bh4-g3 #\n but\n   1...Bb5*d7 !\n1.Kh2-h3 ? threat:\n       2.Sg7-e6 #\n   1...Bc3*g7\n       2.Qa5-d2 #\n   1...Bb5-c4\n       2.Bh4-g3 #\n   1...Bb5*d7\n       2.Bh4-g3 #\n but\n   1...Bb5*d3 !\n1.Sg4-e5 ! threat:\n       2.Se5*g6 #\n   1...Bc3*e5\n       2.Qa5-d2 #\n   1...Kf4*e5\n       2.Bh4-g3 #\n   1...Bb5*d3\n       2.Sg7-e6 #\n   1...Bb5*d7\n       2.Rd3-f3 #"
+  },
+  {
+    "id": "373",
+    "fen": "B3rb2/1N2pp1K/ppn2B2/4RN1Q/p1kP4/Pb6/3PP2n/1R6 w - - 0 1",
+    "key": "e5e7",
+    "keySan": "Rxe7",
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": "Шахматна мисъл",
+    "year": 1986,
+    "sourceUrl": "https://www.yacpdb.org/#373",
+    "solution": "1.Bf6*e7 ? threat:\n       2.Sb7-d6 #\n       2.Qh5*f7 #\n   1...Re8*e7\n       2.Sb7-d6 #\n   1...Bf8*e7\n       2.Qh5*f7 #\n   1...Re8-d8 !\n\n1.Re5*e7 ! threat:\n       2.Sf5-e3 #\n       2.Sf5-d6 #\n   1...Bf8*e7\n       2.Sf5-e3 #\n   1...Re8*e7\n       2.Sf5-d6 #\n   1...Bb3-c2\n       2.Qh5*f7 #"
+  },
+  {
+    "id": "374",
+    "fen": "8/3pb1N1/RN4RB/2p1k3/7r/2p1PB1b/8/1Q2K3 w - - 0 1",
+    "key": "g6g4",
+    "keySan": "Rg4",
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": "Manev JT",
+    "year": 1987,
+    "sourceUrl": "https://www.yacpdb.org/#374",
+    "solution": "1.Bf3-g4 ? threat:\n       2.Bh6-f4 #\n       2.Qb1-f5 #\n   1...Bh3*g4\n       2.Bh6-f4 #\n   1...Rh4*g4\n       2.Qb1-f5 #\n but\n   1...c3-c2 !\n1.Rg6-g4 ! threat:\n       2.Sb6-c4 #\n       2.Sb6*d7 #\n   1...Bh3*g4\n       2.Sb6-c4 #\n   1...Rh4*g4\n       2.Sb6*d7 #\n   1...Ke5-f6\n       2.Qb1-f5 #\n   1...Ke5-d6\n       2.Bh6-f4 #\n   1...Bh3-f1\n       2.Sb6*d7 #\n   1...d7-d5 {(d6)}\n       2.Sb6-d7 #\n   1...Be7-d6\n       2.Sb6*d7 #\n       2.Qb1-f5 #"
+  },
+  {
+    "id": "375",
+    "fen": "2N5/2N3K1/p2R3P/r3kpB1/4P2p/3n4/3PQ1b1/1B1r4 w - - 0 1",
+    "key": "g5e3",
+    "keySan": "Be3",
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": "The Problemist",
+    "year": 1993,
+    "sourceUrl": "https://www.yacpdb.org/#375",
+    "solution": "1.Qe2-h5 ? threat:\n       2.Qh5-e8 #\n   1...Sd3-f4\n       2.Bg5-f6 #\n   1...Sd3-c5\n       2.Rd6-d5 #\n   1...Ke5*e4\n       2.Qh5-e2 #\n   1...f5*e4\n       2.Bg5-e3 #\n but\n   1...Ra5-d5 !\n\n1.Bg5-e3 ! threat:\n       2.Rd6-e6 #\n   1...Sd3-f4\n       2.Be3-d4 #\n   1...Sd3-c5\n       2.Rd6-d5 #\n   1...Ke5*e4\n       2.Be3-g5 #\n   1...f5*e4\n       2.Qe2-h5 #"
+  },
+  {
+    "id": "376",
+    "fen": "R7/5p1n/QPp1n3/7N/KP1BkpPp/2PNq3/B4PP1/3R4 w - - 0 1",
+    "key": "a6c4",
+    "keySan": "Qc4",
+    "authors": [
+      "Алайков, Венелин",
+      "Костадинов, Диян"
+    ],
+    "source": "idee & form",
+    "year": 2003,
+    "sourceUrl": "https://www.yacpdb.org/#376",
+    "solution": "1.Rd1-e1 ? threat:\n       2.f2-f3 #\n but\n   1...Se6*d4 !\n1.Ra8-e8 ? threat:\n       2.Sd3-c5 #\n but\n   1...Qe3*d4 !\n1.Qa6-c4 ! threat:\n       2.Qc4*c6 #\n   1...Qe3-d2\n       2.f2-f3 #\n   1...Qe3*d4\n       2.Rd1-e1 #\n   1...c6-c5\n       2.Qc4-d5 #\n   1...Se6-c5 +\n       2.Sd3*c5 #\n   1...Se6*d4\n       2.Ra8-e8 #\n   1...Se6-d8\n       2.Bd4*e3 #\n       2.Sd3-c5 #\n   1...Se6-c7\n       2.Bd4*e3 #\n       2.Sd3-c5 #\n   1...Sh7-f6\n       2.Sh5*f6 #"
+  },
+  {
+    "id": "378",
+    "fen": "2B5/3R4/5P2/5R2/Q6b/2r3pk/b1P5/6K1 w - - 0 1",
+    "key": "f5f4",
+    "keySan": "Rf4",
+    "authors": [
+      "Albarda, Johannes",
+      "Schogt, Hans"
+    ],
+    "source": "Probleemblad",
+    "year": 1975,
+    "sourceUrl": "https://www.yacpdb.org/#378",
+    "solution": "1.Rd7-d4 ? threat:\n       2.Rd4*h4 #\n   1...Ba2-c4\n       2.Rf5-d5 #\n   1...Rc3-c4\n       2.Rf5-c5 #\n   1...g3-g2\n       2.Rf5-f3 #\n   1...Bh4*f6\n       2.Rf5-h5 #\n but\n   1...Bh4-g5 !\n1.Rf5-f4 ! threat:\n       2.Rf4*h4 #\n   1...Ba2-c4\n       2.Rd7-d5 #\n   1...Rc3-c4\n       2.Rd7-c7 #\n   1...g3-g2\n       2.Rd7-d3 #\n   1...Bh4*f6 {(Bg5)}\n       2.Rd7-h7 #"
+  },
+  {
+    "id": "379",
+    "fen": "2K5/6p1/4Rprb/6pq/B4P1n/5kP1/2Q2PpR/2n5 w - - 0 1",
+    "key": "f4f5",
+    "keySan": "f5",
+    "authors": [
+      "Albarda, Johannes"
+    ],
+    "source": "Probleemblad",
+    "year": 1948,
+    "sourceUrl": "https://www.yacpdb.org/#379",
+    "solution": "1...g5-g4 {(a)}\n        2.Re6-e3 # {(A)}\n    1...Qh5-g4 {(b)}\n        2.Ba4-c6 # {(B)}\n\n 1.f4-f5 ! zugzwang.\n    1...g5-g4 {(a)}\n        2.Ba4-c6 # {(B)}\n    1...Qh5-g4 {(b)}\n        2.Re6-e3 # {(A)}"
+  },
+  {
+    "id": "380",
+    "fen": "8/8/8/P5Q1/1nBp4/2kP3R/2N5/1KR1n3 w - - 0 1",
+    "key": "g5e7",
+    "keySan": "Qe7",
+    "authors": [
+      "Albarda, Johannes"
+    ],
+    "source": "Probleemblad",
+    "year": 1950,
+    "sourceUrl": "https://www.yacpdb.org/#380",
+    "solution": "1.Sc2-e3 + ?\n   1...Se1-c2 {display-departure-file}\n       2.Se3-d1 #\n   1...Sb4-c2 {display-departure-file}\n       2.Se3-d5 #\n but\n   1...Kc3-d2 !\n\n1.Qg5-e7 ! threat:\n       2.Qe7*b4 #\n       2.Qe7*e1 #\n   1...Se1*c2 {display-departure-file}\n       2.Qe7-e1 #\n   1...Sb4*c2 {display-departure-file} {(Sb~)}\n       2.Qe7*e1 #\n   1...Se1*d3 {(Sg2, Sf3)}\n       2.Qe7*b4 #\n   1...Kc3-d2\n       2.Qe7*e1 #"
+  },
+  {
+    "id": "381",
+    "fen": "4r3/2p1n1P1/2R1N1B1/b1p4Q/1B1p1p2/2N1k1rR/2P1p3/3bK3 w - - 0 1",
+    "key": "e6d4",
+    "keySan": "Nxd4",
+    "authors": [
+      "Albarda, Johannes"
+    ],
+    "source": "Probleemblad",
+    "year": 1952,
+    "sourceUrl": "https://www.yacpdb.org/#381",
+    "solution": "1.Se6-g5 ? threat:\n       2.Rc6-e6 #\n   1...Bd1*c2\n       2.Qh5*e2 #\n   1...d4-d3\n       2.Bb4*c5 #\n   1...d4*c3\n       2.Bb4*c5 #\n   1...Se7*c6 {(S~)}\n       2.Sc3-d5 #\n   1...Se7-d5\n       2.Sc3*d5 #\n but\n   1...f4-f3 !\n1.Se6*c7 ? threat:\n       2.Rc6-e6 #\n   1...Bd1*c2\n       2.Qh5*e2 #\n   1...d4-d3\n       2.Bb4*c5 #\n   1...d4*c3\n       2.Bb4*c5 #\n   1...f4-f3\n       2.Qh5-e5 #\n   1...Se7*c6 {(S~)}\n       2.Sc7-d5 #\n       2.Sc3-d5 #\n   1...Se7-d5\n       2.Sc7*d5 #\n       2.Sc3*d5 #\n   1...Se7*g6 {(Sf5)}\n       2.Sc7-d5 #\n but\n   1...Ba5*c7 !\n1.Se6*d4 ! threat:\n       2.Qh5-e5 #\n   1...Bd1*c2\n       2.Sd4*c2 #\n   1...Ke3*d4\n       2.Qh5*c5 #\n   1...c5*d4\n       2.Rc6-e6 #\n   1...Se7*c6 {(S~)}\n       2.Sd4-f5 #\n   1...Se7-f5\n       2.Sd4*f5 #"
+  },
+  {
+    "id": "382",
+    "fen": "8/4P3/B1p1PQ2/R1qP1N2/4k1P1/n3P3/N3R1Kb/1b6 w - - 0 1",
+    "key": "f5g7",
+    "keySan": "Ng7",
+    "authors": [
+      "Albarda, Johannes"
+    ],
+    "source": "Probleemblad",
+    "year": 1956,
+    "sourceUrl": "https://www.yacpdb.org/#382",
+    "solution": "1...Ke4*d5\n       2.Sa2-c3 #\n   1...Qc5*e3\n       2.Qf6-d4 #\n1.Sf5-g7 ! threat:\n       2.Qf6-f5 #\n   1...Ke4*d5\n       2.Qf6-d4 #\n   1...Qc5*e3\n       2.Sa2-c3 #\n   1...Bh2-e5\n       2.Qf6-f3 #\n   1...Qc5*d5\n       2.Sa2-c3 #"
+  },
+  {
+    "id": "383",
+    "fen": "8/3ppp2/4kN1Q/R3N3/6K1/8/8/8 w - - 0 1",
+    "key": "h6e3",
+    "keySan": "Qe3",
+    "authors": [
+      "Albarda, Johannes"
+    ],
+    "source": "Schakend Nederland",
+    "year": 1961,
+    "sourceUrl": "https://www.yacpdb.org/#383",
+    "solution": "1.Kg4-g5 ? zugzwang.\n   1...Ke6-d6\n       2.Sf6-e8 #\n   1...d7-d6\n       2.Qh6-h3 #\n   1...e7*f6 +\n       2.Qh6*f6 #\n but\n   1...d7-d5 !\n\n1.Se5-d3 ? zugzwang.\n   1...Ke6-d6\n       2.Sf6-e8 #\n   1...d7-d5\n       2.Ra5-a6 #\n   1...d7-d6\n       2.Sd3-f4 #\n but\n   1...e7*f6 !\n\n1.Qh6-e3 ! zugzwang.\n   1...Ke6-d6\n       2.Qe3-b6 #\n   1...Ke6*f6\n       2.Qe3-h6 #\n   1...d7-d5\n       2.Ra5-a6 #\n   1...d7-d6\n       2.Se5-d7 #\n   1...e7*f6\n       2.Se5-c4 #"
+  },
+  {
+    "id": "384",
+    "fen": "4N3/ppKP1r2/4k3/1QB5/3P4/2N2p2/b3r3/1B6 w - - 0 1",
+    "key": "c5a3",
+    "keySan": "Ba3",
+    "authors": [
+      "Albert, Bernard"
+    ],
+    "source": "Good Companions",
+    "year": 1913,
+    "sourceUrl": "https://www.yacpdb.org/#384",
+    "solution": "1.Bc5-a3 ! zugzwang.\n   1...Ba2*b1\n       2.Qb5-d5 #\n   1...Ba2-d5\n       2.Qb5*d5 #\n   1...Ba2-c4\n       2.Qb5*c4 #\n   1...Ba2-b3\n       2.Qb5*b3 #\n   1...Re2-e1\n       2.Bb1*a2 #\n   1...Re2-b2\n       2.Qb5-e5 #\n   1...Re2-c2\n       2.Qb5-e5 #\n   1...Re2-d2\n       2.Qb5-e5 #\n   1...Re2-e5\n       2.Qb5*e5 #\n   1...Re2-e4\n       2.Bb1*a2 #\n   1...Re2-e3\n       2.Bb1*a2 #\n   1...Re2-h2\n       2.Qb5-e5 #\n   1...Re2-g2\n       2.Qb5-e5 #\n   1...Re2-f2\n       2.Qb5-e5 #\n   1...f3-f2\n       2.Qb5*e2 #\n   1...a7-a5\n       2.Qb5-b6 #\n   1...a7-a6\n       2.Qb5-b6 #\n   1...b7-b6\n       2.Qb5-c6 #\n   1...Rf7-f4\n       2.d7-d8=S #\n   1...Rf7-f5\n       2.d7-d8=S #\n       2.Qb5*f5 #\n   1...Rf7-f6\n       2.d7-d8=S #\n   1...Rf7*d7 +\n       2.Qb5*d7 #\n   1...Rf7-e7\n       2.Qb5-f5 #\n   1...Rf7-f8\n       2.d7-d8=S #\n   1...Rf7-h7\n       2.Qb5-f5 #\n   1...Rf7-g7\n       2.Qb5-f5 #"
+  },
+  {
+    "id": "385",
+    "fen": "2K1b3/2Qpk1PR/1Rp2rnN/5p1B/3N1P2/8/p7/B7 w - - 0 1",
+    "key": "b6a6",
+    "keySan": "Ra6",
+    "authors": [
+      "Albert, Bernard"
+    ],
+    "source": "Franklin Chess Club",
+    "year": 1914,
+    "sourceUrl": "https://www.yacpdb.org/#385",
+    "solution": "1.Rb6-a6 ! zugzwang.\n   1...c6-c5\n       2.Qc7-d8 #\n   1...Rf6-d6\n       2.Qc7-d8 #\n   1...Rf6-e6\n       2.Sd4*f5 #\n   1...Rf6-f8\n       2.g7-g8=S #\n   1...Rf6-f7\n       2.Sh6-g8 #\n   1...Sg6*f4 {(S~)}\n       2.Sh6-g8 #\n   1...Sg6-f8\n       2.g7-g8=S #\n       2.Sh6-g8 #\n   1...Be8-f7\n       2.Qc7*d7 #"
+  },
+  {
+    "id": "388",
+    "fen": "8/7P/8/8/B3Kn2/P1kP4/RpNpQpR1/7r w - - 0 1",
+    "key": "c2e3",
+    "keySan": "Ne3",
+    "authors": [
+      "Albert, Bernard"
+    ],
+    "source": "Good Companions",
+    "year": 1915,
+    "sourceUrl": "https://www.yacpdb.org/#388",
+    "solution": "1.Sc2-e3 ! zugzwang.\n   1...Rh1-a1 {(R~1)}\n       2.h7-h8=Q #\n       2.h7-h8=B #\n   1...Rh1-d1\n       2.h7-h8=Q #\n       2.h7-h8=B #\n       2.Se3*d1 #\n   1...Rh1*h7 {(R~h)}\n       2.Se3-d1 #\n   1...b2-b1=Q {(B)}\n       2.Qe2*d2 #\n   1...b2-b1=S\n       2.Ra2-c2 #\n   1...b2-b1=R\n       2.Qe2*d2 #\n       2.Ra2-c2 #\n   1...d2-d1=Q {(B)}\n       2.Qe2*b2 #\n   1...d2-d1=S\n       2.Qe2-c2 #\n   1...d2-d1=R\n       2.Qe2*b2 #\n       2.Qe2-c2 #\n   1...f2-f1=Q {(R)}\n       2.Qe2*d2 #\n   1...f2-f1=S\n       2.Se3-d1 #\n   1...f2-f1=B\n       2.Se3-d1 #\n       2.Qe2*d2 #\n   1...Sf4*d3\n       2.Qe2*d3 #\n   1...Sf4*e2\n       2.Se3-d5 #\n   1...Sf4*g2 {(S~)}\n       2.Se3-d5 #\n   1...Sf4-h3\n       2.h7-h8=Q #\n       2.h7-h8=B #\n       2.Se3-d5 #\n   1...Sf4-d5\n       2.Se3*d5 #"
+  },
+  {
+    "id": "391",
+    "fen": "2N5/8/8/1PkP4/8/2K5/2Q5/8 w - - 0 1",
+    "key": "c2b1",
+    "keySan": "Qb1",
+    "authors": [
+      "Albert, Eugene"
+    ],
+    "source": "Ideal-Mate Review",
+    "year": 1987,
+    "sourceUrl": "https://www.yacpdb.org/#391",
+    "solution": "1.Qc2-b1 ! zugzwang.\n   1...Kc5*d5\n       2.Qb1-f5 #\n\n1.Qc2-h7 ? zugzwang.\n   1...Kc5*d5\n       2.Qh7-f5 #\n but\n   1...Kc5*b5 !\n1.Qc2-g6 ? threat:\n       2.Qg6-c6 #\n   1...Kc5*d5\n       2.Qg6-f5 #\n but\n   1...Kc5*b5 !\n1.Qc2-f5 ? threat:\n       2.d5-d6 #\n but\n   1...Kc5*b5 !\n1.Qc2-e4 ? threat:\n       2.Qe4-c4 #\n but\n   1...Kc5*b5 !\n1.Qc2-a4 ? threat:\n       2.Qa4-c4 #\n but\n   1...Kc5*d5 !\n1.Qc2-a2 ? threat:\n       2.Qa2-c4 #\n but\n   1...Kc5*b5 !\n1.Qc2-f2 + ?\n   1...Kc5*d5\n       2.Qf2-f5 #\n but\n   1...Kc5*b5 !\n1.Qc2-e2 ? threat:\n       2.Qe2-c4 #\n but\n   1...Kc5*d5 !\n1.d5-d6 ? threat:\n       2.Qc2-f5 #\n but\n   1...Kc5*b5 !"
+  },
+  {
+    "id": "392",
+    "fen": "4K3/4N3/1NPB4/ppP5/pk6/4n2R/PP6/2r1r3 w - - 0 1",
+    "key": "c6c7",
+    "keySan": "c7",
+    "authors": [
+      "Albertini, A."
+    ],
+    "source": "Telescacco 92",
+    "year": 1995,
+    "sourceUrl": "https://www.yacpdb.org/#392",
+    "solution": "1.c6-c7 ! threat:\n       2.Se7-c6 #\n   1...Se3-c2 {(S~)}\n       2.c5-c6 #\n   1...Se3-c4\n       2.Sb6-d5 #"
+  },
+  {
+    "id": "393",
+    "fen": "8/8/8/qR6/k7/1RP5/2K5/1N6 w - - 0 1",
+    "key": "c2c1",
+    "keySan": "Kc1",
+    "authors": [
+      "Сурков, Валерий Альбертович"
+    ],
+    "source": "Thema Danicum",
+    "year": 1994,
+    "sourceUrl": "https://www.yacpdb.org/#393",
+    "solution": "1...Qa5-d8{Q~}  2.Rb3-b4 #{display-departure-rank}\n 1...Qa5*b5  2.Rb3-a3 # \n 1...Qa5*c3 + 2.Sb1*c3 # \n\n 1.Kc2-d1 ?{zugzwang}\n 1...Qa5*b5  2.Rb3-a3 # \n 1...Qa5*c3 + 2.Sb1*c3 # \n 1...Qa5-d8 + ! \n\n 1.Kc2-b2 ?{zugzwang}\n 1...Qa5-d8{Q~}  2.Rb3-b4 #{display-departure-rank}\n 1...Qa5*c3 + 2.Sb1*c3 # \n 1...Qa5*b5 !\n\n 1.Rb3-b2 ?{zugzwang}\n 1...Qa5-d8{Q~ }{[a]}  2.Rb2-b4 #{display-departure-rank}\n 1...Qa5*b5{[b]}  2.Rb2-a2 # \n 1...Qa5*c3 + ! \n\n 1.Kc2-c1 !{zugzwang}\n 1...Qa5-d8{Q~ }{[a]}  2.Rb3-b4 #{display-departure-rank}\n 1...Qa5*b5{[b]}  2.Rb3-a3 # \n 1...Qa5*c3 + 2.Sb1*c3 #"
+  },
+  {
+    "id": "394",
+    "fen": "1qN3b1/Bp3B2/3Qn3/3n4/P1kb1NR1/2p1p3/2P4K/8 w - - 0 1",
+    "key": "f4d3",
+    "keySan": "Nd3",
+    "authors": [
+      "Albrecht, Hermann"
+    ],
+    "source": "Die Schwalbe",
+    "year": 1935,
+    "sourceUrl": "https://www.yacpdb.org/#394",
+    "solution": "1.Sf4-d3 ! threat:\n       2.Sd3-e5 #\n   1...Sd5-f4 {display-departure-file}\n       2.Qd6*d4 #\n   1...Se6-c5\n       2.Sc8-b6 #\n   1...Se6-f4 {display-departure-file}\n       2.Qd6-b4 #\n   1...Qb8*d6 +\n       2.Sc8*d6 #"
+  },
+  {
+    "id": "395",
+    "fen": "8/8/2pp4/2k5/1R6/K7/4n3/3Q4 w - - 0 1",
+    "key": "d1f1",
+    "keySan": "Qf1",
+    "authors": [
+      "Albrecht, Hermann"
+    ],
+    "source": "Neue Leipziger Zeitung",
+    "year": 1936,
+    "sourceUrl": "https://www.yacpdb.org/#395",
+    "solution": "1.Qd1-f1 ! zugzwang.\n   1...Se2-c1\n       2.Qf1-c4 #\n   1...Se2-g1\n       2.Qf1-c4 #\n   1...Se2-g3\n       2.Qf1-c4 #\n   1...Se2-f4\n       2.Qf1-c4 #\n   1...Se2-d4\n       2.Qf1-c4 #\n   1...Se2-c3\n       2.Qf1-c4 #\n   1...Kc5-d5\n       2.Qf1-f5 #\n   1...d6-d5\n       2.Qf1-f8 #"
+  },
+  {
+    "id": "397",
+    "fen": "6q1/3RpQ1b/pP2pbB1/K3BNr1/3pk1P1/3N3R/2n2P2/4n3 w - - 0 1",
+    "key": "e5c7",
+    "keySan": "Bc7",
+    "authors": [
+      "Albrecht, Hermann"
+    ],
+    "source": "Deutsche Schachblätter",
+    "year": 1938,
+    "sourceUrl": "https://www.yacpdb.org/#397",
+    "solution": "1.Be5-h2 ? threat:\n       2.Sd3-c5 #\n   1...Se1*d3\n       2.f2-f3 #\n but\n   1...Qg8-c8 !\n1.Be5-c7 ! threat:\n       2.Sd3-c5 #\n   1...Se1*d3\n       2.f2-f3 #\n   1...e6-e5\n       2.Sf5-d6 #\n   1...Bf6-e5\n       2.Sf5-g3 #"
+  },
+  {
+    "id": "398",
+    "fen": "1Br5/1Q2bRPp/n1r1B2K/6p1/4k3/R4N2/4PP2/5n2 w - - 0 1",
+    "key": "a3a5",
+    "keySan": "Ra5",
+    "authors": [
+      "Albrecht, Hermann"
+    ],
+    "source": "Szachista (Lwów)",
+    "year": 1938,
+    "sourceUrl": "https://www.yacpdb.org/#398",
+    "solution": "1.Ra3-a5 ! threat:\n       2.Ra5-e5 #\n   1...Be7-d6\n       2.Be6-d5 #\n   1...Be7-f6\n       2.Be6-f5 #\n   1...Be7-c5\n       2.Qb7-b1 #\n   1...Sa6-c5\n       2.Qb7-b4 #"
+  },
+  {
+    "id": "399",
+    "fen": "6q1/8/5rnQ/1N1p4/2rpk1B1/3n1NP1/5BP1/3R1K2 w - - 0 1",
+    "key": "f2d4",
+    "keySan": "Bxd4",
+    "authors": [
+      "Albrecht, Hermann",
+      "Lipton, Michael"
+    ],
+    "source": "FIDE (Piran)",
+    "year": 1958,
+    "sourceUrl": "https://www.yacpdb.org/#399",
+    "solution": "1...Sd3-e5 {display-departure-file}\n       2.Sf3-g5 #\n   1...Sg6-e5 {display-departure-file}\n       2.Sf3-d2 #\n1.Bf2*d4 ! threat:\n       2.Qh6-e3 #\n   1...Sd3-f4 {display-departure-file}\n       2.Sf3-g5 #\n   1...Sg6-f4 {display-departure-file}\n       2.Sf3-d2 #\n   1...Rc4*d4\n       2.Sb5-c3 #\n   1...Rf6*f3 +\n       2.g2*f3 #\n   1...Rf6-f4\n       2.Sb5-d6 #"
+  },
+  {
+    "id": "400",
+    "fen": "8/1p6/3p1p1K/8/pr3kP1/B2B1Pp1/1pN5/4N2Q w - - 0 1",
+    "key": "d3c4",
+    "keySan": "Bc4",
+    "authors": [
+      "Albregts, W."
+    ],
+    "source": "Tijdschrift van den Nederlandschen Schaakbond",
+    "year": 1894,
+    "sourceUrl": "https://www.yacpdb.org/#400",
+    "solution": "1.Bd3-c4 ! threat:\n       2.Se1-d3 #\n   1...g3-g2\n       2.Qh1-h2 #\n   1...Rb4-b3\n       2.Ba3*d6 #"
+  },
+  {
+    "id": "403",
+    "fen": "3R2bb/K3B2p/1R4pQ/2n1kN1n/p1r1P1p1/2P5/5N2/1B4r1 w - - 0 1",
+    "key": "f5d4",
+    "keySan": "Nd4",
+    "authors": [
+      "Александров, Владимир Александрович"
+    ],
+    "source": "Slovenský denník",
+    "year": 1992,
+    "sourceUrl": "https://www.yacpdb.org/#403",
+    "solution": "1.Sf5-d4 ! threat:\n       2.Qh6-g5 #\n   1...Bg8-e6\n       2.Sd4-c6 #\n   1...Bh8-f6\n       2.Be7-d6 #\n   1...Sc5*e4\n       2.Sf2-d3 #\n   1...Sc5-e6\n       2.Rd8-d5 #\n   1...Sh5-g3\n       2.Sf2*g4 #\n   1...Sh5-g7\n       2.Be7-f6 #"
+  },
+  {
+    "id": "404",
+    "fen": "5Rb1/4QpR1/8/5k2/5b2/8/8/1K6 w - - 0 1",
+    "key": "f8e8",
+    "keySan": "Re8",
+    "authors": [
+      "Александров, Владимир Александрович"
+    ],
+    "source": "The Problemist Supplement",
+    "year": 1993,
+    "sourceUrl": "https://www.yacpdb.org/#404",
+    "solution": "1...f7-f6\n       2.Rf8*f6 #\n   1...Bg8-h7\n       2.Rf8*f7 #\n1.Rf8-e8 ! zugzwang.\n   1...f7-f6\n       2.Qe7-e4 #\n   1...Bg8-h7\n       2.Qe7*f7 #\n   1...Bf4-c1 {(Bd2, Be3, Bh6)}\n       2.Qe7-e5 #\n   1...Bf4-h2 {(Bg3, Bd6, Bc7, Bb8)}\n       2.Qe7-g5 #\n   1...Bf4-g5\n       2.Qe7*g5 #\n   1...Bf4-e5\n       2.Qe7*e5 #"
+  },
+  {
+    "id": "405",
+    "fen": "2n5/B3pQ2/8/kB2n3/3N4/pb1N4/1P6/5K2 w - - 0 1",
+    "key": "f7d5",
+    "keySan": "Qd5",
+    "authors": [
+      "Александров, Владимир Александрович"
+    ],
+    "source": "Slovenský denník",
+    "year": 1993,
+    "sourceUrl": "https://www.yacpdb.org/#405",
+    "solution": "1.Qf7-d5 ! threat:\n       2.Sd4*b3 #\n   1...Bb3*d5 {(B~)}\n       2.b2-b4 #\n   1...Se5*d3\n       2.Sd4-c6 #\n   1...Sc8*a7\n       2.Qd5-d8 #"
+  },
+  {
+    "id": "406",
+    "fen": "1bnQR3/4p1B1/r7/5RPN/pr1pk2p/1b5B/1nP2P2/K1N5 w - - 0 1",
+    "key": "d8a5",
+    "keySan": "Qa5",
+    "authors": [
+      "Александров, Владимир Александрович"
+    ],
+    "source": "Best Problems",
+    "year": 2004,
+    "sourceUrl": "https://www.yacpdb.org/#406",
+    "solution": "1.c2-c4 ? threat:\n        2.Qd8*d4 #\n        2.Qd8-d5 #\n    1...Bb3*c4\n        2.Qd8*d4 #\n    1...Rb4*c4\n        2.Qd8-d5 #\n  but\n    1...d4*c3 ep. !\n1.Qd8-a5 ! threat:\n       2.Bh3-g2 #\n   1...Bb3-d5\n       2.Qa5*d5 #\n   1...Rb4-b5\n       2.Qa5-e1 #\n   1...Ra6*a5\n       2.Sh5-f6 #\n   1...e7-e5\n       2.Rf5-f4 #\n   1...Bb8-e5\n       2.Qa5*e5 #"
+  },
+  {
+    "id": "407",
+    "fen": "b2Q4/1B1p1K2/8/4bkp1/3r4/6BR/2p1nNn1/5N2 w - - 0 1",
+    "key": "g3f4",
+    "keySan": "Bf4",
+    "authors": [
+      "Александров, Владимир Александрович"
+    ],
+    "source": "Best Problems",
+    "year": 2005,
+    "sourceUrl": "https://www.yacpdb.org/#407",
+    "solution": "1.Bg3-f4 ! threat:\n       2.Qd8*g5 #\n   1...Se2*f4 {display-departure-file}\n       2.Sf1-g3 #\n   1...Sg2*f4 {display-departure-file}\n       2.Sf1-e3 #\n   1...Rd4*f4\n       2.Qd8*d7 #\n   1...Be5*f4\n       2.Qd8-f6 #\n   1...Kf5*f4\n       2.Rh3-f3 #\n   1...g5*f4\n       2.Rh3-h5 #\n   1...Be5-f6\n       2.Qd8*f6 #"
+  },
+  {
+    "id": "408",
+    "fen": "1nK5/5N1p/1pk4r/1p1q4/6Q1/1N5p/6B1/2r3nR w - - 0 1",
+    "key": "g4e4",
+    "keySan": "Qe4",
+    "authors": [
+      "Александров, Александр"
+    ],
+    "source": "The Problemist Supplement",
+    "year": 1993,
+    "sourceUrl": "https://www.yacpdb.org/#408",
+    "solution": "1.Qg4-e4 ! threat:\n       2.Qe4*d5 #\n   1...Rc1-c5\n       2.Sb3-d4 #\n   1...Rc1-d1\n       2.Qe4-c2 #\n   1...Sg1-f3\n       2.Rh1*c1 #\n   1...h3*g2\n       2.Rh1*h6 #\n   1...Qd5*e4\n       2.Bg2*e4 #\n   1...Rh6-h5\n       2.Qe4-e6 #\n   1...Rh6-d6\n       2.Sf7-e5 #"
+  },
+  {
+    "id": "409",
+    "fen": "8/8/8/8/nQpkBK2/8/8/b7 w - - 0 1",
+    "key": "b4a3",
+    "keySan": "Qa3",
+    "authors": [
+      "Алексеев, Юрий Михайлович"
+    ],
+    "source": "Шахматы в СССР",
+    "year": 1981,
+    "sourceUrl": "https://www.yacpdb.org/#409",
+    "solution": "1...Ba1-c3\n       2.Qb4-d6 #\n   1...Sa4-c3\n       2.Qb4-b6 #\n\n1.Qb4-a3 ! threat:\n       2.Qa3-e3 #\n   1...Ba1-c3\n       2.Qa3-d6 #\n   1...Sa4-c3\n       2.Qa3-a7 #\n   1...c4-c3\n       2.Qa3-b4 #\n\n1.Qb4-e7 ? threat:\n       2.Qe7-e5 #\n   1...c4-c3\n       2.Qe7-b4 #\n but\n   1...Kd4-c3 !\n1.Qb4-a5 ? threat:\n       2.Qa5-e5 #\n   1...c4-c3\n       2.Qa5-b4 #\n       2.Qa5-d5 #\n but\n   1...Sa4-c5 !"
+  },
+  {
+    "id": "412",
+    "fen": "7Q/2P2p2/3N1P2/NP3K2/3p3P/2PkP3/1R4R1/8 w - - 0 1",
+    "key": "h8d8",
+    "keySan": "Qd8",
+    "authors": [
+      "Алексеев, Юрий Михайлович"
+    ],
+    "source": "Уральский проблемист",
+    "year": 2004,
+    "sourceUrl": "https://www.yacpdb.org/#412",
+    "solution": "1.Qh8-h7 ? zugzwang.\n   1...Kd3*c3\n       2.Rb2-b3 #\n   1...Kd3*e3\n       2.Rg2-g3 #\n   1...d4*c3\n       2.Kf5-f4 #\n but\n   1...d4*e3 !\n1.Kf5-f4 ? zugzwang.\n   1...Kd3*c3\n       2.Rb2-b3 #\n   1...d4*c3\n       2.Qh8-h7 #\n but\n   1...d4*e3 !\n1.Sd6-c4 ? {display-departure-file} zugzwang.\n   1...Kd3*c3\n       2.Rb2-b3 #\n   1...d4*c3\n       2.Qh8-d8 #\n but\n   1...d4*e3 !\n1.Sd6-e4 ? zugzwang.\n   1...Kd3*e3\n       2.Rg2-g3 #\n   1...d4*e3\n       2.Qh8-d8 #\n but\n   1...d4*c3 !\n\n1.Qh8-d8 ! zugzwang.\n   1...Kd3*c3\n       2.Rb2-b3 #\n   1...Kd3*e3\n       2.Rg2-g3 #\n   1...d4*e3\n       2.Sd6-e4 #\n   1...d4*c3\n       2.Sd6-c4 #"
+  },
+  {
+    "id": "413",
+    "fen": "r7/1n1QpR2/3p2p1/4pB2/r5pN/1b4N1/2p2kpK/2B3R1 w - - 0 1",
+    "key": "d7b5",
+    "keySan": "Qb5",
+    "authors": [
+      "Алексеев, Юрий Михайлович"
+    ],
+    "source": "StrateGems",
+    "year": 2005,
+    "sourceUrl": "https://www.yacpdb.org/#413",
+    "solution": "1.Qd7-c6 ? threat:\n       2.Qc6*g2 #\n   1...Bb3-d5\n       2.Qc6*c2 #\n   1...e5-e4\n       2.Bf5-e6 #\n   1...d6-d5\n       2.Bf5-e4 #\n but\n   1...Ra4-e4 !\n1.Qd7-b5 ! threat:\n       2.Qb5-e2 #\n   1...Bb3-c4\n       2.Bf5-e6 #\n   1...Ra4-e4\n       2.Sg3*e4 #\n   1...Ra4-c4\n       2.Bf5-e4 #"
+  },
+  {
+    "id": "416",
+    "fen": "3NB2B/2p1R3/7n/5kp1/5pn1/5p2/K7/2b4Q w - - 0 1",
+    "key": "h1h5",
+    "keySan": "Qh5",
+    "authors": [
+      "Александров, Владимир Александрович",
+      "Rivas, José Santiago"
+    ],
+    "source": "Apprenti Sorcier",
+    "year": 1991,
+    "sourceUrl": "https://www.yacpdb.org/#416",
+    "solution": "1.Qh1-h5 ! threat:\n       2.Be8-d7 #\n       2.Be8-g6 #\n       2.Qh5-g6 #\n   1...Sg4-f6\n       2.Be8-g6 #\n   1...Sg4-e5\n       2.Re7*e5 #\n   1...Sh6-f7\n       2.Be8-d7 #\n       2.Qh5-h7 #\n   1...Sg4-e3\n       2.Be8-d7 #\n       2.Be8-g6 #\n       2.Re7-e5 #\n   1...Sg4-f2\n       2.Be8-d7 #\n       2.Be8-g6 #\n       2.Re7-e5 #\n   1...Sg4-h2\n       2.Be8-d7 #\n       2.Be8-g6 #\n       2.Re7-e5 #"
+  },
+  {
+    "id": "417",
+    "fen": "8/2R2pr1/4k3/1K1p3N/BB1p1Pnb/3Q4/1p2N3/6q1 w - - 0 1",
+    "key": "b5a5",
+    "keySan": "Ka5",
+    "authors": [
+      "Александров, Владимир Александрович"
+    ],
+    "source": "Apprenti Sorcier",
+    "year": 1992,
+    "sourceUrl": "https://www.yacpdb.org/#417",
+    "solution": "1.Kb5-a5 ! threat:\n       2.Ba4-d7 #\n   1...Qg1-a1\n       2.Se2*d4 #\n   1...Sg4-f6\n       2.Rc7-e7 #\n   1...Sg4-e5\n       2.f4-f5 #\n   1...f7-f5\n       2.Qd3-a6 #\n   1...f7-f6\n       2.Sh5*g7 #"
+  },
+  {
+    "id": "418",
+    "fen": "1Nnnr2q/pb1B1pb1/p6r/B1k4p/p7/3Q4/3Np3/1R2K3 w - - 0 1",
+    "key": "d7c6",
+    "keySan": "Bc6",
+    "authors": [
+      "Александров, Владимир Александрович"
+    ],
+    "source": "Échec+",
+    "year": 1992,
+    "sourceUrl": "https://www.yacpdb.org/#418",
+    "solution": "1.Bd7-c6 ! threat:\n       2.Qd3-d5 #\n   1...Rh6*c6\n       2.Sb8-d7 #\n   1...Rh6-d6\n       2.Qd3-c4 #\n   1...Bb7*c6\n       2.Sb8*a6 #\n   1...Bg7-d4\n       2.Qd3-a3 #\n   1...Sc8-b6\n       2.Ba5-b4 #\n   1...Sc8-e7\n       2.Sd2-e4 #\n   1...Sd8*c6\n       2.Sb8-d7 #\n   1...Re8-e5\n       2.Rb1-c1 #"
+  },
+  {
+    "id": "419",
+    "fen": "8/6p1/5RN1/8/K2pk1pq/pQ2N2n/8/8 w - - 0 1",
+    "key": "e3f5",
+    "keySan": "Nf5",
+    "authors": [
+      "Александров, Владимир Александрович"
+    ],
+    "source": "Интеллектуальные игры",
+    "year": 1993,
+    "sourceUrl": "https://www.yacpdb.org/#419",
+    "solution": "1.Se3-f5 ! threat:\n       2.Sf5-d6 #\n   1...d4-d3\n       2.Qb3-b7 #\n   1...Qh4-g3\n       2.Sf5*g3 #\n   1...Qh4*f6\n       2.Sf5-g3 #"
+  },
+  {
+    "id": "423",
+    "fen": "K2N4/R3pr2/1BPk2NQ/8/p1P2pb1/q1p5/n7/8 w - - 0 1",
+    "key": "h6h1",
+    "keySan": "Qh1",
+    "authors": [
+      "Александров, Владимир Александрович"
+    ],
+    "source": "Matou",
+    "year": 1992,
+    "sourceUrl": "https://www.yacpdb.org/#423",
+    "solution": "1.Qh6-h1 ! threat:\n       2.Qh1-d5 #\n   1...Sa2-b4\n       2.c4-c5 #\n   1...Qa3-c5\n       2.Bb6-c7 #\n   1...f4-f3\n       2.Qh1-d1 #\n   1...Bg4-f3\n       2.Ra7-d7 #\n   1...Bg4-e6\n       2.Sd8-b7 #\n   1...e7-e6\n       2.Sd8*f7 #\n   1...Rf7-f5\n       2.Ra7-d7 #"
+  },
+  {
+    "id": "425",
+    "fen": "bN1R4/nrp1kNp1/3b2P1/1P1p1PP1/1B2pP2/4Q3/2R5/2K5 w - - 0 1",
+    "key": "e3c5",
+    "keySan": "Qc5",
+    "authors": [
+      "Александров, Владимир Александрович"
+    ],
+    "source": "Шахматная композиция",
+    "year": 1992,
+    "sourceUrl": "https://www.yacpdb.org/#425",
+    "solution": "1.Qe3-b6 ? zugzwang.\n   1...e4-e3\n       2.Qb6*e3 #\n   1...Bd6*b4\n       2.Qb6-e6 #\n   1...Bd6-c5\n       2.Qb6*c5 #\n       2.Qb6-e6 #\n       2.Bb4*c5 #\n   1...Sa7*b5\n       2.Sb8-c6 #\n   1...Sa7-c6\n       2.Sb8*c6 #\n   1...Sa7-c8\n       2.Sb8-c6 #\n   1...Rb7*b6\n       2.Rc2*c7 #\n   1...Rb7*b8\n       2.Qb6*c7 #\n       2.Rc2*c7 #\n   1...c7-c5\n       2.Qb6*d6 #\n   1...c7-c6\n       2.Bb4*d6 #\n   1...c7*b6\n       2.Bb4*d6 #\n but\n   1...d5-d4 !\n1.Qe3-c5 ! zugzwang.\n   1...e4-e3\n       2.Qc5*e3 #\n   1...d5-d4\n       2.Qc5-e5 #\n   1...Bd6*c5\n       2.Bb4*c5 #\n   1...Sa7*b5\n       2.Sb8-c6 #\n   1...Sa7-c6\n       2.Sb8*c6 #\n   1...Sa7-c8\n       2.Sb8-c6 #\n   1...Rb7*b5\n       2.Qc5*c7 #\n   1...Rb7-b6\n       2.Qc5*c7 #\n   1...Rb7*b8\n       2.Qc5*c7 #\n   1...c7-c6\n       2.Qc5*d6 #"
+  },
+  {
+    "id": "426",
+    "fen": "8/3r1r2/1R6/3k1pQ1/1PN3R1/1P2PK2/4n3/2n3bB w - - 0 1",
+    "key": "g5g8",
+    "keySan": "Qg8",
+    "authors": [
+      "Alexander, Frederick Forrest Lawrie"
+    ],
+    "source": "British Chess Magazine",
+    "year": 1911,
+    "sourceUrl": "https://www.yacpdb.org/#426",
+    "solution": "1.Qg5-g8 ! zugzwang.\n    1...Sc1*b3 {(Sc~)}\n        2.Kf3*e2 #\n    1...Bg1-h2\n        2.Kf3-f2 #\n    1...Bg1*e3\n        2.Kf3*e3 #\n    1...Bg1-f2\n        2.Kf3*f2 #\n    1...Se2-f4\n        2.Kf3*f4 #\n    1...Se2-d4 +\n        2.Rg4*d4 #\n    1...Se2-c3\n        2.Rg4-d4 #\n    1...f5-f4\n        2.Rg4-g5 #\n    1...f5*g4 +\n        2.Kf3*g4 #\n    1...Rd7-d6\n        2.Rb6*d6 #\n    1...Rd7-a7 {(Rb7, Rc7, Re7)}\n        2.Rb6-d6 #\n    1...Rd7-d8\n        2.Qg8*f7 #"
+  },
+  {
+    "id": "428",
+    "fen": "8/8/3p4/BB4bq/1K2p3/1b2pQ2/1R1p2R1/2N1k2r w - - 0 1",
+    "key": "b2b1",
+    "keySan": "Rb1",
+    "authors": [
+      "Александров, Ростислав Николаевич",
+      "Лебедев, Вячеслав Александр"
+    ],
+    "source": "British Chess Federation",
+    "year": 1936,
+    "sourceUrl": "https://www.yacpdb.org/#428",
+    "solution": "1.Rb2-b1 ! threat:\n       2.Sc1-d3 #\n   1...d2-d1=Q\n       2.Qf3-g3 #\n   1...d2-d1=S\n       2.Rg2-e2 #\n   1...d2-d1=R\n       2.Qf3-g3 #\n       2.Rg2-e2 #\n   1...d2-d1=B\n       2.Kb4-a3 #\n       2.Qf3-g3 #\n   1...d2*c1=Q\n       2.Kb4*b3 #\n   1...d2*c1=S\n       2.Kb4-a3 #\n   1...d2*c1=R\n       2.Kb4-a3 #\n       2.Kb4*b3 #\n   1...d2*c1=B\n       2.Kb4*b3 #\n   1...Bb3-d1\n       2.Qf3-g3 #"
+  },
+  {
+    "id": "429",
+    "fen": "b7/p3NK2/r2p1Bp1/p2p2Rp/Q2Pk3/3p2P1/B2P2P1/q2N2b1 w - - 0 1",
+    "key": "e7c8",
+    "keySan": "Nc8",
+    "authors": [
+      "Александров, Велко"
+    ],
+    "source": "Phénix",
+    "year": 1999,
+    "sourceUrl": "https://www.yacpdb.org/#429",
+    "solution": "1.Se7*g6 ? {(Se~)}\n but\n   1...Ba8-c6 !\n1.Se7-f5 ? threat:\n       2.Qa4-e8 #\n   1...Qa1*d4\n       2.Sd1-c3 #\n   1...Bg1*d4\n       2.Sd1-f2 #\n   1...Ba8-c6\n       2.Sf5*d6 #\n but\n   1...Ra6-c6 !\n1.Se7-c8 ! threat:\n       2.Qa4-e8 #\n   1...Qa1*d4\n       2.Sd1-c3 #\n   1...Bg1*d4\n       2.Sd1-f2 #\n   1...Ra6-c6\n       2.Ba2*d5 #\n   1...Ba8-c6\n       2.Sc8*d6 #"
+  },
+  {
+    "id": "430",
+    "fen": "3R1N1b/2p4p/1p2p2Q/1r2kN1n/1p4P1/1n1P1P1r/1Kb1P3/4R3 w - - 0 1",
+    "key": "e2e4",
+    "keySan": "e4",
+    "authors": [
+      "Александров, Владимир Александрович",
+      "Hebelt, Wacław",
+      "Цырулик, Степан Павлович"
+    ],
+    "source": "Wola Gułowska",
+    "year": 1992,
+    "sourceUrl": "https://www.yacpdb.org/#430",
+    "solution": "1.Sf8*h7 ? threat:\n        2.Qh6-e3 #\n    1...Bc2*d3\n        2.e2*d3 #\n    1...Rh3*f3\n        2.e2*f3 #\n  but\n    1...Sh5-f4 !\n1.e2-e3 ? threat:\n       2.Qh6*e6 #\n   1...Sb3-d4\n       2.e3*d4 #\n   1...Sh5-f4\n       2.e3*f4 #\n but\n   1...Bh8-f6 !\n1.e2-e4 ! threat:\n       2.Sf8-d7 #\n   1...Rb5-d5\n       2.e4*d5 #\n   1...e6*f5\n       2.e4*f5 #\n   1...Sb3-c5\n       2.d3-d4 #\n   1...Sh5-f6\n       2.f3-f4 #"
+  },
+  {
+    "id": "431",
+    "fen": "2b5/6P1/5K1k/8/8/7B/8/6R1 w - - 0 1",
+    "key": "g1h1",
+    "keySan": "Rh1",
+    "authors": [
+      "Алексеев, В. Е."
+    ],
+    "source": "Кудесник",
+    "year": 1993,
+    "sourceUrl": "https://www.yacpdb.org/#431",
+    "solution": "1.g7-g8=Q ? \n   1...Bc8-f5 !\n1.Rg1-h1 ! \n   1...Kh6-h5\n       2.Bh3*c8 #\n       2.Bh3-d7 #\n       2.Bh3-e6 #\n       2.Bh3-f5 #\n   1...Bc8-d7\n       2.Bh3*d7 #\n       2.Bh3-e6 #\n       2.Bh3-f5 #\n       2.Bh3-g4 #\n   1...Bc8-e6\n       2.Bh3*e6 #\n       2.Bh3-f5 #\n       2.Bh3-g4 #\n   1...Bc8-f5\n       2.Bh3*f5 #\n       2.Bh3-g4 #\n   1...Bc8-g4\n       2.Bh3*g4 #\n   1...Bc8*h3\n       2.Rh1*h3 #\n   1...Bc8-b7\n       2.Bh3-g2 #\n   1...Kh6-h7\n       2.Bh3-e6 #"
+  },
+  {
+    "id": "432",
+    "fen": "8/r5p1/bR2N1KB/2p1kP2/2Pb4/6p1/2Q1p1p1/4rq1n w - - 0 1",
+    "key": "e6g5",
+    "keySan": "Ng5",
+    "authors": [
+      "Alfredsson, Olle"
+    ],
+    "source": "Tidskrift för Schack",
+    "year": 2003,
+    "sourceUrl": "https://www.yacpdb.org/#432",
+    "solution": "1...Sh1-f2\n       2.Bh6-f4 #\n   1...Ba6-b7\n       2.Bh6*g7 #\n1.Se6-g5 ! threat:\n       2.Qc2-e4 #\n   1...Sh1-f2\n       2.Sg5-f3 #\n   1...Ba6-b7\n       2.Sg5-f7 #\n   1...Qf1*f5 +\n       2.Qc2*f5 #\n   1...Qf1-f4\n       2.Rb6-e6 #\n   1...Qf1-f3\n       2.Sg5*f3 #"
+  },
+  {
+    "id": "433",
+    "fen": "4N3/3R1P1n/5Bp1/QKP2krp/5Pb1/2pR1p1n/p3N3/8 w - - 0 1",
+    "key": "a5c7",
+    "keySan": "Qc7",
+    "authors": [
+      "Ahlheim, Karl-Heinz"
+    ],
+    "source": "L'Italia Scacchistica",
+    "year": 1961,
+    "sourceUrl": "https://www.yacpdb.org/#433",
+    "solution": "1.Qa5*c3 ? threat:\n        2.Qc3-e5 #\n    1...Kf5-e4\n        2.Se8-d6 #\n    1...Kf5-e6\n        2.Se8-g7 #\n  but\n    1...a2-a1=Q !\n\n  1.Qa5-c7 ! threat:\n        2.Qc7-e5 #\n    1...Kf5-e4\n        2.Se2-g3 #\n    1...Kf5-e6\n        2.Se2-d4 #"
+  },
+  {
+    "id": "434",
+    "fen": "8/2pKP1P1/8/b1pkp3/Rr4r1/3B1P2/2NNP3/3R4 w - - 0 1",
+    "key": "d3b5",
+    "keySan": "Bb5",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga",
+      "Лиокумович, Илья Михайлович",
+      "Vahidov, Məcnun Abdulvahid",
+      "Владимиров, Яков Георгиевич"
+    ],
+    "source": "Šahs/Шахматы (Rīga)",
+    "year": 1977,
+    "sourceUrl": "https://www.yacpdb.org/#434",
+    "solution": "1.Sd2-e4 ? {A} threat:\n       2.Se4-c3 #\n       2.Se4-f6 #\n   1...Rb4-b6 2.Bd3-c4 #\n              2.Sc2-e3 #\n   1...c5-c4 ! {a}\n1.Sd2-c4 ? {B} threat:\n       2.Sc4-e3 #\n   1...Rg4-e4\n       2.f3*e4 #\n       2.g7-g8=Q{,B#}\n   1...e5-e4 ! {b}\n\n1.Bd3-b5 ! threat:\n       2.Bb5-c6 #\n   1...c5-c4 {a}\n       2.Sd2-e4 # {A}\n   1...e5-e4 {b}\n       2.Sd2-c4 # {B}\n   1...Rb4*b5\n       2.Sc2-e3 #\n   1...Rg4-g6\n       2.Sd2-c4 #"
+  },
+  {
+    "id": "435",
+    "fen": "1b6/p1R1R3/p2k1P2/B1p1p3/2p1P3/1NPp4/2PQP3/3K4 w - - 0 1",
+    "key": "b3d4",
+    "keySan": "Nd4",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga",
+      "Vahidov, Məcnun Abdulvahid"
+    ],
+    "source": "Canadian Chess Chat",
+    "year": 1982,
+    "sourceUrl": "https://www.yacpdb.org/#435",
+    "solution": "1.Sb3-d4 ! threat:\n       2.Re7-e6 #\n       2.Re7-d7 # {display-departure-file}\n       2.Rc7-c6 #\n       2.Rc7-d7 # {display-departure-file}\n       2.Sd4-f5 #\n   1...c5*d4\n       2.Ba5-b4 #\n   1...e5*d4\n       2.Qd2-f4 #\n   1...d3*e2 +\n       2.Sd4*e2 #\n   1...d3*c2 +\n       2.Sd4*c2 #\n   1...Bb8*c7\n       2.Ba5*c7 #"
+  },
+  {
+    "id": "436",
+    "fen": "4Kn2/1pp1Q3/4Nppq/6b1/7r/5k2/4rNRR/2BB2n1 w - - 0 1",
+    "key": "e6f4",
+    "keySan": "Nf4",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga",
+      "Vahidov, Məcnun Abdulvahid"
+    ],
+    "source": "Problemas",
+    "year": 1980,
+    "sourceUrl": "https://www.yacpdb.org/#436",
+    "solution": "1...Rh4-f4\n       2.Qe7-a3 #\n   1...Bg5-f4\n       2.Se6-d4 #\n1.Qe7*c7 ? threat:\n       2.Qc7-g3 #\n       2.Rg2-g3 #\n   1...Rh4-f4\n       2.Qc7-c3 #\n   1...Bg5-f4\n       2.Qc7*b7 #\n but\n   1...Rh4-g4 !\n1.Se6-f4 ! threat:\n       2.Qe7-e3 #\n       2.Qe7-e4 #\n   1...Rh4*f4\n       2.Qe7-e3 #\n   1...Bg5*f4\n       2.Qe7-e4 #\n   1...f6-f5\n       2.Qe7-e3 #\n   1...Sf8-e6\n       2.Qe7-a3 #"
+  },
+  {
+    "id": "444",
+    "fen": "1q3r2/1B6/1bP1p3/1K1kpb1Q/2NB2p1/3PP3/6N1/3RR3 w - - 0 1",
+    "key": "d4e5",
+    "keySan": "Bxe5",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "StrateGems",
+    "year": 1998,
+    "sourceUrl": "https://www.yacpdb.org/#444",
+    "solution": "1...e5*d4\n       2.e3-e4 #\n   1...Qb8-d6\n       2.Sc4*b6 #\n   1...Qb8-d8\n       2.c6-c7 #\n1.Bd4*e5 ! threat:\n       2.Sg2-f4 #\n   1...Bf5*d3\n       2.e3-e4 #\n   1...Bf5-e4 {(Bg6, Bh7)}\n       2.Sc4*b6 #\n   1...Qb8*e5\n       2.c6-c7 #\n   1...Bb6*e3\n       2.Sg2*e3 #"
+  },
+  {
+    "id": "445",
+    "fen": "8/8/K7/2p5/1k2P2p/5QpR/1N6/B7 w - - 0 1",
+    "key": "b2c4",
+    "keySan": "Nc4",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Problemesis",
+    "year": 2003,
+    "sourceUrl": "https://www.yacpdb.org/#445",
+    "solution": "1...g3-g2\n       2.Qf3-a3 #\n       2.Qf3-b3 #\n       2.Qf3-c3 #\n1.Sb2-c4 ! zugzwang.\n   1...Kb4-a4\n       2.Qf3-a3 #\n   1...g3-g2\n       2.Qf3-b3 #\n   1...Kb4*c4\n       2.Qf3-c3 #"
+  },
+  {
+    "id": "446",
+    "fen": "8/4KN2/5p2/2nB1k2/6R1/2b5/R4N2/B2n4 w - - 0 1",
+    "key": "a2a5",
+    "keySan": "Ra5",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Problemesis",
+    "year": 2003,
+    "sourceUrl": "https://www.yacpdb.org/#446",
+    "solution": "1...Bc3-d2\n       2.Sf7-d6 #\n   1...Bc3-e5\n       2.Sf7-h6 #\n1.Ra2-a4 ? threat:\n       2.Ra4-f4 #\n   1...Bc3-d2\n       2.Sf7-d6 #\n   1...Bc3-e5\n       2.Sf7-h6 #\n   1...Bc3-d4 !\n1.Ra2-e2 ? threat:\n       2.Sf7-d6 #\n       2.Sf7-h6 #\n   1...Sd1*f2\n       2.Sf7-h6 #\n   1...Bc3-d2\n       2.Sf7-d6 #\n   1...Bc3-e5\n       2.Sf7-h6 #\n   1...Sd1-e3 !\n1.Ra2-a5 ! threat:\n       2.Bd5-e4 #\n       2.Bd5-e6 #\n   1...Sd1*f2\n       2.Bd5-e6 #\n   1...Bc3-e5\n       2.Sf7-h6 #\n   1...Bc3*a5\n       2.Sf7-d6 #\n       2.Sf7-h6 #"
+  },
+  {
+    "id": "447",
+    "fen": "1K1bN1b1/2p2R2/4B1n1/4p3/4k3/1N1p1R2/1pP2rP1/1qB2n2 w - - 0 1",
+    "key": "c2c4",
+    "keySan": "c4",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Problemesis",
+    "year": 2003,
+    "sourceUrl": "https://www.yacpdb.org/#447",
+    "solution": "1.Rf3*d3 ? threat:\n       2.Be6-d5 #\n       2.Sb3-c5 #\n   1...Qb1*c2 !\n1.Rf7-d7 ? threat:\n       2.Be6-f5 #\n       2.Sb3-c5 #\n   1...Rf2*g2 !\n1.c2-c4 ! threat:\n       2.Be6-d5 #\n       2.Be6-f5 #\n   1...Sf1-e3\n       2.Rf3*e3 #\n   1...Sg6-e7\n       2.Se8-f6 #"
+  },
+  {
+    "id": "448",
+    "fen": "5r2/N4P1p/2pk1P2/Bp4R1/1rP1K1B1/2P2pp1/3Np2q/3RQ3 w - - 0 1",
+    "key": "e4f5",
+    "keySan": "Kf5",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Jubile 'Gazeti Baku'",
+    "year": 1991,
+    "sourceUrl": "https://www.yacpdb.org/#448",
+    "solution": "1.Ke4-f5 ! threat:\n       2.Sd2-e4 #\n   1...e2*d1=Q {(~)}\n       2.Qe1-e7 #\n   1...Kd6-c5\n       2.Kf5-e6 #\n   1...Kd6-d7\n       2.Kf5-e5 #"
+  },
+  {
+    "id": "449",
+    "fen": "B4K2/4BPp1/bp3R2/qN1Pk3/8/2n1P3/3N2Pp/4RnrQ w - - 0 1",
+    "key": "e3e4",
+    "keySan": "e4",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "StrateGems",
+    "year": 2004,
+    "sourceUrl": "https://www.yacpdb.org/#449",
+    "solution": "1.e3-e4 ! threat:\n       2.Rf6-f5 #\n       2.Sd2-f3 #\n       2.Sd2-c4 #\n   1...Sf1-g3\n       2.Sd2-f3 #\n       2.Sd2-c4 #\n   1...Sf1-e3\n       2.Qh1*h2 #\n   1...Sf1*d2\n       2.Rf6-f5 #\n       2.Qh1*h2 #\n   1...Sc3-e2\n       2.Rf6-f5 #\n   1...Sc3*e4\n       2.Sd2-f3 #\n       2.Sd2-c4 #\n       2.Re1*e4 #\n   1...Sc3*d5\n       2.Sd2-f3 #\n       2.Sd2-c4 #\n   1...Sc3*b5\n       2.Sd2-f3 #\n   1...Qa5-b4\n       2.Rf6-f5 #\n       2.Sd2-f3 #\n   1...Qa5-a2\n       2.Rf6-f5 #\n       2.Sd2-f3 #\n   1...Qa5-a4\n       2.Rf6-f5 #\n       2.Sd2-f3 #\n   1...Qa5*b5\n       2.Sd2-f3 #\n   1...Ba6*b5\n       2.Sd2-f3 #\n   1...Ba6-c8\n       2.Sd2-f3 #\n       2.Sd2-c4 #\n   1...g7-g6\n       2.Sd2-f3 #\n       2.Sd2-c4 #\n   1...g7*f6\n       2.Be7-d6 #"
+  },
+  {
+    "id": "450",
+    "fen": "2RR4/7q/5p2/B6p/1rQ3pK/1pn1P1pP/ppkP4/1brn2b1 w - - 0 1",
+    "key": "c4e2",
+    "keySan": "Qe2",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Problemesis",
+    "year": 2005,
+    "sourceUrl": "https://www.yacpdb.org/#450",
+    "solution": "1.Qc4-e2 ! threat:\n       2.d2*c3 #\n       2.d2-d4 #\n       2.d2-d3 #\n   1...Rb4-c4\n       2.d2*c3 #\n   1...g4*h3 +\n       2.d2-d4 #\n   1...Rb4-d4\n       2.d2-d3 #\n   1...Bg1*e3\n       2.d2*e3 #\n   1...Qh7-d3\n       2.Qe2*d3 #\n   1...Qh7-c7\n       2.Qe2-d3 #\n   1...Qh7-d7\n       2.d2-d4 #\n       2.d2-d3 #"
+  },
+  {
+    "id": "453",
+    "fen": "1bK3Q1/8/2N2B2/3N4/r7/3Ppk2/1n4R1/8 w - - 0 1",
+    "key": "f6d4",
+    "keySan": "Bd4",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Problemesis",
+    "year": 2005,
+    "sourceUrl": "https://www.yacpdb.org/#453",
+    "solution": "1.Sd5-f4 ? threat:\n       2.Qg8-g3 #\n       2.Qg8-g4 #\n   1...e3-e2\n       2.Qg8-g3 #\n   1...Kf3*f4\n       2.Qg8-g4 #\n   1...Ra4*f4\n       2.Qg8-g3 #\n   1...Bb8*f4\n       2.Qg8-g4 #\n but\n   1...Sb2*d3 !\n1.Bf6-e5 ? threat:\n       2.Qg8-g3 #\n   1...Ra4-g4\n       2.Qg8*g4 #\n   1...Bb8*e5\n       2.Sc6*e5 #\n but\n   1...Sb2*d3 !\n1.Bf6-d4 ! threat:\n       2.Qg8-g4 #\n   1...Ra4*d4\n       2.Sc6*d4 #\n   1...Bb8-g3\n       2.Qg8*g3 #"
+  },
+  {
+    "id": "454",
+    "fen": "1B6/1rnpp3/1pp2NrR/1pkp1P2/6N1/PB5n/K6Q/8 w - - 0 1",
+    "key": "h2d2",
+    "keySan": "Qd2",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Problemesis",
+    "year": 2005,
+    "sourceUrl": "https://www.yacpdb.org/#454",
+    "solution": "1.Qh2-d2 ! threat:\n       2.Qd2-b4 #\n   1...Kc5-d6\n       2.Sf6-e4 #\n   1...Rg6*g4\n       2.Sf6*d7 #\n   1...Sc7-a6\n       2.Qd2-c3 #"
+  },
+  {
+    "id": "455",
+    "fen": "2q1R3/1pp1QP2/3Pb1K1/N3k1b1/2P1PpRp/4Pn2/2PN1B2/6rB w - - 0 1",
+    "key": "c4c5",
+    "keySan": "c5",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Problemesis",
+    "year": 2005,
+    "sourceUrl": "https://www.yacpdb.org/#455",
+    "solution": "1...Sf3-d4\n       2.e3*d4 #\n   1...f4*e3\n       2.Sd2*f3 #\n   1...Bg5-f6\n       2.e3*f4 #\n   1...b7-b5\n       2.Sa5-c6 #\n   1...b7-b6\n       2.Sa5-c6 #\n   1...Qc8-a8\n       2.Qe7*e6 #\n   1...Qc8-b8\n       2.Qe7*e6 #\n   1...Qc8-d8\n       2.Qe7*e6 #\n1.f7-f8=Q ? threat:\n       2.Qf8-f5 #\n   1...Sf3-d4\n       2.e3*d4 #\n   1...f4*e3\n       2.Sd2*f3 #\n   1...Bg5*e7\n       2.Qf8*f4 #\n   1...Bg5-f6\n       2.Qf8*f6 #\n       2.Qe7*f6 #\n       2.e3*f4 #\n but\n   1...Qc8*e8 + !\n1.c4-c5 ! threat:\n       2.Sa5-c4 #\n   1...Sf3*d2\n       2.Qe7*g5 #\n   1...f4*e3\n       2.Sd2*f3 #\n   1...Bg5*e7\n       2.e3*f4 #\n   1...b7-b5\n       2.Sa5-c6 #"
+  },
+  {
+    "id": "456",
+    "fen": "4Q1K1/2p2B2/1N2P3/2P1kpb1/r1p1Np2/2P1PP2/5n2/2B1n3 w - - 0 1",
+    "key": "e8d8",
+    "keySan": "Qd8",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Problemesis",
+    "year": 2005,
+    "sourceUrl": "https://www.yacpdb.org/#456",
+    "solution": "1.Qe8-d8 ! threat:\n       2.Qd8*c7 #\n       2.Qd8-d4 #\n       2.Qd8-d5 #\n   1...f4*e3\n       2.Qd8*c7 #\n   1...Sf2*e4\n       2.Qd8-d4 #\n   1...Se1*f3\n       2.Qd8-d5 #\n   1...Se1-c2\n       2.Qd8*c7 #\n       2.Qd8-d5 #\n   1...Ra4-a8\n       2.Sb6*c4 #\n   1...Ra4-a7\n       2.Qd8-d4 #\n       2.Qd8-d5 #\n       2.Sb6*c4 #\n   1...f5*e4\n       2.Qd8*g5 #\n   1...Bg5*d8\n       2.e3*f4 #\n   1...Bg5-e7\n       2.Qd8-d4 #\n       2.Qd8-d5 #\n       2.e3*f4 #\n   1...c7-c6\n       2.Qd8-c7 #\n       2.Qd8-d4 #\n       2.Qd8-d6 #\n       2.Qd8-b8 #\n   1...c7*b6\n       2.Qd8-d4 #\n       2.Qd8-d6 #"
+  },
+  {
+    "id": "457",
+    "fen": "3nr3/b2Kp3/2p2p2/1p3NQ1/1Bk5/1R3N2/BP1Rn3/8 w - - 0 1",
+    "key": "d2d6",
+    "keySan": "Rd6",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Problemesis",
+    "year": 2005,
+    "sourceUrl": "https://www.yacpdb.org/#457",
+    "solution": "1.Bb4-d6 ? threat:\n       2.Rb3-a3 #\n       2.Rb3-b4 #\n       2.Rb3-e3 #\n       2.Rb3-d3 #\n       2.Rb3-c3 #\n   1...b5-b4\n       2.Rb3*b4 #\n   1...c6-c5\n       2.Sf5-e3 #\n   1...e7*d6\n       2.Sf5*d6 #\n but\n   1...Ba7-c5 !\n1.Rd2-d6 ! threat:\n       2.Sf3-d2 #\n   1...Ba7-e3\n       2.Sf5*e3 #\n   1...e7*d6\n       2.Sf5*d6 #"
+  },
+  {
+    "id": "458",
+    "fen": "3N1b1Q/r2p2pK/p1P1PP2/4PR2/3k3P/B1RP4/1p1P4/q1n3NB w - - 0 1",
+    "key": "h8g7",
+    "keySan": "Qxg7",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Problemesis",
+    "year": 2005,
+    "sourceUrl": "https://www.yacpdb.org/#458",
+    "solution": "1.Qh8*g7 ! threat:\n       2.Qg7-g4 #\n   1...d7-d5\n       2.Sg1-f3 #\n   1...d7-d6\n       2.Qg7*a7 #\n   1...d7*e6\n       2.Sd8*e6 #\n   1...d7*c6\n       2.Sd8*c6 #\n   1...Sc1-e2\n       2.Sg1*e2 #\n   1...Sc1*d3\n       2.Sg1-e2 #\n   1...Bf8*g7\n       2.Ba3-c5 #"
+  },
+  {
+    "id": "459",
+    "fen": "4B1b1/7R/1pp2nRr/1pkP3Q/1p1NPBp1/1P3N2/2K1P3/8 w - - 0 1",
+    "key": "f4e3",
+    "keySan": "Be3",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Problemesis",
+    "year": 2005,
+    "sourceUrl": "https://www.yacpdb.org/#459",
+    "solution": "1...c6*d5\n       2.Rh7-c7 #\n   1...Sf6*d5\n       2.Bf4-d6 #\n\n1.Bf4-e3 ! threat:\n       2.Sd4-f5 #\n   1...c6*d5\n       2.Sd4*b5 #\n   1...Sf6*d5\n       2.Sd4*c6 #\n   1...Sf6*e4\n       2.Sd4*c6 #"
+  },
+  {
+    "id": "460",
+    "fen": "2R5/8/B7/1ppk1P2/b7/1p3NNQ/1K6/8 w - - 0 1",
+    "key": "h3h8",
+    "keySan": "Qh8",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Problem Online",
+    "year": 2007,
+    "sourceUrl": "https://www.yacpdb.org/#460",
+    "solution": "1.Qh3-f1 ? threat:\n       2.Qf1-d3 #\n   1...c5-c4\n       2.Qf1-d1 #\n but\n   1...Kd5-d6 !\n\n1.Qh3-h4 ? zugzwang.\n   1...c5-c4\n       2.Qh4-d8 #\n       2.Qh4-d4 #\n   1...Kd5-d6\n       2.Qh4-d8 #\n but\n   1...b5-b4 !\n1.Qh3-h6 ? threat:\n       2.Qh6-e6 #\n but\n   1...Kd5-c4 !\n1.Qh3-h8 ! zugzwang.\n   1...b5-b4\n       2.Qh8-e5 #\n   1...c5-c4\n       2.Qh8-d4 #\n       2.Qh8-e5 #\n       2.Qh8-d8 #\n   1...Kd5-c4\n       2.Qh8-d4 #\n   1...Kd5-d6\n       2.Qh8-d8 #"
+  },
+  {
+    "id": "461",
+    "fen": "8/3K4/3P4/pp6/kP1N4/p2P4/2P5/R3Q3 w - - 0 1",
+    "key": "d4c6",
+    "keySan": "Nc6",
+    "authors": [
+      "Aliovsadzade, Rauf Gadschiaga"
+    ],
+    "source": "Problem Online",
+    "year": 2007,
+    "sourceUrl": "https://www.yacpdb.org/#461",
+    "solution": "1.b4*a5 ? zugzwang.\n   1...a3-a2\n       2.Ra1*a2 #\n but\n   1...b5-b4 !\n1.Ra1-b1 ? zugzwang.\n   1...a5*b4\n       2.Qe1*b4 #\n but\n   1...a3-a2 !\n1.Qe1-d2 ? zugzwang.\n   1...a3-a2\n       2.Ra1*a2 #\n but\n   1...a5*b4 !\n1.Sd4-c6 ! zugzwang.\n   1...a3-a2\n       2.Ra1*a2 #\n   1...a5*b4\n       2.Qe1*b4 #"
+  },
+  {
+    "id": "462",
+    "fen": "8/8/K1Nn3Q/2pkN3/8/5P2/1P2P3/8 w - - 0 1",
+    "key": "e5c4",
+    "keySan": "Nc4",
+    "authors": [
+      "Pollak, Hermann"
+    ],
+    "source": "České Listy Šachové",
+    "year": 1897,
+    "sourceUrl": "https://www.yacpdb.org/#462",
+    "solution": "1...Sd6-b5\n       2.e2-e4 #\n   1...Sd6-c4\n       2.e2-e4 #\n   1...Sd6-f5\n       2.e2-e4 #\n   1...Sd6-f7\n       2.e2-e4 #\n   1...Sd6-e8\n       2.e2-e4 #\n   1...Sd6-c8\n       2.e2-e4 #\n   1...Sd6-b7\n       2.e2-e4 #\n1.Qh6-g6 ? zugzwang.\n   1...Sd6-b5\n       2.e2-e4 #\n   1...Sd6-c4\n       2.e2-e4 #\n   1...Sd6-e4\n       2.f3*e4 #\n   1...Sd6-f5\n       2.e2-e4 #\n   1...Sd6-f7\n       2.e2-e4 #\n   1...Sd6-e8\n       2.e2-e4 #\n   1...Sd6-c8\n       2.e2-e4 #\n   1...Sd6-b7\n       2.e2-e4 #\n but\n   1...c5-c4 !\n1.Se5-c4 ! zugzwang.\n   1...Kd5*c4\n       2.Qh6-e6 #\n   1...Kd5*c6\n       2.Qh6*d6 #\n   1...Sd6-b5\n       2.Sc4-e3 #\n       2.Sc4-b6 #\n   1...Sd6*c4\n       2.e2-e4 #\n   1...Sd6-e4\n       2.Sc4-e3 #\n       2.Sc4-b6 #\n   1...Sd6-f5\n       2.Sc4-b6 #\n   1...Sd6-f7\n       2.Sc4-e3 #\n       2.Sc4-b6 #\n   1...Sd6-e8\n       2.Sc4-e3 #\n       2.Sc4-b6 #\n   1...Sd6-c8\n       2.Sc4-e3 #\n   1...Sd6-b7\n       2.Sc4-e3 #\n       2.Sc4-b6 #"
+  },
+  {
+    "id": "463",
+    "fen": "8/K7/8/kP6/2Q5/1r6/8/3B4 w - - 0 1",
+    "key": "b5b6",
+    "keySan": "b6",
+    "authors": [
+      "Алябьев, Станислав А."
+    ],
+    "source": "Sächsische Zeitung",
+    "year": 1994,
+    "sourceUrl": "https://www.yacpdb.org/#463",
+    "solution": "1.b5-b6 ! zugzwang.\n   1...Rb3-b1\n       2.Qc4-a4 #\n   1...Rb3-b2\n       2.Qc4-a4 #\n   1...Rb3-a3\n       2.Qc4-c5 #\n   1...Rb3*b6\n       2.Qc4-a4 #\n   1...Rb3-b5\n       2.Qc4-a4 #\n   1...Rb3-b4\n       2.Qc4-a6 #\n   1...Rb3-h3\n       2.Qc4-a4 #\n       2.Qc4-c5 #\n   1...Rb3-g3\n       2.Qc4-a4 #\n       2.Qc4-c5 #\n   1...Rb3-f3\n       2.Qc4-a4 #\n       2.Qc4-c5 #\n   1...Rb3-e3\n       2.Qc4-a4 #\n       2.Qc4-c5 #\n   1...Rb3-d3\n       2.Qc4-a4 #\n       2.Qc4-c5 #\n   1...Rb3-c3\n       2.Qc4-a4 #"
+  },
+  {
+    "id": "464",
+    "fen": "2B5/3r4/3PP3/3rkppQ/R2bN3/8/K7/2B2R2 w - - 0 1",
+    "key": "h5g5",
+    "keySan": "Qxg5",
+    "authors": [
+      "Alkaff, Muchsin",
+      "Tan Hien Yan"
+    ],
+    "source": "Boletim da União Brasileira de Problemistas",
+    "year": 1962,
+    "sourceUrl": "https://www.yacpdb.org/#464",
+    "solution": "1...Ke5*e4\n       2.Qh5-e2 #\n   1...Ke5*e6\n       2.Qh5-e8 #\n   1...g5-g4\n       2.Qh5*f5 #\n1.Rf1*f5 + ?\n   1...Ke5*e4\n       2.Qh5-f3 #\n   1...Ke5*e6\n       2.Qh5-f7 #\n but\n   1...Ke5*f5 !\n1.Qh5*g5 ! threat:\n       2.Qg5*f5 #\n   1...Ke5*e4\n       2.Qg5-e3 #\n   1...Ke5*e6\n       2.Qg5-e7 #\n   1...Bd4-f2\n       2.Qg5-f6 #\n   1...Rd7-f7\n       2.Qg5-f4 #"
+  },
+  {
+    "id": "465",
+    "fen": "1Q6/4b3/2KP2nR/2NBkpp1/2PR1r2/8/5rN1/6B1 w - - 0 1",
+    "key": "b8a7",
+    "keySan": "Qa7",
+    "authors": [
+      "Alkaff, Muchsin",
+      "Tan Hien Yan"
+    ],
+    "source": "Boletim da União Brasileira de Problemistas",
+    "year": 1963,
+    "sourceUrl": "https://www.yacpdb.org/#465",
+    "solution": "1...Ke5*d4\n       2.Qb8-b2 #\n   1...Ke5-f6\n       2.Qb8-h8 #\n1.Qb8-b6 ? threat:\n       2.Sc5-d7 #\n   1...Ke5*d4\n       2.Qb6-b2 #\n   1...Sg6-f8\n       2.Sc5-d3 #\n but\n   1...Ke5-f6 !\n1.Qb8-a7 ! threat:\n       2.Sc5-d7 #\n   1...Ke5*d4\n       2.Qa7-a1 #\n   1...Ke5-f6\n       2.Qa7*e7 #\n   1...Sg6-f8\n       2.Sc5-d3 #"
+  }
+]

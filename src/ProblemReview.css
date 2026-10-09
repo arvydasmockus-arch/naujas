@@ -1,0 +1,23 @@
+.problem-reviews > header { margin-bottom: 18px; }
+.problem-reviews > header p { font-size: 12px; color: #767780; }
+.problem-review { display: grid; grid-template-columns: 235px minmax(0, 1fr); gap: 22px; padding: 22px 0; border-top: 1px solid #e0e7dd; align-items: start; }
+.problem-review__number { display: block; color: #087a3b; font-weight: 700; font-size: 13px; margin-bottom: 8px; }
+.problem-review__details h3 { margin: 0 0 4px; font-size: 15px; }
+.problem-review__source { font-size: 12px; color: #787981; }
+.problem-review__source a { color: #087a3b; }
+.problem-review__key { color: #235e42; font-size: 20px; font-weight: 700; margin: 10px 0; }
+.problem-review__stats { display: flex; flex-wrap: wrap; gap: 7px 14px; font-size: 12px; }
+.problem-review__stats strong { color: #2f3440; font-size: 14px; }
+.problem-review h4 { margin: 12px 0 5px; font-size: 12px; color: #656773; }
+.problem-review__claims { border-collapse: collapse; font-size: 12px; width: auto; max-width: 100%; }
+.problem-review__claims th, .problem-review__claims td { padding: 5px 8px; text-align: left; border: 1px solid #dbe4d6; }
+.problem-review__claims thead { background: #eff5eb; }
+.problem-review__claims tbody td:first-child { font-weight: 600; }
+.problem-review__claim--correct td:first-child { color: #23834d; }
+.problem-review__claim--wrong td:first-child { color: #c84949; }
+.problem-review__empty { font-size: 12px; color: #8a8991; }
+.problem-review details { margin-top: 12px; }
+.problem-review summary { font-size: 13px; color: #087a3b; cursor: pointer; }
+.problem-review pre { font: 12px/1.65 ui-monospace, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; background: #f4f7f3; border-radius: 7px; color: #34363e; max-height: 230px; overflow-y: auto; }
+@media (max-width: 640px) { .problem-review { grid-template-columns: minmax(120px, 180px) minmax(0, 1fr); gap: 12px; } }
+@media (max-width: 430px) { .problem-review { grid-template-columns: 1fr; } .problem-review__diagram { max-width: 220px; } }

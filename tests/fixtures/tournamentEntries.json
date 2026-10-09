@@ -1,0 +1,1053 @@
+[
+  {
+    "authors": [
+      "Abbott, Joseph William"
+    ],
+    "source": {
+      "name": "The Illustrated London News",
+      "date": {
+        "year": 1889,
+        "month": 7,
+        "day": 6
+      },
+      "issue": 2620,
+      "problemid": 2361,
+      "pagenumber": 24
+    },
+    "algebraic": {
+      "white": [
+        "Kb1",
+        "Qf7",
+        "Re1",
+        "Rd2",
+        "Bh6",
+        "Bc2",
+        "Sh2",
+        "Sb2"
+      ],
+      "black": [
+        "Ke5",
+        "Rh4",
+        "Rg8",
+        "Bh5",
+        "Bd4",
+        "Sb6",
+        "Pg6",
+        "Pe2",
+        "Pd6"
+      ]
+    },
+    "stipulation": "#2",
+    "solution": "1.Rd2-d1 ! {display-departure-file} zugzwang.\n    1...Bd4*b2 {(Bd~)}\n        2.Qf7-e7 #\n    1...Rh4*h2 {(Rh~)}\n        2.Bh6-f4 #\n    1...Rh4-e4\n        2.Sb2-d3 #\n    1...Rh4-g4\n        2.Sh2-f3 #\n    1...Bh5-f3\n        2.Sh2*f3 #\n    1...Bh5-g4\n        2.Bh6-f4 #\n    1...Sb6-a4 {(Sb~)}\n        2.Sb2-c4 #\n    1...d6-d5\n        2.Qf7-e7 #\n    1...g6-g5\n        2.Qf7-f5 #\n    1...Rg8-g7 {(Rg~)}\n        2.Bh6*g7 #",
+    "keywords": [
+      "Black correction",
+      "Grimshaw",
+      "Block"
+    ],
+    "foreignids": [
+      {
+        "domain": "Albrecht",
+        "problemid": 82182
+      },
+      {
+        "domain": "WinChloe",
+        "problemid": 256914
+      }
+    ],
+    "comments": [
+      "C+",
+      "https://archive.org/details/sim_illustrated-london-news_1889-07-06_95_2620/page/24/mode/1up"
+    ],
+    "legend": {},
+    "transliterations": {},
+    "id": 9,
+    "ash": "7772819f3f42b537b553b8bfc08dd54f"
+  },
+  {
+    "authors": [
+      "Abdurahmanović, Fadil"
+    ],
+    "source": {
+      "name": "problem (Zagreb)",
+      "date": {
+        "year": 1956
+      }
+    },
+    "algebraic": {
+      "white": [
+        "Ka6",
+        "Qf5",
+        "Rb7",
+        "Bf1",
+        "Bc5",
+        "Sf2",
+        "Sb1",
+        "Pe6",
+        "Pe2",
+        "Pd4",
+        "Pa3",
+        "Pa2"
+      ],
+      "black": [
+        "Kc4",
+        "Re3",
+        "Be1",
+        "Sa4",
+        "Pc7"
+      ]
+    },
+    "stipulation": "#2",
+    "solution": "1.Sf2-d1 ! threat:\n       2.Sd1*e3 #\n   1...Re3-d3\n       2.e2*d3 #\n   1...Re3-e4 {Rg3,Rh3}\n       2.e2-e3 #\n   1...Re3-e5\n       2.e2-e4 #\n   1...Re3-f3\n       2.e2*f3 #\n   1...Be1-d2 {Bf2}\n       2.Sb1*d2 #\n   1...Re3*a3\n       2.Sb1*a3 #\n   1...Re3-b3\n       2.a2*b3 #\n   1...Re3-c3\n       2.Rb7-b4 #\n   1...Re3*e6 +\n       2.Qf5*e6 #\n   1...Sa4*c5 +\n       2.Qf5*c5 #",
+    "keywords": [
+      "Albino",
+      "Battery play",
+      "Black correction",
+      "Duel"
+    ],
+    "legend": {},
+    "transliterations": {
+      "Abdurahmanović, Fadil": "Abdurahmanovic, Fadil"
+    },
+    "id": 10,
+    "ash": "e8da1107137f9a80d1395488b10f0dcd"
+  },
+  {
+    "authors": [
+      "Abdurahmanović, Fadil"
+    ],
+    "source": {
+      "name": "Schach-Echo",
+      "date": {
+        "year": 1975,
+        "month": 10
+      },
+      "issue": 19,
+      "problemid": 8568,
+      "pagenumber": 302
+    },
+    "award": {
+      "tourney": {
+        "name": "Schach-Echo",
+        "date": {
+          "year": 1975
+        }
+      },
+      "distinction": "1st Prize, 2nd half year"
+    },
+    "algebraic": {
+      "white": [
+        "Kb4",
+        "Qg5",
+        "Re5",
+        "Ra6",
+        "Bf8",
+        "Bf5",
+        "Sd5",
+        "Pf2",
+        "Pc4",
+        "Pc2",
+        "Pb5"
+      ],
+      "black": [
+        "Kd4",
+        "Re4",
+        "Re1",
+        "Bf4",
+        "Sg2",
+        "Sf7",
+        "Pd7",
+        "Pd6",
+        "Pd2",
+        "Pb3"
+      ]
+    },
+    "stipulation": "#2",
+    "solution": "1.Sd5-c3 ?     but\n    1...Re4*e5 !\n\n  1.Sd5-f6 ?     but\n    1...Kd4*e5 !\n\n 1.Sd5-e7 ?     but\n    1...d6*e5 !\n\n 1.Sd5-b6 ?    but\n    1...Sf7*e5 !\n\n  1.Sd5-e3 ? threat:\n  but\n    1...Bf4*e5 !\n\n 1.Sd5-c7 ! threat:\n        2.Re5-d5 #\n    1...Re4*e5\n        2.c2-c3 #\n    1...Kd4*e5\n        2.Bf8-g7 #\n    1...d6*e5\n        2.Bf8-c5 #\n    1...Sf7*e5\n        2.Ra6*d6 #\n    1...Bf4*e5\n        2.Qg5*d2 #\n    1...Sg2-e3\n        2.Re5*e4 #",
+    "keywords": [
+      "White knight wheel",
+      "Square clearance",
+      "Defences on the same square",
+      "Selfblock",
+      "White combinations"
+    ],
+    "reprints": [
+      {
+        "name": "FIDE Album",
+        "date": {
+          "year": 1980
+        },
+        "volume": "1974-1976",
+        "problemid": 172,
+        "pagenumber": 37
+      },
+      {
+        "name": "Die Tat",
+        "date": {
+          "year": 1976,
+          "month": 11,
+          "day": 25
+        },
+        "problemid": 1659
+      },
+      {
+        "name": "Problemas",
+        "date": {
+          "year": 1982,
+          "month": 7
+        },
+        "issue": 19,
+        "pagenumber": 142
+      },
+      {
+        "name": "idee & form",
+        "date": {
+          "year": 1983,
+          "month": 9
+        },
+        "issue": "Pilotnummer",
+        "pagenumber": 6
+      },
+      {
+        "name": "Newsletter ASIGC",
+        "date": {
+          "year": 2013,
+          "month": 3
+        },
+        "problemid": "D09"
+      },
+      {
+        "name": "Facebook",
+        "date": {
+          "year": 2019,
+          "month": 8,
+          "day": 16
+        }
+      },
+      {
+        "name": "Tages-Anzeiger",
+        "date": {
+          "year": 2023,
+          "month": 11,
+          "day": 4
+        },
+        "problemid": 4937
+      }
+    ],
+    "foreignids": [
+      {
+        "domain": "Albrecht",
+        "problemid": 37252
+      },
+      {
+        "domain": "PDB",
+        "problemid": "P1029856"
+      },
+      {
+        "domain": "Meson",
+        "problemid": 12166
+      },
+      {
+        "domain": "WinChloe",
+        "problemid": 60884
+      }
+    ],
+    "legend": {},
+    "transliterations": {
+      "Abdurahmanović, Fadil": "Abdurahmanovic, Fadil"
+    },
+    "id": 13,
+    "ash": "6594d60204a20208903e35cacecd0754"
+  },
+  {
+    "authors": [
+      "Kaiser, Gerhard"
+    ],
+    "source": {
+      "name": "Revista Română de Şah",
+      "date": {
+        "year": 1934,
+        "month": 10,
+        "day": 31
+      },
+      "problemid": 504
+    },
+    "algebraic": {
+      "white": [
+        "Kc7",
+        "Qb2",
+        "Rd6",
+        "Bd4",
+        "Bb7",
+        "Sh6",
+        "Sa4",
+        "Ph4",
+        "Ph2",
+        "Pf3",
+        "Pe6",
+        "Pe5",
+        "Pe2",
+        "Pb4"
+      ],
+      "black": [
+        "Kf4",
+        "Qe3"
+      ]
+    },
+    "stipulation": "#3",
+    "solution": "1.Bd4-a7 ! threat:\n        2.Rd6-d4 +\n            2...Qe3*d4\n                3.Qb2*d4 #\n            2...Qe3-e4\n                3.Rd4*e4 #\n            2...Kf4*e5\n                3.Rd4-e4 #\n\n    1...Qe3-c1 +\n        2.Qb2*c1 +\n            2...Kf4*e5\n                3.Ba7-d4 #\n                3.Qc1-g5 #\n\n    1...Qe3-b6 +\n        2.Sa4*b6 threat:\n                3.Sb6-d5 #\n                3.Qb2-d4 #\n            2...Kf4-e3\n                3.Sb6-d5 #\n    1...Qe3-c5 +\n        2.Sa4*c5 threat:\n                3.Sc5-d3 #\n                3.Qb2-d4 #\n            2...Kf4-e3\n                3.Sc5-d3 #\n\n    1...Qe3*e2\n        2.Qb2-d4 +\n            2...Qe2-e4\n                3.Qd4*e4 #\n\n    1...Qe3-c3 +\n        2.Sa4*c3 threat:\n                3.Sc3-d5 #\n    1...Qe3*e5\n        2.Qb2-c1 +\n        2.Qb2-d2 +\n        2.e2-e3 +",
+    "foreignids": [
+      {
+        "domain": "WinChloe",
+        "problemid": 858037
+      }
+    ],
+    "comments": [
+      "C+"
+    ],
+    "legend": {},
+    "transliterations": {},
+    "id": 33245,
+    "ash": "5d4cd11abd8bc10ad69e62b0105780c5"
+  },
+  {
+    "authors": [
+      "Кулігін, Микола Володимирович"
+    ],
+    "source": {
+      "name": "Práca",
+      "date": {
+        "year": 1991,
+        "month": 11,
+        "day": 13
+      },
+      "problemid": 1071
+    },
+    "algebraic": {
+      "white": [
+        "Kb2",
+        "Qg4",
+        "Bc3",
+        "Sf5",
+        "Ph2",
+        "Pe7",
+        "Pc6",
+        "Pb4",
+        "Pa4"
+      ],
+      "black": [
+        "Ke6",
+        "Ra7",
+        "Bc8",
+        "Bb8",
+        "Sc7",
+        "Ph7",
+        "Pd3"
+      ]
+    },
+    "stipulation": "#3",
+    "solution": "1.h2-h3 ! threat:\n       2.Qg4-g8 +\n           2...Ke6*f5\n               3.Qg8-g4 #\n   1...Ke6-d5\n       2.Qg4-c4 +\n           2...Kd5*c4\n               3.Sf5-e3 #\n   1...h7-h5\n       2.Qg4-g6 +\n           2...Ke6-d5\n               3.Sf5-e3 #",
+    "legend": {},
+    "transliterations": {
+      "Кулігін, Микола Володимирович": "Kuligin, Mikola Volodimirovich"
+    },
+    "id": 36262,
+    "ash": "c4e90e25faa8709471373b468ae80369"
+  },
+  {
+    "authors": [
+      "Miltner, Vratislav"
+    ],
+    "source": {
+      "name": "Hlas ľudu",
+      "date": {
+        "year": 1975
+      }
+    },
+    "award": {
+      "tourney": {
+        "name": "Hlas ľudu"
+      },
+      "distinction": "4th HM"
+    },
+    "algebraic": {
+      "white": [
+        "Kh7",
+        "Qa8",
+        "Be3",
+        "Sh2",
+        "Sc7",
+        "Pf4",
+        "Pd2"
+      ],
+      "black": [
+        "Ke4",
+        "Bh1",
+        "Sh8",
+        "Sg3",
+        "Pf7",
+        "Pf6",
+        "Pe2",
+        "Pd6",
+        "Pd3",
+        "Pc6"
+      ]
+    },
+    "stipulation": "#3",
+    "solution": "1.Sc7-b5 ! threat:\n          2.Qa8*c6 + \n              2...Ke4-f5 \n                  3.Sb5-d4 # \n              2...d6-d5 \n                  3.Sb5-d6 # \n          2.Sb5-c3 + \n              2...Ke4-f5 \n                  3.Qa8-c8 # \n      1...Ke4-d5 \n          2.Qa8-a2 + \n              2...Kd5-e4 \n                  3.Sb5*d6 # \n      1...Ke4-f5 \n          2.Qa8-c8 + \n              2...Kf5-e4 \n                  3.Sb5-c3 #",
+    "legend": {},
+    "transliterations": {},
+    "id": 37047,
+    "ash": "5489814b517947fe3a73a5cea21578bb"
+  },
+  {
+    "authors": [
+      "Zidek, Alexander"
+    ],
+    "source": {
+      "name": "6th WCCT",
+      "date": {
+        "year": 1998,
+        "month": 5,
+        "day": 1
+      }
+    },
+    "award": {
+      "tourney": {
+        "name": "6th WCCT"
+      },
+      "distinction": "22nd Place, 1996-2000",
+      "judges": [
+        "Марандюк, Михайло Назарович"
+      ]
+    },
+    "algebraic": {
+      "white": [
+        "Kh5",
+        "Qf6",
+        "Rf2",
+        "Bc4",
+        "Bb2",
+        "Sf4",
+        "Se3",
+        "Pd2",
+        "Pc2"
+      ],
+      "black": [
+        "Ke4",
+        "Qa5",
+        "Rh3",
+        "Rd7",
+        "Bh2",
+        "Ba6",
+        "Se7",
+        "Sc7",
+        "Ph6",
+        "Ph4",
+        "Pf5",
+        "Pe5",
+        "Pd3",
+        "Pb4"
+      ]
+    },
+    "stipulation": "#4",
+    "solution": "1...Qa5-d5\n        2.c2*d3 +\n            2...Qd5*d3\n                3.Qf6*e5 #\n 1...Rd7-d5\n        2.Qf6*e5 +\n            2...Rd5*e5\n                3.c2*d3 #\n\n  1.Qf6-g7 ! threat:\n        2.Qg7-g2 +\n            2...Rh3-f3\n                3.Qg2*f3 #\n    1...Bh2-g3\n        2.Se3-d5 \n            2...Bg3*f2\n                3.Qg7-g2 +\n                    3...Rh3-f3\n                        4.c2*d3 #\n            2...Qa5*d5\n                3.c2*d3 +\n                    3...Qd5*d3\n                        4.Qg7*e5 #\n            2...Rd7*d5\n                3.Qg7*e5 +\n                    3...Rd5*e5\n                        4.c2*d3 #\n    1...Rh3-g3\n        2.Sf4-d5 \n            2...Rg3-g5 +\n                3.Qg7*g5 threat:\n                        4.Qg5-g2 #\n                        4.Sd5-f6 #\n                        4.c2*d3 #\n            2...Qa5*d5\n                3.c2*d3 +\n                    3...Qd5*d3\n                        4.Qg7*e5 #\n            2...Rd7*d5\n                3.Qg7*e5 +\n                    3...Rd5*e5\n                        4.c2*d3 #\n    1...e5*f4\n        2.c2*d3 +\n            2...Rd7*d3\n                3.Bc4*d3 +\n                    3...Ke4*d3\n                        4.Qg7-d4 #\n                    3...Ba6*d3\n                        4.Qg7-d4 #\n        2.Qg7*e7 +\n            2...Qa5-e5\n                3.Qe7*e5 #\n            2...Sc7-e6\n                3.Qe7*e6 +\n                    3...Qa5-e5\n                        4.Qe6*e5 #\n    1...Se7-g6\n        2.Qg7*g6 threat:\n                3.Qg6*f5 #\n            2...Rh3*e3\n                3.Qg6-g2 +\n                    3...Re3-f3\n                        4.Qg2*f3 #\n            2...e5*f4\n                3.Qg6-c6 +\n                    3...Qa5-d5\n                        4.c2*d3 #\n                    3...Sc7-d5\n                        4.Qc6-e6 #\n                        4.c2*d3 #\n                    3...Rd7-d5\n                        4.c2*d3 #",
+    "foreignids": [
+      {
+        "domain": "WinChloe",
+        "problemid": 77262
+      }
+    ],
+    "comments": [
+      "C+"
+    ],
+    "legend": {},
+    "transliterations": {},
+    "id": 29188,
+    "ash": "460fd425c70daa6fea364cbb6318beca"
+  },
+  {
+    "authors": [
+      "Lazard, Frédéric"
+    ],
+    "source": {
+      "name": "Dresdner Anzeiger",
+      "date": {
+        "year": 1926
+      }
+    },
+    "algebraic": {
+      "white": [
+        "Kf2",
+        "Rd3",
+        "Rb2",
+        "Bc8",
+        "Sh3",
+        "Ph5",
+        "Pg2",
+        "Pc2"
+      ],
+      "black": [
+        "Ke4",
+        "Re7",
+        "Rb7",
+        "Bg7",
+        "Sa7",
+        "Ph7",
+        "Pf7",
+        "Pf5",
+        "Pe6",
+        "Pe5",
+        "Pc6",
+        "Pb3",
+        "Pa2"
+      ]
+    },
+    "stipulation": "#12",
+    "solution": "1. Kf2-g3 f5-f4+\n2. Kg3-g4 f7-f5+\n3. Kg4-g5 Bg7-f6+\n4. Kg5*f6 Re7-f7+\n5. Kf6*e6 Rf7-e7+ {display-departure-file}\n6. Ke6-d6 Sa7*c8+\n7. Kd6-c5 Rb7-b5+\n8. Kc5-c4 Sc8-d6 {(or Sb6+)}\n9. Kc4-c3 Rb5-c5+\n10.Kc3-d2 Sd6-c4+ \n11.Kd2-e2 f4-f3+\n12.g2*f3 #\n10...Rc5*c2+\n11.Rb2*c2 Sd6-c4+ 12.Rc2*c4 #",
+    "keywords": [
+      "Provoked check",
+      "King's walk",
+      "Scaccografia",
+      "Rundlauf"
+    ],
+    "reprints": [
+      {
+        "name": "La Tribune de Genève",
+        "date": {
+          "year": 1926,
+          "month": 8,
+          "day": 26
+        },
+        "problemid": 257,
+        "comments": [
+          "note in TdG 1927-09-03: In problem no. 257, by Fréd. Lazard, a white pawn must be added to h5, which the composer had neglected to indicate. This pawn is necessary to prevent the white king from moving to that square, in which case black would be checkmated by the fourth move.\n"
+        ]
+      },
+      {
+        "name": "FIDE Album",
+        "date": {
+          "year": 1972
+        },
+        "volume": "1914-1944/II",
+        "problemid": 1226
+      },
+      {
+        "name": "Le Joueur d'Echecs au Pays des Merveilles",
+        "date": {
+          "year": 1982
+        },
+        "problemid": 523,
+        "pagenumber": 270
+      },
+      {
+        "name": "Helsingin Sanomat",
+        "date": {
+          "year": 1990,
+          "month": 4,
+          "day": 13
+        }
+      }
+    ],
+    "foreignids": [
+      {
+        "domain": "WinChloe",
+        "problemid": 76276
+      }
+    ],
+    "comments": [
+      "wK draws an Octagon"
+    ],
+    "legend": {},
+    "transliterations": {
+      "Lazard, Frédéric": "Lazard, Frederic"
+    },
+    "id": 29460,
+    "ash": "3fc3e85627e3fd2bdd09ff0a0a6e4f69"
+  },
+  {
+    "authors": [
+      "Zepler, Erich Ernest"
+    ],
+    "source": {
+      "name": "Deutsches Wochenschach",
+      "date": {
+        "year": 1919
+      }
+    },
+    "algebraic": {
+      "white": [
+        "Kh4",
+        "Re2",
+        "Rc6",
+        "Sa6",
+        "Ph3",
+        "Pg5",
+        "Pd3",
+        "Pb5",
+        "Pa4",
+        "Pa3"
+      ],
+      "black": [
+        "Kd5",
+        "Rh6",
+        "Ba5",
+        "Sf8",
+        "Ph7",
+        "Ph5",
+        "Pg6",
+        "Pd4"
+      ]
+    },
+    "stipulation": "#4",
+    "solution": "1.Re2-e8 ! zugzwang.\n    1...Ba5-e1 +\n        2.Re8*e1 threat:\n                3.Sa6-b4 #\n                3.Sa6-c7 #\n            2...Sf8-e6\n                3.Sa6-b4 #\n    1...Sf8-d7\n        2.Re8-e6 {display-departure-file} threat:\n                3.Rc6-d6 #\n            2...Ba5-e1 +\n                3.Re6*e1 threat:\n                        4.Sa6-b4 #\n                        4.Sa6-c7 #\n    1...Sf8-e6\n        2.Rc6*e6 {display-departure-file} zugzwang.\n            2...Ba5-e1 +\n                3.Re6*e1 threat:\n                        4.Re8-d8 #\n            2...Ba5-d2\n                3.Sa6-c7 +\n                    3...Kd5-c5\n                        4.Re6-c6 #\n            2...Ba5-c3\n                3.Sa6-c7 +\n                    3...Kd5-c5\n                        4.Re6-c6 #\n            2...Ba5-b4\n                3.Sa6*b4 +\n                    3...Kd5-c5\n                        4.Re8-c8 #\n                        4.Re6-c6 #\n                3.Sa6-c7 +\n                    3...Kd5-c5\n                        4.Re6-c6 #\n            2...Ba5-d8\n                3.Sa6-b4 +\n                    3...Kd5-c5\n                        4.Re6-c6 #\n            2...Ba5-c7\n                3.Sa6-b4 +\n                    3...Kd5-c5\n                        4.Re6-c6 #\n                3.Sa6*c7 +\n                    3...Kd5-c5\n                        4.Re6-c6 #\n            2...Ba5-b6\n                3.Sa6-b4 +\n                    3...Kd5-c5\n                        4.Re6-c6 #",
+    "foreignids": [
+      {
+        "domain": "WinChloe",
+        "problemid": 750671
+      }
+    ],
+    "legend": {},
+    "transliterations": {},
+    "id": 45751,
+    "ash": "d0c9eab746deeb50e51fee4e4d18b615"
+  },
+  {
+    "authors": [
+      "André, László"
+    ],
+    "source": {
+      "name": "Magyar Sakkélet",
+      "date": {
+        "year": 1952,
+        "month": 1
+      },
+      "problemid": 508
+    },
+    "algebraic": {
+      "white": [
+        "Kg1",
+        "Qf1",
+        "Bd8",
+        "Ph2",
+        "Pf2"
+      ],
+      "black": [
+        "Kg7",
+        "Qh8",
+        "Bg2",
+        "Ph3",
+        "Pf6",
+        "Pf3"
+      ]
+    },
+    "stipulation": "+",
+    "solution": "1.Bd8*f6+ Kg7*f6 2.Qf1-a1+ Kf6-f7 3.Qa1*h8",
+    "legend": {},
+    "transliterations": {
+      "André, László": "Andre, Laszlo"
+    },
+    "id": 37287,
+    "ash": "30adbffdd8401008763201a174fb553e"
+  },
+  {
+    "authors": [
+      "Nyeviczkey, Loránd"
+    ],
+    "source": {
+      "name": "Magyar Sakkélet",
+      "date": {
+        "year": 1952,
+        "month": 3
+      },
+      "problemid": 580
+    },
+    "award": {
+      "tourney": {
+        "name": "Magyar Sakkélet",
+        "date": {
+          "year": 1952
+        }
+      },
+      "distinction": "1st HM"
+    },
+    "algebraic": {
+      "white": [
+        "Kd5",
+        "Rf7",
+        "Ph4",
+        "Pg6",
+        "Pf4"
+      ],
+      "black": [
+        "Kd8",
+        "Bg8",
+        "Bb8",
+        "Ph7",
+        "Ph6",
+        "Ph5",
+        "Pf5"
+      ]
+    },
+    "stipulation": "+",
+    "solution": "1.g6*h7 Bg8*h7 2.Rf7-f8+ Kd8-c7 3.Kd5-e6 ! Kc7-b7 4.Rf8*b8+ Kb7*b8 5.Ke6-f7 Kb8-c7{\n}6.Kf7-g7 Bh7-g8 7.Kg7*g8 Kc7-d6 8.Kg8-g7 Kd6-d5 9.Kg7*h6 Kd5-e4 10.Kh6-g5 {+-}",
+    "legend": {},
+    "transliterations": {
+      "Nyeviczkey, Loránd": "Nyeviczkey, Lorand"
+    },
+    "id": 37296,
+    "ash": "26ef151bb36680423a6c8e1c6f05fcdf"
+  },
+  {
+    "authors": [
+      "Nyeviczkey, Loránd"
+    ],
+    "source": {
+      "name": "Magyar Sakkélet",
+      "date": {
+        "year": 1952,
+        "month": 4
+      },
+      "problemid": 604
+    },
+    "award": {
+      "tourney": {
+        "name": "Magyar Sakkélet"
+      },
+      "distinction": "Comm."
+    },
+    "algebraic": {
+      "white": [
+        "Kd1",
+        "Ba6",
+        "Ba5",
+        "Pg5",
+        "Pg4",
+        "Pc2"
+      ],
+      "black": [
+        "Ke6",
+        "Bg6",
+        "Bf4",
+        "Ph6",
+        "Pf5",
+        "Pd2"
+      ]
+    },
+    "stipulation": "+",
+    "solution": "1.Ba6-c8+ ? Ke6-f7 ! 2.Ba5*d2 Bf4*d2 3.Kd1*d2 f5*g4\n1.g4*f5+ Bg6*f5 2.Ba6-c8+ Ke6-e5 3.Ba5-c3+ Ke5-e4 4.Bc8-b7+ Ke4-e3 5.Bc3*d2+\n3.Ba5-c7+ ? Ke5-d4 ! 4.Bc7*f4 Bf5*c8\n1...Ke6*f5 2.Ba6-d3+ Kf5*g5 3.Ba5-d8+ Kg5-h5 4.Bd3-e2#",
+    "legend": {},
+    "transliterations": {
+      "Nyeviczkey, Loránd": "Nyeviczkey, Lorand"
+    },
+    "id": 37299,
+    "ash": "fb34c7c819c5ec2e8778fa337a2a883c"
+  },
+  {
+    "authors": [
+      "Csák, János"
+    ],
+    "source": {
+      "name": "The Problemist",
+      "date": {
+        "year": 1988,
+        "month": 11
+      },
+      "problemid": "S1235"
+    },
+    "algebraic": {
+      "white": [
+        "Ka1",
+        "Qf6",
+        "Ra7",
+        "Bf2",
+        "Be2",
+        "Se6",
+        "Pe7",
+        "Pc4",
+        "Pa2"
+      ],
+      "black": [
+        "Ke8",
+        "Rh1",
+        "Bg1",
+        "Bf1",
+        "Ph2",
+        "Pg2",
+        "Pc5",
+        "Pa3"
+      ]
+    },
+    "stipulation": "s#4",
+    "solution": "1.Qf6-g7 ! zugzwang.\n    1...Bf1*e2\n        2.Ra7-a8 +\n            2...Ke8-d7\n                3.e7-e8=Q +\n                    3...Kd7-d6\n                        4.Bf2*c5 +\n                            4...Bg1*c5 #\n    1...Bg1*f2\n        2.Qg7-h8 +\n            2...Ke8-f7\n                3.e7-e8=R +\n                    3...Kf7-g6\n                        4.Be2-d3 +\n                            4...Bf1*d3 #",
+    "keywords": [
+      "Half-battery"
+    ],
+    "comments": [
+      "C+"
+    ],
+    "legend": {},
+    "transliterations": {
+      "Csák, János": "Csak, Janos"
+    },
+    "id": 53119,
+    "ash": "165d1499de19624856af584bca659574"
+  },
+  {
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": {
+      "name": "diagrammes",
+      "date": {
+        "year": 1980
+      },
+      "issue": "3-4",
+      "problemid": 912
+    },
+    "award": {
+      "tourney": {
+        "name": "diagrammes"
+      },
+      "distinction": "Commendation"
+    },
+    "algebraic": {
+      "white": [
+        "Kf1",
+        "Qd1",
+        "Ra6",
+        "Bg1",
+        "Bc8",
+        "Sd6",
+        "Sa4",
+        "Ph2",
+        "Pg3",
+        "Pf6",
+        "Pd5",
+        "Pb7",
+        "Pa7"
+      ],
+      "black": [
+        "Kf3",
+        "Qa8",
+        "Re2",
+        "Bh3",
+        "Sg2",
+        "Ph6",
+        "Pg4",
+        "Pf7",
+        "Pe3",
+        "Pd7"
+      ]
+    },
+    "stipulation": "s#3",
+    "solution": "1.Sa4-c5 ! threat:\n          2.Sd6-f5 threat:\n                  3.Sf5-h4 + \n                      3...Sg2*h4 # \n          2.Ra6-a3 threat:\n                  3.Ra3*e3 + \n                      3...Sg2*e3 # \n          2.Ra6-a4 threat:\n                  3.Ra4-f4 + \n                      3...Sg2*f4 # \n          2.Sc5-d3 threat:\n                  3.Sd3-e1 + \n                      3...Sg2*e1 # \n      1...Qa8*b7 \n          2.Sd6-f5 threat:\n                  3.Sf5-h4 + \n                      3...Sg2*h4 # \n      1...Qa8*a7 \n          2.Sc5-d3 threat:\n                  3.Sd3-e1 + \n                      3...Sg2*e1 # \n      1...Qa8*c8 \n          2.Ra6-a4 threat:\n                  3.Ra4-f4 + \n                      3...Sg2*f4 # \n      1...Qa8-b8 \n          2.Ra6-a3 threat:\n                  3.Ra3*e3 + \n                      3...Sg2*e3 #",
+    "reprints": [
+      {
+        "name": "Revista Română de Şah",
+        "date": {
+          "year": 1982,
+          "month": 2
+        },
+        "problemid": 4500
+      }
+    ],
+    "comments": [
+      "in Revista Română de Şah-2nd Prize"
+    ],
+    "legend": {},
+    "transliterations": {
+      "Алайков, Венелин": "Alaikov, Venelin"
+    },
+    "id": 61646,
+    "ash": "37a621bf0c18a9314bbe8e0406d6c968"
+  },
+  {
+    "authors": [
+      "Алайков, Венелин"
+    ],
+    "source": {
+      "name": "Wola Gułowska",
+      "date": {
+        "year": 1992
+      }
+    },
+    "award": {
+      "tourney": {
+        "name": "Wola Gułowska"
+      },
+      "distinction": "3rd HM"
+    },
+    "algebraic": {
+      "white": [
+        "Kc1",
+        "Qb5",
+        "Rb4",
+        "Ra4",
+        "Bh8",
+        "Ba6",
+        "Sf6",
+        "Sc6",
+        "Pa2"
+      ],
+      "black": [
+        "Kc3",
+        "Qh6",
+        "Re7",
+        "Rd2",
+        "Bb6",
+        "Sg6",
+        "Sg5",
+        "Pd3",
+        "Pc7",
+        "Pc2",
+        "Pa5"
+      ]
+    },
+    "stipulation": "s#3",
+    "solution": "1.Rb4-d4 ! threat:\n          2.Qb5-c5 + \n              2...Bb6*c5 \n                  3.Ra4-a3 + \n                      3...Bc5*a3 # \n      1...Sg5-e6 \n          2.Qb5-b4 + \n              2...a5*b4 \n                  3.Rd4*d3 + \n                      3...Rd2*d3 # \n      1...Bb6-c5 \n          2.Qb5*d3 + \n              2...Rd2*d3 \n                  3.Ra4-a3 + \n                      3...Bc5*a3 # \n          2.Ra4-a3 + \n              2...Bc5*a3 + \n                  3.Qb5-b2 + \n                      3...Ba3*b2 # \n      1...Sg6-e5 \n          2.Sf6-e4 + \n              2...Sg5*e4 \n                  3.Rd4*d3 + \n                      3...Rd2*d3 # \n      1...Re7-e5 \n          2.Rd4*d3 + \n              2...Rd2*d3 \n                  3.Sf6-e4 + \n                      3...Sg5*e4 #",
+    "legend": {},
+    "transliterations": {
+      "Алайков, Венелин": "Alaikov, Venelin"
+    },
+    "id": 61647,
+    "ash": "21298abd4b6a58109fb9b1ce6bb9f330"
+  },
+  {
+    "authors": [
+      "Onkoud, Abdelaziz"
+    ],
+    "source": {
+      "name": "Suomen Tehtäväniekat",
+      "date": {
+        "year": 2008
+      },
+      "issue": 1,
+      "problemid": 3181
+    },
+    "award": {
+      "tourney": {
+        "name": "Suomen Tehtäväniekat"
+      },
+      "distinction": "1st HM"
+    },
+    "algebraic": {
+      "white": [
+        "Kc8",
+        "Rd4",
+        "Bd7",
+        "Sc7",
+        "Pc3"
+      ],
+      "black": [
+        "Kg4",
+        "Qh5",
+        "Rc4",
+        "Ra6",
+        "Bh6",
+        "Ba8",
+        "Sd8",
+        "Sb4",
+        "Pg6",
+        "Pf5",
+        "Pf4",
+        "Pf3",
+        "Pf2",
+        "Pe2",
+        "Pd2"
+      ]
+    },
+    "stipulation": "h#3",
+    "intended-solutions": "2.1.1...",
+    "solution": "1.Sb4-c6 {display-departure-file} Rd4*f4 +   2.Kg4*f4 Bd7*f5   3.Kf4-e3 Sc7-d5 #\n1.Sd8-c6 {display-departure-file} Bd7*f5 +   2.Kg4*f5 Rd4*f4 +   3.Kf5-g5 Sc7-e6 #",
+    "comments": [
+      "Check also //404026"
+    ],
+    "legend": {},
+    "transliterations": {},
+    "id": 19067,
+    "ash": "65fc7ef9ca27a7113069f6d5b23af677"
+  },
+  {
+    "authors": [
+      "Нагнибіда, Микола Іванович"
+    ],
+    "source": {
+      "name": "Магадан-60",
+      "date": {
+        "year": 1999
+      }
+    },
+    "algebraic": {
+      "white": [
+        "Kg4",
+        "Rg2",
+        "Bf6",
+        "Sd5"
+      ],
+      "black": [
+        "Ka3",
+        "Qh1",
+        "Re1",
+        "Rb3",
+        "Bf1",
+        "Bc1",
+        "Sg7",
+        "Sc2",
+        "Ph3",
+        "Pf7",
+        "Pf3",
+        "Pf2",
+        "Pe3",
+        "Pe2",
+        "Pa7"
+      ]
+    },
+    "stipulation": "h#3",
+    "intended-solutions": "2.1.1...",
+    "solution": "1.Bc1-b2 Kg4-f4   2.Bb2*f6 Rg2-g6   3.Bf6-b2 Rg6-a6 #\n1.Sc2-b4 Kg4-h4   2.Sb4*d5 Rg2-g5   3.Sd5-b4 Rg5-a5 #",
+    "legend": {},
+    "transliterations": {
+      "Нагнибіда, Микола Іванович": "Nagnibida, Mikola Ivanovich"
+    },
+    "id": 36192,
+    "ash": "64abf28c2939975f7debfa95f45a5416"
+  },
+  {
+    "authors": [
+      "Henrych, Miroslav"
+    ],
+    "source": {
+      "name": "Sakkélet",
+      "date": {
+        "year": 1985,
+        "month": 11
+      },
+      "problemid": 4948
+    },
+    "algebraic": {
+      "white": [
+        "Kb7",
+        "Re1",
+        "Sh4"
+      ],
+      "black": [
+        "Kf4",
+        "Qd2",
+        "Rd3",
+        "Sf1"
+      ]
+    },
+    "stipulation": "h#3",
+    "intended-solutions": "2.1.1...",
+    "solution": "1.Sf1-e3 Sh4-f5   2.Kf4-f3 Re1-f1 +   3.Kf3-e2 Sf5-g3 #\n1.Sf1-g3 Re1-f1 +   2.Kf4-e3 Rf1-f4   3.Sg3-e2 Sh4-g2 #",
+    "keywords": [
+      "Aristocrat",
+      "Model mates",
+      "Chameleon echo mates"
+    ],
+    "legend": {},
+    "transliterations": {},
+    "id": 38987,
+    "ash": "51eab62dfd43ffe82c735cbd22c9bf79"
+  }
+]

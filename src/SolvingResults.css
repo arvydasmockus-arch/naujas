@@ -1,0 +1,13 @@
+.solving-results h2 { font-size: 19px; margin: 0 0 14px; color: #30333c; }
+.solving-results__scroll { overflow-x: auto; border: 1px solid #d7e1d2; border-radius: 9px; }
+.solving-results table { border-collapse: collapse; width: 100%; min-width: 780px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.solving-results caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.solving-results th, .solving-results td { padding: 6px 5px; border: 1px solid #d7e1d2; text-align: center; white-space: nowrap; }
+.solving-results thead { background: #edf4e9; color: #40513d; }
+.solving-results tbody tr:nth-child(even) { background: #f8faf6; }
+.solving-results .solving-results__own { background: #fff6da; color: #2d3e30; }
+.solving-results tbody th { text-align: left; padding-inline: 10px; font-weight: 500; }
+.solving-results .solving-results__correct { color: #23834d; font-weight: 700; font-size: 16px; }
+.solving-results .solving-results__wrong { color: #c84949; font-weight: 700; font-size: 16px; }
+.solving-results > p { margin-top: 9px; font-size: 11px; color: #86818e; }
+.solving-results__scroll:focus-visible { outline: 2px solid #15994c; outline-offset: 3px; }
