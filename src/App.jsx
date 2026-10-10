@@ -9,7 +9,7 @@ import './App.css';
 function App() {
   const [activePage, setActivePage] = useState(() => {
     const page = new URLSearchParams(window.location.search).get('page');
-    return ['solving', 'training', 'tournaments'].includes(page) ? page : 'news';
+    return ['solving', 'training', 'tournaments'].includes(page) ? page : 'solving';
   });
   const [language, setLanguage] = useState(() => {
     try { return JSON.parse(localStorage.getItem('ml-solving-preferences-v2'))?.language === 'lt' ? 'lt' : 'en'; }
