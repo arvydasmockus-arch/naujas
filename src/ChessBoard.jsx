@@ -103,6 +103,15 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
     } else if (selected) submitMove(selected, square);
   }
 
+  function squareAtPosition(x, y) {
+    const squares = boardRef.current?.querySelectorAll('[data-square]') ?? [];
+    for (const square of squares) {
+      const bounds = square.getBoundingClientRect();
+      if (x >= bounds.left && x < bounds.right && y >= bounds.top && y < bounds.bottom) return square.dataset.square;
+    }
+    return null;
+  }
+
   function pointerDown(event, square) {
     if (disabled || promotion || (event.pointerType !== 'touch' && event.button !== 0)) return;
     handledPointerDown.current = true;
@@ -113,9 +122,7 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
       drag.current = { from: square, x: event.clientX, y: event.clientY };
       setSelected(square);
       setMessage('');
-      if (event.pointerType !== 'touch') {
-        try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Pointer capture is optional. */ }
-      }
+      try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Pointer capture is optional. */ }
     } else chooseSquare(square);
   }
 
@@ -125,17 +132,8 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
     setDragPreview(null);
     if (!current || disabled) return;
     const moved = Math.hypot(event.clientX - current.x, event.clientY - current.y) > 8;
-    const board = boardRef.current;
-    if (moved && board) {
-      const bounds = board.getBoundingClientRect();
-      const x = event.clientX - bounds.left;
-      const y = event.clientY - bounds.top;
-      if (x >= 0 && y >= 0 && x < bounds.width && y < bounds.height) {
-        const file = Math.floor((x / bounds.width) * 8);
-        const rank = 8 - Math.floor((y / bounds.height) * 8);
-        submitMove(current.from, `${String.fromCharCode(97 + file)}${rank}`);
-      }
-    }
+    const targetSquare = moved ? squareAtPosition(event.clientX, event.clientY) : null;
+    if (targetSquare) submitMove(current.from, targetSquare);
   }
 
   return (
