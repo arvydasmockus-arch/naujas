@@ -33,6 +33,8 @@ function SolvingPlatform({ language = 'en' }) {
   const startRequest = useRef(null);
   const submission = useRef(false);
   const selection = useRef(0);
+  const boardLayoutRef = useRef(null);
+  const feedbackRef = useRef(null);
   const count = series?.results.length ?? 0;
   const ordinal = count;
   const puzzle = feedback?.puzzle ?? series?.puzzles[ordinal];
@@ -49,6 +51,12 @@ function SolvingPlatform({ language = 'en' }) {
     const timer = setInterval(() => setNow(Date.now()), 200);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!feedback || !window.matchMedia('(max-width: 760px)').matches) return undefined;
+    const frame = requestAnimationFrame(() => feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    return () => cancelAnimationFrame(frame);
+  }, [feedback]);
 
   useEffect(() => {
     try { localStorage.setItem(PREFERENCES, JSON.stringify({ name: player, date: activeDate, language })); } catch { /* Server keeps results even when local storage is unavailable. */ }
@@ -170,6 +178,7 @@ function SolvingPlatform({ language = 'en' }) {
     if (!feedback || series?.finished) return;
     startRequest.current = null;
     setFeedback(null);
+    requestAnimationFrame(() => requestAnimationFrame(() => boardLayoutRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })));
   }
 
   function exportResults() {
@@ -231,11 +240,12 @@ function SolvingPlatform({ language = 'en' }) {
               {available && !series.finished && series.startedAt === null && !feedback && <div className="solving-test__ready">
                 <p>{t.startWhenReady}</p><button type="button" className="solving-button" disabled={busy} onClick={startFirstProblem}>{t.startTimer}</button>
               </div>}
-              {puzzle && available && (series.startedAt !== null || feedback) && <div className="solving-test__board-layout">
+              {puzzle && available && (series.startedAt !== null || feedback) && <div ref={boardLayoutRef}
+                className={`solving-test__board-layout${feedback ? ' solving-test__board-layout--feedback' : ''}`}>
                 <ChessBoard key={`${activeDate}-${puzzle.id}`} fen={puzzle.fen} language={language}
                   disabled={busy || Boolean(feedback) || series.startedAt === null} onMove={submit} />
                 <div className="solving-test__instructions"><h3>{t.whiteToMove}</h3><p>{t.goal}</p>
-                  {feedback ? <div className={`solving-feedback ${feedback.correct ? 'solving-feedback--correct' : 'solving-feedback--wrong'}`} role="status">
+                  {feedback ? <div ref={feedbackRef} className={`solving-feedback ${feedback.correct ? 'solving-feedback--correct' : 'solving-feedback--wrong'}`} role="status">
                     <strong>{feedback.correct ? t.correct : feedback.move === null ? t.skipped : t.wrong}</strong>
                     <p>{feedback.san ? `${t.yourMove}: ${feedback.san}` : t.skipped}</p>
                     <p>{feedback.seconds} {t.seconds}</p>

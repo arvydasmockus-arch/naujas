@@ -74,4 +74,15 @@
   .solving-player-bar input { flex: 1 1 140px; min-width: 0; }
   .solving-player-bar > span { width: 100%; }
   .solving-player-bar__active { margin-left: 0; }
+  .solving-test__board-layout--feedback > .chess-board-wrap { order: 2; }
+  .solving-test__board-layout--feedback > .solving-test__instructions { order: 1; }
+  .solving-test__instructions > h3, .solving-test__instructions > p,
+  .solving-test__note, .chess-board__message, .solving-intro ul, .solving-dates > p { display: none; }
+  .solving-feedback { margin-top: 0; padding: 11px 12px; }
+  .solving-feedback p { margin-bottom: 4px; }
+  .solving-feedback .solving-button { min-height: 42px; }
+  .solving-test__heading { margin-bottom: 12px; }
+  .solving-test__heading h2 { margin-bottom: 2px; font-size: 17px; }
+  .solving-timer { padding: 6px 10px; }
+  .solving-timer strong { font-size: 21px; }
 }
