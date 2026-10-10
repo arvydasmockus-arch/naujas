@@ -18,8 +18,8 @@ function dateLabel(date, language) {
 
 function SolvingPlatform({ language = 'en' }) {
   const t = solvingTranslations[language];
-  const [player, setPlayer] = useState(() => preferences().name || '');
-  const [draftName, setDraftName] = useState(() => preferences().name || '');
+  const [player, setPlayer] = useState('');
+  const [draftName, setDraftName] = useState('');
   const [catalog, setCatalog] = useState(null);
   const [activeDate, setActiveDate] = useState(() => preferences().date || null);
   const [series, setSeries] = useState(null);
