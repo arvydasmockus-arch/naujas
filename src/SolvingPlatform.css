@@ -58,6 +58,8 @@
 .solving-results-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 11px; color: #7e897b; }
 .solving-results-toolbar button { border: 0; padding: 0; background: transparent; color: #087a3b; font: inherit; cursor: pointer; }
 .solving-statistics-hint { color: #7e897b; font-size: 12px; text-align: center; }
+.solving-statistics-toggle { max-width: 1280px; margin: 28px auto 0; text-align: center; }
+.solving-statistics-toggle > h2 { margin: 20px 0 12px; text-align: left; }
 @media (max-width: 1050px) { .solving-test__board-layout { grid-template-columns: minmax(0, 390px) minmax(120px, 1fr); gap: 18px; } }
 @media (max-width: 900px) { .solving-test__board-layout { grid-template-columns: 1fr; } }
 @media (max-width: 760px) {

@@ -82,6 +82,7 @@ export class TournamentStore {
   }
   ensureWeekly() {
     const date = latestSaturday(this.clock());
+    if (this.db.prepare('SELECT value FROM metadata WHERE key=?').get(`weekly_cancelled:${date}`)) return;
     if (this.db.prepare("SELECT id FROM tournaments WHERE (date=? AND weekly=1) OR (date>=? AND mode='training')").get(date, date)) return;
     this.generate({ date, weekly: true, mode: 'training' });
   }
@@ -156,7 +157,6 @@ export class TournamentStore {
   }
   replaceProblem(id, ordinal) {
     const event = this.get(id, true);
-    if (event.status !== 'draft') throw new Error('Only unpublished draft problems can be replaced.');
     if (this.db.prepare('SELECT COUNT(*) AS n FROM tournament_sessions WHERE tournament_id=?').get(id).n
       || this.db.prepare('SELECT COUNT(*) AS n FROM tournament_results WHERE tournament_id=?').get(id).n)
       throw new Error('Problems cannot be replaced after a player has started or results have been recorded.');
@@ -175,6 +175,23 @@ export class TournamentStore {
     this.db.prepare('UPDATE tournament_problems SET puzzle=?,position_hash=?,scoring_notes=?,solution_draft=? WHERE tournament_id=? AND ordinal=?')
       .run(chosen.puzzle, chosen.position_hash, '', '', id, ordinal);
     return this.get(id, true);
+  }
+  deleteTournament(id) {
+    const event = this.db.prepare('SELECT id,date,mode FROM tournaments WHERE id=?').get(id);
+    if (!event) throw new Error('Tournament not found.');
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      this.db.prepare('DELETE FROM tournament_sessions WHERE tournament_id=?').run(id);
+      this.db.prepare('DELETE FROM tournament_results WHERE tournament_id=?').run(id);
+      this.db.prepare('DELETE FROM tournament_problems WHERE tournament_id=?').run(id);
+      this.db.prepare('DELETE FROM tournaments WHERE id=?').run(id);
+      if (event.mode === 'training' && event.date === latestSaturday(this.clock())) {
+        this.db.prepare('INSERT INTO metadata(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value')
+          .run(`weekly_cancelled:${event.date}`, JSON.stringify(true));
+      }
+      this.db.exec('COMMIT');
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+    return { deleted: true, id };
   }
   deleteResult(id, resultId) {
     this.get(id, true);

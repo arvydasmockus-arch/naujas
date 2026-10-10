@@ -12,6 +12,8 @@ async function request(path, options = {}) {
 }
 
 export const getSolvingCatalog = (name, signal) => request(`catalog?${new URLSearchParams({ name })}`, { signal });
+export const getSolvingLeaderboard = (signal) => request('leaderboard', { signal });
+export const getSolvingPlayerHistory = (name, signal) => request(`player?${new URLSearchParams({ name })}`, { signal });
 export const getSolvingSeries = (date, name, signal) => request(`series?${new URLSearchParams({ date, name })}`, { signal });
 export const startSolvingProblem = (data) => request('start', { method: 'POST', body: JSON.stringify(data) });
 export const submitSolvingAnswer = (data) => request('answer', { method: 'POST', body: JSON.stringify(data) });

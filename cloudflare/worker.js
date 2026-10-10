@@ -311,6 +311,83 @@ async function overall(db, date, includeStatistics = false) {
   return { leaderboard, statistics };
 }
 
+async function overallLeaderboard(db) {
+  const rows = await db.prepare(`SELECT p.id, p.name, a.date, a.ordinal, a.seconds, a.correct
+    FROM attempts a JOIN players p ON p.id = a.player_id WHERE a.answered_at IS NOT NULL AND a.move IS NOT NULL
+    ORDER BY p.id, a.date`).all();
+  const groups = new Map();
+  const days = new Map();
+  for (const row of rows.results ?? []) {
+    const group = groups.get(row.id) ?? { id: row.id, name: row.name, testsPlayed: 0, problems: 0, correct: 0, wrongMoves: 0, totalSeconds: 0 };
+    group.problems++;
+    group.correct += Number(row.correct);
+    group.wrongMoves += Number(!row.correct);
+    group.totalSeconds += Number(row.seconds || 0);
+    groups.set(row.id, group);
+    const key = `${row.id}:${row.date}`;
+    const dates = days.get(key) ?? new Set();
+    dates.add(row.ordinal); days.set(key, dates);
+  }
+  for (const [key, ordinals] of days) {
+    if (ordinals.size) groups.get(key.slice(0, key.lastIndexOf(':'))).testsPlayed++;
+  }
+  return [...groups.values()].map((row) => ({ ...row,
+    averageSeconds: row.problems ? row.totalSeconds / row.problems : 0,
+    success: row.problems ? row.correct * 100 / row.problems : 0,
+  })).sort((a, b) => b.success - a.success || b.problems - a.problems || a.name.localeCompare(b.name));
+}
+
+async function playerHistory(db, name) {
+  const player = await playerIdentity(name);
+  const exists = await db.prepare('SELECT id, name FROM players WHERE id = ?').bind(player.id).first();
+  if (!exists) return null;
+  const rows = await db.prepare(`SELECT date, ordinal, seconds, correct, reopens FROM attempts
+    WHERE player_id = ? AND answered_at IS NOT NULL AND move IS NOT NULL ORDER BY date DESC, ordinal`).bind(player.id).all();
+  const grouped = new Map();
+  for (const row of rows.results ?? []) {
+    const day = grouped.get(row.date) ?? { date: row.date, results: Array(6).fill(null), points: 0, totalSeconds: 0 };
+    day.results[row.ordinal] = { correct: Boolean(row.correct), seconds: row.seconds, reopened: row.reopens > 0 };
+    day.points += Number(row.correct); day.totalSeconds += Number(row.seconds || 0); grouped.set(row.date, day);
+  }
+  return { player: exists.name, days: [...grouped.values()] };
+}
+
+const analyticsSections = new Set(['news', 'solving', 'training', 'tournaments']);
+const analyticsActions = new Set(['page_view', 'start', 'answer', 'submit']);
+async function recordAnalytics(request, env, { section, action = 'page_view', mode = '' }) {
+  if (!analyticsSections.has(section) || !analyticsActions.has(action)) return;
+  const timestamp = Date.now(); const iso = new Date(timestamp).toISOString();
+  const month = iso.slice(0, 7); const day = iso.slice(0, 10);
+  const secret = env.JUDGE_KEY || 'ml-academy-analytics';
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const identity = `${month}:${request.headers.get('CF-Connecting-IP') || 'unknown'}:${(request.headers.get('User-Agent') || '').slice(0, 300)}`;
+  const digest = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(identity));
+  const visitor = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  await env.DB.prepare(`INSERT INTO analytics_events(id, occurred_at, day, month, visitor_id, section, action, mode)
+    VALUES(?, ?, ?, ?, ?, ?, ?, ?)`).bind(crypto.randomUUID(), timestamp, day, month, visitor, section, action, mode).run();
+  if (Math.random() < 0.01) await env.DB.prepare('DELETE FROM analytics_events WHERE day < ?')
+    .bind(new Date(timestamp - 90 * 86400000).toISOString().slice(0, 10)).run();
+}
+
+async function analyticsSummary(db, days = 90) {
+  const range = Math.max(7, Math.min(90, Number(days) || 90));
+  const since = new Date(Date.now() - (range - 1) * 86400000).toISOString().slice(0, 10);
+  const sinceTime = Date.parse(`${since}T00:00:00Z`);
+  const [pages, monthly, monthlyDaily, daily, dailySolving, dailyTournaments, totals, sections] = await Promise.all([
+    db.prepare(`SELECT day,section,COUNT(*) AS views,COUNT(DISTINCT visitor_id) AS visitors FROM analytics_events WHERE day>=? AND action='page_view' GROUP BY day,section ORDER BY day DESC,section`).bind(since).all(),
+    db.prepare(`SELECT month,COUNT(*) AS views,COUNT(DISTINCT visitor_id) AS visitors,COUNT(DISTINCT day) AS activeDays FROM analytics_events WHERE day>=? AND action='page_view' GROUP BY month ORDER BY month DESC`).bind(since).all(),
+    db.prepare(`SELECT month,AVG(visitors) AS averageDailyVisitors FROM (SELECT month,day,COUNT(DISTINCT visitor_id) AS visitors FROM analytics_events WHERE day>=? AND action='page_view' GROUP BY month,day) GROUP BY month`).bind(since).all(),
+    db.prepare(`SELECT day,COUNT(*) AS views,COUNT(DISTINCT visitor_id) AS visitors FROM analytics_events WHERE day>=? AND action='page_view' GROUP BY day ORDER BY day DESC`).bind(since).all(),
+    db.prepare(`SELECT date AS day,COUNT(DISTINCT player_id) AS players,SUM(CASE WHEN answered_at IS NOT NULL THEN 1 ELSE 0 END) AS answers,SUM(CASE WHEN answered_at IS NOT NULL AND correct=0 THEN 1 ELSE 0 END) AS incorrect,ROUND(AVG(CASE WHEN answered_at IS NOT NULL THEN seconds END),1) AS averageSeconds FROM attempts WHERE date>=? GROUP BY date ORDER BY date DESC`).bind(since).all(),
+    db.prepare(`SELECT date(s.started_at/1000,'unixepoch') AS day,t.mode AS mode,COUNT(DISTINCT s.player_id) AS players,COUNT(s.submitted_at) AS submissions FROM tournament_sessions s JOIN tournaments t ON t.id=s.tournament_id WHERE s.started_at>=? GROUP BY day,t.mode ORDER BY day DESC,t.mode`).bind(sinceTime).all(),
+    db.prepare(`SELECT COUNT(*) AS views,COUNT(DISTINCT visitor_id) AS visitors FROM analytics_events WHERE day>=? AND action='page_view'`).bind(since).first(),
+    db.prepare(`SELECT section,COUNT(*) AS views,COUNT(DISTINCT visitor_id) AS visitors FROM analytics_events WHERE day>=? AND action='page_view' GROUP BY section ORDER BY views DESC`).bind(since).all(),
+  ]);
+  return { days: range, since, totals, monthly: monthly.results ?? [], monthlyDaily: monthlyDaily.results ?? [], daily: daily.results ?? [],
+    sections: sections.results ?? [], pageDays: pages.results ?? [], dailySolving: dailySolving.results ?? [], dailyTournaments: dailyTournaments.results ?? [],
+    privacy: 'Monthly rotating HMAC identifiers; raw IP addresses are not stored.' };
+}
+
 async function solvingSeries(db, date, name) {
   if (calendarDays().includes(date)) await ensureDaily(db, date);
   const puzzles = await puzzlesForDay(db, date);
@@ -332,6 +409,12 @@ async function solvingSeries(db, date, name) {
 async function solvingApi(request, url, env) {
   const db = env.DB;
   const today = utcDay();
+  if (request.method === 'GET' && url.pathname === '/api/solving/leaderboard')
+    return json({ rows: await overallLeaderboard(db) });
+  if (request.method === 'GET' && url.pathname === '/api/solving/player') {
+    const history = await playerHistory(db, url.searchParams.get('name') || '');
+    return history ? json(history) : json({ error: 'No solved problems for this player yet.' }, 404);
+  }
   if (request.method === 'GET' && url.pathname === '/api/solving/catalog') {
     const name = url.searchParams.get('name');
     const player = name ? await getPlayer(db, name) : null;
@@ -379,6 +462,7 @@ async function solvingApi(request, url, env) {
         await db.prepare('UPDATE attempts SET reopens = reopens + 1 WHERE player_id = ? AND date = ? AND ordinal = ?').bind(player.id, date, ordinal).run();
       await db.prepare(`INSERT INTO metadata(key, value) VALUES(?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`)
         .bind(tokenKey, JSON.stringify(visit)).run();
+      try { await recordAnalytics(request, env, { section: 'solving', action: 'start' }); } catch (error) { console.log('Analytics:', error.message); }
       return json(await solvingSeries(db, date, name));
     }
     if (url.pathname === '/api/solving/answer') {
@@ -402,6 +486,7 @@ async function solvingApi(request, url, env) {
       await db.prepare(`UPDATE attempts SET answered_at = ?, seconds = ?, move = ?, san = ?, correct = ?
         WHERE player_id = ? AND date = ? AND ordinal = ? AND answered_at IS NULL`)
         .bind(Date.now(), Math.floor(measured / 1000), lan, san, Number(lan === puzzle.key), player.id, date, ordinal).run();
+      try { await recordAnalytics(request, env, { section: 'solving', action: 'answer' }); } catch (error) { console.log('Analytics:', error.message); }
       return json(await solvingSeries(db, date, name));
     }
     return json({ error: 'Not found.' }, 404);
@@ -412,7 +497,7 @@ async function tournamentApi(request, url, env) {
   const db = env.DB;
   const action = url.pathname.slice('/api/tournaments/'.length);
   const judge = isJudge(request, env);
-  const privateActions = ['generate', 'settings', 'result', 'delete-result', 'replace', 'judge/login'].includes(action);
+  const privateActions = ['generate', 'settings', 'result', 'delete-result', 'delete', 'replace', 'judge/login'].includes(action);
   if ((privateActions || url.searchParams.get('judge') === '1') && !judge) return json({ error: 'Judge access required.' }, 401);
 
   if (request.method === 'GET' && action === 'catalog') {
@@ -452,6 +537,7 @@ async function tournamentApi(request, url, env) {
       await db.prepare('INSERT OR IGNORE INTO tournament_sessions(id, tournament_id, player_id, name, started_at) VALUES(?, ?, ?, ?, ?)')
         .bind(crypto.randomUUID(), data.id, player.id, player.name, Date.now()).run();
       const session = await db.prepare('SELECT * FROM tournament_sessions WHERE tournament_id = ? AND player_id = ?').bind(data.id, player.id).first();
+      try { await recordAnalytics(request, env, { section: 'training', action: 'start', mode: (await getEvent(db, data.id)).mode }); } catch (error) { console.log('Analytics:', error.message); }
       return json({ id: session.id, name: session.name, startedAt: session.started_at, deadline: session.started_at + 7200000,
         submittedAt: session.submitted_at, ...(session.answers ? { answers: JSON.parse(session.answers) } : {}), serverNow: Date.now() });
     }
@@ -464,6 +550,7 @@ async function tournamentApi(request, url, env) {
       if (Date.now() > session.started_at + 7200000) throw new Error('The two-hour session has ended.');
       const submittedAt = Date.now();
       await db.prepare('UPDATE tournament_sessions SET answers = ?, submitted_at = ? WHERE id = ?').bind(JSON.stringify(data.answers), submittedAt, data.sessionId).run();
+      try { await recordAnalytics(request, env, { section: 'training', action: 'submit', mode: (await getEvent(db, data.id)).mode }); } catch (error) { console.log('Analytics:', error.message); }
       return json({ submittedAt, minutes: (submittedAt - session.started_at) / 60000, serverNow: Date.now() });
     }
     if (action === 'result') {
@@ -504,9 +591,19 @@ async function tournamentApi(request, url, env) {
       await db.prepare('DELETE FROM tournament_results WHERE id = ? AND tournament_id = ?').bind(data.resultId, data.tournamentId).run();
       return json(await getEvent(db, data.tournamentId, true));
     }
+    if (action === 'delete') {
+      const event = await getEvent(db, data.id, true);
+      await db.batch([
+        db.prepare('DELETE FROM tournament_sessions WHERE tournament_id = ?').bind(data.id),
+        db.prepare('DELETE FROM tournament_results WHERE tournament_id = ?').bind(data.id),
+        db.prepare('DELETE FROM tournament_problems WHERE tournament_id = ?').bind(data.id),
+        db.prepare('DELETE FROM tournaments WHERE id = ?').bind(data.id),
+        ...(event.mode === 'training' && event.date === latestSaturday() ? [db.prepare(`INSERT INTO metadata(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value`).bind(`weekly_cancelled:${event.date}`, 'true')] : []),
+      ]);
+      return json({ deleted: true, id: data.id });
+    }
     if (action === 'replace') {
       const event = await getEvent(db, data.id, true);
-      if (event.status !== 'draft') throw new Error('Only unpublished draft problems can be replaced.');
       const [sessions, results] = await Promise.all([
         db.prepare('SELECT COUNT(*) AS n FROM tournament_sessions WHERE tournament_id = ?').bind(data.id).first(),
         db.prepare('SELECT COUNT(*) AS n FROM tournament_results WHERE tournament_id = ?').bind(data.id).first(),
@@ -545,6 +642,21 @@ export default {
       for (const [key, value] of headers) response.headers.set(key, value);
       return response;
     }
+    if (url.pathname.startsWith('/api/analytics/')) {
+      let response;
+      if (request.method === 'POST' && url.pathname === '/api/analytics/visit') {
+        try {
+          const data = await requestData(request);
+          await recordAnalytics(request, env, { section: data.section });
+          response = json({ recorded: true });
+        } catch (error) { response = json({ error: error.message }, 400); }
+      } else if (request.method === 'GET' && url.pathname === '/api/analytics/summary') {
+        if (!isJudge(request, env)) response = json({ error: 'Judge access required.' }, 401);
+        else response = json(await analyticsSummary(env.DB, url.searchParams.get('days')));
+      } else response = json({ error: 'Not found.' }, 404);
+      for (const [key, value] of headers) response.headers.set(key, value);
+      return response;
+    }
     if (url.pathname.startsWith('/api/tournaments/')) {
       const response = await tournamentApi(request, url, env);
       for (const [key, value] of headers) response.headers.set(key, value);
@@ -564,7 +676,8 @@ export default {
     const localHour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Vilnius', hour: '2-digit', hourCycle: 'h23' }).format(new Date()));
     if (new Date().getUTCDay() === 6 && localHour === 10) {
       const saturday = latestSaturday();
-      const exists = await env.DB.prepare(`SELECT id FROM tournaments WHERE (date = ? AND weekly = 1)
+      const cancelled = await env.DB.prepare('SELECT value FROM metadata WHERE key = ?').bind(`weekly_cancelled:${saturday}`).first();
+      const exists = cancelled || await env.DB.prepare(`SELECT id FROM tournaments WHERE (date = ? AND weekly = 1)
         OR (date >= ? AND mode = 'training') LIMIT 1`).bind(saturday, saturday).first();
       if (!exists) await generateTournament(env.DB, { date: saturday, weekly: true, mode: 'training' });
     }

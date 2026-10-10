@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Navbar from './Navbar';
 import News from './News';
 import SolvingPlatform from './SolvingPlatform';
 import TournamentPlatform from './TournamentPlatform';
+import { trackPageView } from './analyticsApi';
 import './App.css';
 
 function App() {
@@ -14,6 +15,8 @@ function App() {
     try { return JSON.parse(localStorage.getItem('ml-solving-preferences-v2'))?.language === 'lt' ? 'lt' : 'en'; }
     catch { return 'en'; }
   });
+
+  useEffect(() => { trackPageView(activePage); }, [activePage]);
 
   function handleLanguageChange(nextLanguage) {
     setLanguage(nextLanguage);

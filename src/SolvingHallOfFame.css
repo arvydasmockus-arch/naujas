@@ -1,0 +1,33 @@
+.solving-hall { margin: 0 auto 20px; max-width: 1280px; }
+.solving-hall__heading, .solving-hall__profile-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.solving-hall__heading h2, .solving-hall__profile-heading h3 { margin: 0 0 5px; }
+.solving-hall__heading p, .solving-hall__profile-heading p { margin: 0; color: #71806e; font-size: 12px; }
+.solving-hall__heading label { display: flex; flex-direction: column; gap: 5px; color: #52664f; font-size: 11px; }
+.solving-hall__heading select { min-width: 160px; padding: 8px 10px; border: 1px solid #d3dfcf; border-radius: 7px; background: #fff; color: #2d3d31; font: inherit; }
+.solving-hall__scroll { overflow: auto; border: 1px solid #dce5d9; border-radius: 7px; }
+.solving-hall table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.solving-hall th, .solving-hall td { padding: 8px 9px; border-bottom: 1px solid #e4ebe1; text-align: right; white-space: nowrap; }
+.solving-hall th:first-child, .solving-hall td:first-child { text-align: left; }
+.solving-hall thead th { position: sticky; top: 0; z-index: 1; background: #f1f6ee; color: #405440; }
+.solving-hall__player { padding: 0; border: 0; background: transparent; color: #087a3b; font: inherit; text-decoration: underline; cursor: pointer; }
+.solving-hall__player:hover { color: #045a2a; }
+.solving-hall__selected { background: #f0f8ec; }
+.solving-hall__profile { margin-top: 22px; padding-top: 18px; border-top: 1px solid #dce5d9; }
+.solving-hall__profile-heading { align-items: center; }
+.solving-hall__summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 9px; margin: 14px 0 18px; }
+.solving-hall__summary > div { display: flex; flex-direction: column; gap: 7px; padding: 11px; border: 1px solid #dce5d9; border-radius: 8px; background: #fafcf8; }
+.solving-hall__summary span { color: #71806e; font-size: 10px; }
+.solving-hall__summary strong { color: #087a3b; font-size: 18px; font-variant-numeric: tabular-nums; }
+.solving-hall__history { max-height: 470px; }
+.solving-hall__history th:first-child, .solving-hall__history td:first-child { position: sticky; left: 0; z-index: 2; background: #fff; }
+.solving-hall__history thead th:first-child { background: #f1f6ee; }
+.solving-hall__correct { color: #16803e; font-weight: 700; }
+.solving-hall__wrong { color: #bd3939; font-weight: 700; }
+.solving-hall__error { padding: 10px; border: 1px solid #e7c997; border-radius: 7px; background: #fff6e4; color: #885c22; }
+@media (max-width: 900px) { .solving-hall__summary { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .solving-hall { padding: 16px; }
+  .solving-hall__heading { align-items: stretch; flex-direction: column; }
+  .solving-hall__heading select { width: 100%; }
+  .solving-hall__summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

@@ -34,6 +34,8 @@
 .tournament-history__list article.tournament-history__selected { border-color: #86b98b; background: #f1f8ed; }
 .tournament-history__list article p, .tournament-history small { font-size: 12px; color: #6c7c66; }
 .tournament-history small { align-self: center; }
+.tournament-downloads .tournament-history__delete { border-color: #b8443d; background: #fff3f1; color: #a2322b; }
+.tournament-downloads .tournament-history__delete:hover:not(:disabled) { background: #ffe5e1; }
 .tournament-problem > p { font-size: 12px; margin-top: 9px; }
 .tournament-problem .chess-board-wrap { max-width: 100%; }
 .tournament-diagram { width: min(100%, 430px); }

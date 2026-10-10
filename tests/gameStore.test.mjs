@@ -103,3 +103,56 @@ test('trusted names share identity across casing and reject empty or control cha
   assert.throws(() => normalizePlayer('a'));
   assert.throws(() => normalizePlayer('x\u0000y'));
 });
+
+test('all-time solving leaderboard and clickable player history aggregate daily #2 results', async () => {
+  let now = Date.parse('2026-10-09T10:00:00Z');
+  const game = new GameStore(':memory:', () => now);
+  try {
+    await game.series('2026-10-09', 'Alice');
+    const firstPuzzles = game.puzzles('2026-10-09');
+    const firstWrong = new Chess(firstPuzzles[1].fen).moves({ verbose: true }).find((move) => move.lan !== firstPuzzles[1].key).lan;
+    await game.start('2026-10-09', 'Alice', 0, 'alice-day-one');
+    now += 12_000;
+    await game.answer('2026-10-09', 'Alice', 0, firstPuzzles[0].key, 12_000);
+    await game.start('2026-10-09', 'Alice', 1, 'alice-day-one');
+    now += 18_000;
+    await game.answer('2026-10-09', 'Alice', 1, firstWrong, 18_000);
+    await game.start('2026-10-09', 'Alice', 2, 'alice-day-one');
+    now += 5000;
+    await game.answer('2026-10-09', 'Alice', 2, null, 5000);
+
+    now = Date.parse('2026-10-10T10:00:00Z');
+    await game.series('2026-10-10', 'Bob');
+    const secondPuzzles = game.puzzles('2026-10-10');
+    await game.start('2026-10-10', 'Bob', 0, 'bob-day-one');
+    now += 20_000;
+    await game.answer('2026-10-10', 'Bob', 0, secondPuzzles[0].key, 20_000);
+    for (let ordinal = 1; ordinal < 6; ordinal++) {
+      await game.start('2026-10-10', 'Bob', ordinal, 'bob-day-one');
+      now += 1000;
+      await game.answer('2026-10-10', 'Bob', ordinal, secondPuzzles[ordinal].key, 1000);
+    }
+
+    const leaderboard = game.overallLeaderboard();
+    assert.equal(leaderboard.length, 2);
+    assert.equal(leaderboard[0].name, 'Bob');
+    assert.equal(leaderboard[0].success, 100);
+    assert.equal(leaderboard[0].testsPlayed, 1);
+    assert.equal(leaderboard[0].problems, 6);
+    const alice = game.playerHistory('Alice');
+    const aliceRow = leaderboard.find((row) => row.name === 'Alice');
+    assert.equal(aliceRow.problems, 2);
+    assert.equal(aliceRow.testsPlayed, 1);
+    assert.equal(aliceRow.correct, 1);
+    assert.equal(aliceRow.wrongMoves, 1);
+    assert.equal(aliceRow.averageSeconds, 15);
+    assert.equal(Object.hasOwn(aliceRow, 'skipped'), false);
+    assert.equal(alice.days.length, 1);
+    assert.equal(alice.days[0].results[0].correct, true);
+    assert.equal(alice.days[0].results[1].correct, false);
+    assert.equal(alice.days[0].results[2], null);
+    assert.equal(alice.days[0].points, 1);
+    assert.equal(alice.days[0].totalSeconds, 30);
+    assert.equal(game.playerHistory('Nobody'), null);
+  } finally { game.close(); }
+});

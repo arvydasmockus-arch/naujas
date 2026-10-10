@@ -6,6 +6,7 @@ import { tournamentTranslations } from './tournamentTranslations';
 import './TournamentPlatform.css';
 import academyLogo from './assets/ml-academy-logo.jpg';
 import ScoredSolution from './ScoredSolution';
+import JudgeAnalytics from './JudgeAnalytics';
 
 const emptyResult = () => ({ name: '', country: 'LTU', category: '', rating: '', title: '', scores: Array(6).fill(''), minutes: 120, notes: '' });
 function stored(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
@@ -106,6 +107,21 @@ function TournamentPlatform({ language = 'en' }) {
       acceptEvent(data); await refreshCatalog();
     });
   }
+  function replaceProblem(ordinal) {
+    if (!window.confirm(t.replaceConfirm.replace('{number}', String(ordinal + 1)))) return;
+    perform(async () => {
+      acceptEvent(await tournamentRequest('replace', { key, data: { id: selected, ordinal } }));
+      await refreshCatalog();
+    });
+  }
+  function deleteTournament(id) {
+    if (!window.confirm(t.deleteConfirm)) return;
+    perform(async () => {
+      await tournamentRequest('delete', { key, data: { id } });
+      if (id === selected) { setEvent(null); selectTournament(null); }
+      await refreshCatalog();
+    });
+  }
   function saveResult(e) {
     e.preventDefault();
     perform(async () => {
@@ -164,7 +180,8 @@ function TournamentPlatform({ language = 'en' }) {
   function selectTournament(id) {
     if (id !== selected) { setEvent(null); setSelected(id); }
     const url = new URL(window.location.href);
-    url.searchParams.set('page', 'training'); url.searchParams.set('set', id);
+    url.searchParams.set('page', 'training');
+    if (id) url.searchParams.set('set', id); else url.searchParams.delete('set');
     window.history.replaceState(null, '', url);
   }
 
@@ -175,6 +192,7 @@ function TournamentPlatform({ language = 'en' }) {
         <details><summary>{t.judgeView}</summary><form onSubmit={login}><label>{t.access}<input type="password" value={accessKey} onChange={(e) => setAccessKey(e.target.value)} required /></label><button disabled={busy}>{t.login}</button><p>{t.keyHint}</p></form></details>}
     </div>
     {error && <p className="tournament-page__error" role="alert">{error}</p>}
+    {judge && <JudgeAnalytics language={language} accessKey={accessKey} />}
     {judge && <form className="tournament-panel tournament-generate" onSubmit={generate}>
       <label>{t.tournamentTitle}<input value={generateTitle} onChange={(e) => setGenerateTitle(e.target.value)} maxLength={140} placeholder="ML Academy" /></label>
       <label>{t.date}<input type="date" value={generateDate} onChange={(e) => setGenerateDate(e.target.value)} required /></label>
@@ -221,7 +239,7 @@ function TournamentPlatform({ language = 'en' }) {
           <ScoredSolution text={solutionDrafts[index]} />
           <button disabled={busy} onClick={() => perform(async () => acceptEvent(await tournamentRequest('settings', { key, data: { id: selected, solutionDrafts, scoringNotes } })))}>{t.saveDrafts}</button>
           <label>{t.notes}<textarea rows={3} value={scoringNotes[index]} onChange={(e) => setScoringNotes((notes) => notes.map((note, i) => i === index ? e.target.value : note))} maxLength={4000} /></label>
-          {event.status === 'draft' && <button disabled={busy} onClick={() => perform(async () => acceptEvent(await tournamentRequest('replace', { key, data: { id: selected, ordinal: index } })))}>{t.replace}</button>}</>}
+          <button disabled={busy} onClick={() => replaceProblem(index)}>{t.replace}</button><p className="tournament-note">{t.replaceHint}</p></>}
       </article>)}</section>
       {!judge && session && <form className="tournament-panel tournament-answers" onSubmit={submit}><h2>{t.answers}</h2><p>{t.answerHint}</p>
         <div>{answers.map((answer, index) => <label key={index}>{t.problem} {index + 1} · {event.puzzles[index].stipulation}
@@ -253,9 +271,10 @@ function TournamentPlatform({ language = 'en' }) {
         <div><strong>{item.displayTitle}</strong><p>{t[item.mode]}{item.status === 'draft' ? ` · ${t.draft}` : ''}</p></div>
         <div className="tournament-downloads"><button disabled={busy} type="button" onClick={() => { selectTournament(item.id); document.querySelector('.tournament-selector')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>{t.openSet}</button>
           <button disabled={busy} type="button" onClick={() => pdf('problems', item.id)}>{t.problems}</button>
-          {(judge || item.solutionsPublic) && <button disabled={busy} type="button" onClick={() => pdf('solutions', item.id)}>{t.solutions}</button>}
-          {(judge || item.resultsPublic) && <button disabled={busy} type="button" onClick={() => pdf('results', item.id)}>{t.resultsPdf}</button>}
+          {Boolean(judge || item.solutionsPublic) && <button disabled={busy} type="button" onClick={() => pdf('solutions', item.id)}>{t.solutions}</button>}
+          {Boolean(judge || item.resultsPublic) && <button disabled={busy} type="button" onClick={() => pdf('results', item.id)}>{t.resultsPdf}</button>}
           {!judge && !item.resultsPublic && <small>{t.results}: {t.notReleased}</small>}
+          {judge && <button disabled={busy} type="button" className="tournament-history__delete" onClick={() => deleteTournament(item.id)}>{t.deleteTournament}</button>}
         </div>
       </article>)}</div>
       {!catalog?.tournaments.length && <p>{t.noEvents}</p>}

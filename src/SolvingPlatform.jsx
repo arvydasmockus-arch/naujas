@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import ChessBoard from './ChessBoard';
 import SolvingResults from './SolvingResults';
 import ProblemReview from './ProblemReview';
+import SolvingHallOfFame from './SolvingHallOfFame';
 import { solvingTranslations } from './solvingTranslations';
 import { getSolvingCatalog, getSolvingSeries, startSolvingProblem, submitSolvingAnswer } from './solvingApi';
 import './SolvingPlatform.css';
@@ -27,6 +28,7 @@ function SolvingPlatform({ language = 'en' }) {
   const [feedback, setFeedback] = useState(null);
   const [now, setNow] = useState(Date.now);
   const [clockOffset, setClockOffset] = useState(0);
+  const [showAllTimeStats, setShowAllTimeStats] = useState(false);
   const [visit] = useState(() => crypto.randomUUID());
   const startRequest = useRef(null);
   const submission = useRef(false);
@@ -261,6 +263,11 @@ function SolvingPlatform({ language = 'en' }) {
           </>}
         </div>
       </div>
+      <section className="solving-statistics-toggle">
+        <button type="button" className="solving-button solving-button--secondary" aria-expanded={showAllTimeStats}
+          onClick={() => setShowAllTimeStats((value) => !value)}>{showAllTimeStats ? t.hideStats : t.showStats}</button>
+        {showAllTimeStats && <><h2>{t.allTimeStats}</h2><SolvingHallOfFame language={language} /></>}
+      </section>
     </main>
   );
 }

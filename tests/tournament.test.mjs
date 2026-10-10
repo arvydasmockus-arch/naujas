@@ -75,9 +75,36 @@ test('competition drafts, source solutions and judge notes stay private until ex
     assert.equal(publicEvent.puzzles[0].solution, undefined);
     assert.equal(publicEvent.puzzles[0].scoringNotes, undefined);
     assert.equal(publicEvent.puzzles[0].id, undefined);
-    assert.throws(() => store.replaceProblem(event.id, 0), /unpublished/);
+    const oldPuzzleId = event.puzzles[0].id;
+    const replaced = store.replaceProblem(event.id, 0);
+    assert.notEqual(replaced.puzzles[0].id, oldPuzzleId);
     store.settings(event.id, { solutionsPublic: true });
     assert.ok(store.get(event.id).puzzles[0].solution);
+  } finally { db.close(); }
+});
+
+test('judge can replace an unused published problem and delete a tournament with its data', () => {
+  const { store, db } = setup();
+  try {
+    const event = store.generate({ mode: 'training', date: '2026-10-10', weekly: true });
+    const originalId = event.puzzles[2].id;
+    const replaced = store.replaceProblem(event.id, 2);
+    assert.notEqual(replaced.puzzles[2].id, originalId);
+
+    const session = store.start(event.id, 'Alice');
+    assert.throws(() => store.replaceProblem(event.id, 2), /player has started/);
+    store.submit(event.id, session.id, Array(6).fill('1.Qa5'));
+    store.saveResult(event.id, { name: 'Alice', minutes: 100, scores: [5, 5, 0, 0, 0, 0] });
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM tournament_sessions WHERE tournament_id=?').get(event.id).n, 1);
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM tournament_results WHERE tournament_id=?').get(event.id).n, 1);
+
+    assert.deepEqual(store.deleteTournament(event.id), { deleted: true, id: event.id });
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM tournament_problems WHERE tournament_id=?').get(event.id).n, 0);
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM tournament_sessions WHERE tournament_id=?').get(event.id).n, 0);
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM tournament_results WHERE tournament_id=?').get(event.id).n, 0);
+    assert.equal(store.list(true).tournaments.length, 0);
+    store.ensureWeekly();
+    assert.equal(store.list(true).tournaments.length, 0);
   } finally { db.close(); }
 });
 test('manual fractional points are ranked by points and time; invalid points are rejected', () => {

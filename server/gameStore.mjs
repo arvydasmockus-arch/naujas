@@ -103,6 +103,35 @@ export class GameStore {
     });
     return { days, today: this.today(), timezone: 'UTC', library: this.library(), serverNow: this.clock() };
   }
+  overallLeaderboard() {
+    return this.db.prepare(`SELECT p.id,p.name,COUNT(DISTINCT a.date) AS testsPlayed,
+      SUM(CASE WHEN a.answered_at IS NOT NULL AND a.move IS NOT NULL THEN 1 ELSE 0 END) AS problems,
+      SUM(CASE WHEN a.answered_at IS NOT NULL AND a.move IS NOT NULL AND a.correct=1 THEN 1 ELSE 0 END) AS correct,
+      SUM(CASE WHEN a.answered_at IS NOT NULL AND a.correct=0 AND a.move IS NOT NULL THEN 1 ELSE 0 END) AS wrongMoves,
+      SUM(CASE WHEN a.answered_at IS NOT NULL AND a.move IS NOT NULL THEN a.seconds ELSE 0 END) AS totalSeconds,
+      ROUND(AVG(CASE WHEN a.answered_at IS NOT NULL AND a.move IS NOT NULL THEN a.seconds END),2) AS averageSeconds,
+      CASE WHEN SUM(CASE WHEN a.answered_at IS NOT NULL AND a.move IS NOT NULL THEN 1 ELSE 0 END)=0 THEN 0
+        ELSE ROUND(100.0*SUM(CASE WHEN a.answered_at IS NOT NULL AND a.move IS NOT NULL AND a.correct=1 THEN 1 ELSE 0 END)/
+          SUM(CASE WHEN a.answered_at IS NOT NULL AND a.move IS NOT NULL THEN 1 ELSE 0 END),2) END AS success
+      FROM attempts a JOIN players p ON p.id=a.player_id
+      GROUP BY p.id ORDER BY success DESC,correct DESC,wrongMoves ASC,averageSeconds ASC,p.name COLLATE NOCASE`).all();
+  }
+  playerHistory(name) {
+    const player = normalizePlayer(name);
+    const history = this.db.prepare(`SELECT date,ordinal,correct,seconds,reopens,move,answered_at FROM attempts
+      WHERE player_id=? ORDER BY date DESC,ordinal`).all(player.id);
+    if (!history.length) return null;
+    const days = new Map();
+    for (const row of history) {
+      if (!days.has(row.date)) days.set(row.date, { date: row.date, results: Array(6).fill(null), points: 0, problems: 0, totalSeconds: 0 });
+      const day = days.get(row.date);
+      if (row.answered_at !== null && row.move !== null) {
+        day.results[row.ordinal] = { correct: Boolean(row.correct), seconds: row.seconds, reopened: row.reopens > 0, skipped: row.move === null };
+        day.points += Number(row.correct); day.problems++; day.totalSeconds += row.seconds;
+      }
+    }
+    return { days: [...days.values()] };
+  }
   puzzles(date) {
     return this.db.prepare(`SELECT p.puzzle FROM daily_puzzles d JOIN puzzles p ON p.id=d.puzzle_id WHERE date=? ORDER BY ordinal`).all(date).map((row) => JSON.parse(row.puzzle));
   }
