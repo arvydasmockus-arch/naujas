@@ -5,11 +5,23 @@ import './ChessBoard.css';
 
 const pieceImages = Object.fromEntries(Object.entries(import.meta.glob('./assets/chess/*.svg', { eager: true, query: '?url', import: 'default' }))
   .map(([path, url]) => [path.split('/').pop().replace('.svg', ''), url]));
+let moveSound;
+
+function playMoveSound() {
+  try {
+    if (typeof Audio === 'undefined') return;
+    moveSound ??= new Audio('https://lichess1.org/assets/sound/standard/Move.mp3');
+    moveSound.currentTime = 0;
+    void moveSound.play().catch(() => {});
+  } catch { /* Audio is optional; a blocked sound must not block a move. */ }
+}
 
 function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, description }) {
   const t = solvingTranslations[language];
   const names = t.pieceNames;
-  const chess = useMemo(() => new Chess(fen), [fen]);
+  const [preview, setPreview] = useState(() => ({ source: fen, position: fen }));
+  const position = preview.source === fen ? preview.position : fen;
+  const chess = useMemo(() => new Chess(position), [position]);
   const [selected, setSelected] = useState(null);
   const [promotion, setPromotion] = useState(null);
   const [message, setMessage] = useState('');
@@ -27,9 +39,13 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
     }
     const move = moves.find((item) => (item.promotion ?? '') === (promote ?? ''));
     if (move) {
+      const movedPosition = new Chess(chess.fen());
+      movedPosition.move({ from: move.from, to: move.to, ...(move.promotion ? { promotion: move.promotion } : {}) });
+      setPreview({ source: fen, position: movedPosition.fen() });
       setSelected(null);
       setPromotion(null);
       setMessage('');
+      playMoveSound();
       onMove(move.lan);
     }
   }
