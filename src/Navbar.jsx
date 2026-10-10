@@ -11,7 +11,7 @@ function Navbar({ activePage, onNavigate, language = 'lt', onLanguageChange }) {
   ];
 
   return (
-    <header className="navbar">
+    <header className={`navbar${activePage === 'solving' ? ' navbar--solving' : ''}`}>
       <nav className="navbar__container" aria-label={english ? 'Main navigation' : 'Pagrindinė navigacija'}>
         <div className="navbar__brand">
           <img className="navbar__brand-logo" src={academyLogo} alt={english ? 'Martynas Limontas academy logo' : 'Martyno Limonto mokyklos logotipas'} />

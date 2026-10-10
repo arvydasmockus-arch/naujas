@@ -219,3 +219,14 @@
 .navbar__language:hover { border-color: #15994c; background: rgba(21, 153, 76, 0.14); }
 @media (max-width: 768px) { .navbar__language { margin-left: auto; } }
 @media (max-width: 580px) { .navbar__language { justify-content: flex-end; margin-top: 8px; } }
+
+@media (max-width: 580px) {
+  .navbar--solving .navbar__container { min-height: 48px; flex-direction: row; align-items: center; gap: 5px; padding: 4px 7px; }
+  .navbar--solving .navbar__brand { gap: 0; margin: 0; }
+  .navbar--solving .navbar__brand-logo { width: 38px; height: 34px; }
+  .navbar--solving .navbar__brand-name { display: none; }
+  .navbar--solving .navbar__links { display: flex; flex: 1 1 auto; width: auto; min-width: 0; justify-content: flex-end; flex-wrap: nowrap; gap: 1px; overflow-x: auto; scrollbar-width: none; }
+  .navbar--solving .navbar__links::-webkit-scrollbar { display: none; }
+  .navbar--solving .navbar__link { flex: 0 0 auto; width: auto; padding: 7px 5px; font-size: 10px; }
+  .navbar--solving .navbar__language { flex: 0 0 auto; min-width: 32px; margin: 0; padding: 6px; font-size: 11px; }
+}

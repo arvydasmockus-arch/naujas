@@ -48,6 +48,8 @@
 .solving-timer strong { color: #087a3b; font-size: 26px; }
 .solving-timer span { font-size: 11px; }
 .solving-test__board-layout { display: grid; grid-template-columns: minmax(0, 430px) minmax(160px, 1fr); align-items: start; gap: 26px; }
+.solving-board-column { width: min(100%, 430px); min-width: 0; }
+.solving-diagram-caption { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; color: #5d4b37; font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
 .solving-test__note { margin: 18px 0; font-size: 12px; color: #7d887b; }
 .solving-feedback { padding: 15px; border-radius: 8px; margin-top: 20px; }
 .solving-feedback--correct { border: 1px solid #bbdfc4; background: #f0faf3; color: #307447; }
@@ -74,8 +76,6 @@
   .solving-player-bar input { flex: 1 1 140px; min-width: 0; }
   .solving-player-bar > span { width: 100%; }
   .solving-player-bar__active { margin-left: 0; }
-  .solving-test__board-layout--feedback > .chess-board-wrap { order: 2; }
-  .solving-test__board-layout--feedback > .solving-test__instructions { order: 1; }
   .solving-test__instructions > h3, .solving-test__instructions > p,
   .solving-test__note, .chess-board__message, .solving-intro ul, .solving-dates > p { display: none; }
   .solving-feedback { margin-top: 0; padding: 11px 12px; }
@@ -85,4 +85,29 @@
   .solving-test__heading h2 { margin-bottom: 2px; font-size: 17px; }
   .solving-timer { padding: 6px 10px; }
   .solving-timer strong { font-size: 21px; }
+}
+
+@media (max-width: 760px) {
+  .solving-page--session { min-height: calc(100dvh - 50px); box-sizing: border-box; padding: 5px 7px 10px; }
+  .solving-page--session .solving-page__header,
+  .solving-page--session .solving-player-bar { display: none; }
+  .solving-page--session .solving-page__layout { display: flex; flex-direction: column; gap: 8px; }
+  .solving-page--session .solving-page__content { order: 0; width: 100%; gap: 8px; }
+  .solving-page--session .solving-page__content > :not(:first-child) { display: none; }
+  .solving-page--session .solving-dates { order: 1; width: 100%; padding: 9px; }
+  .solving-page--session .solving-panel { padding: 8px; border-radius: 8px; }
+  .solving-page--session .solving-test__heading { margin: 0 2px 6px; align-items: center; }
+  .solving-page--session .solving-test__heading h2 { font-size: 14px; }
+  .solving-page--session .solving-test__heading p { font-size: 10px; }
+  .solving-page--session .solving-test__board-layout { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
+  .solving-page--session .solving-board-column { width: min(100%, calc(100vw - 32px)); margin-inline: auto; }
+  .solving-page--session .chess-board { border-width: 2px; }
+  .solving-page--session .solving-diagram-caption { margin: 3px 1px 0; font-size: 11px; }
+  .solving-page--session .solving-test__instructions { display: flex; flex-direction: column; gap: 5px; }
+  .solving-page--session .solving-test__instructions > .solving-button { min-height: 40px; }
+  .solving-page--session .solving-feedback { padding: 7px 9px; }
+  .solving-page--session .solving-feedback p { margin: 2px 0; font-size: 11px; line-height: 1.25; }
+  .solving-page--session .solving-feedback .solving-button { width: 100%; min-height: 40px; margin-top: 4px; }
+  .solving-page--session .solving-test__ready { padding: 8px; gap: 6px; }
+  .solving-page--session .solving-test__ready p { display: none; }
 }
