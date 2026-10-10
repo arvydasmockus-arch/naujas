@@ -7,13 +7,35 @@ const pieceImages = Object.fromEntries(Object.entries(import.meta.glob('./assets
   .map(([path, url]) => [path.split('/').pop().replace('.svg', ''), url]));
 let moveSound;
 
+function playFallbackMoveSound() {
+  try {
+    const Context = window.AudioContext || window.webkitAudioContext;
+    if (!Context) return;
+    const context = new Context();
+    const oscillator = context.createOscillator();
+    const volume = context.createGain();
+    const start = context.currentTime;
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(420, start);
+    oscillator.frequency.exponentialRampToValueAtTime(260, start + 0.07);
+    volume.gain.setValueAtTime(0.0001, start);
+    volume.gain.exponentialRampToValueAtTime(0.06, start + 0.006);
+    volume.gain.exponentialRampToValueAtTime(0.0001, start + 0.1);
+    oscillator.connect(volume);
+    volume.connect(context.destination);
+    oscillator.start(start);
+    oscillator.stop(start + 0.105);
+    oscillator.onended = () => { void context.close(); };
+  } catch { /* Sound is optional; it must never block a move. */ }
+}
+
 function playMoveSound() {
   try {
     if (typeof Audio === 'undefined') return;
     moveSound ??= new Audio('https://lichess1.org/assets/sound/standard/Move.mp3');
     moveSound.currentTime = 0;
-    void moveSound.play().catch(() => {});
-  } catch { /* Audio is optional; a blocked sound must not block a move. */ }
+    void moveSound.play().catch(playFallbackMoveSound);
+  } catch { playFallbackMoveSound(); }
 }
 
 function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, description }) {
@@ -27,6 +49,7 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
   const [message, setMessage] = useState('');
   const [dragPreview, setDragPreview] = useState(null);
   const drag = useRef(null);
+  const boardRef = useRef(null);
   const destinations = selected ? chess.moves({ square: selected, verbose: true }).map((move) => move.to) : [];
 
   function submitMove(from, to, promote) {
@@ -76,15 +99,22 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
     setDragPreview(null);
     if (!current || disabled) return;
     const moved = Math.hypot(event.clientX - current.x, event.clientY - current.y) > 8;
-    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-square]');
-    if (moved && target?.closest('.chess-board') === event.currentTarget.closest('.chess-board')) {
-      submitMove(current.from, target.dataset.square);
+    const board = boardRef.current;
+    if (moved && board) {
+      const bounds = board.getBoundingClientRect();
+      const x = event.clientX - bounds.left;
+      const y = event.clientY - bounds.top;
+      if (x >= 0 && y >= 0 && x < bounds.width && y < bounds.height) {
+        const file = Math.floor((x / bounds.width) * 8);
+        const rank = 8 - Math.floor((y / bounds.height) * 8);
+        submitMove(current.from, `${String.fromCharCode(97 + file)}${rank}`);
+      }
     }
   }
 
   return (
     <div className={`chess-board-wrap${compact ? ' chess-board-wrap--compact' : ''}`}>
-      <div className="chess-board" role="group" aria-label={description ?? t.boardLabel}>
+      <div ref={boardRef} className="chess-board" role="group" aria-label={description ?? t.boardLabel}>
         {chess.board().flat().map((piece, index) => {
           const rank = 8 - Math.floor(index / 8);
           const file = String.fromCharCode(97 + index % 8);
