@@ -88,7 +88,7 @@
 }
 
 @media (max-width: 760px) {
-  .solving-page--session { min-height: calc(100dvh - 50px); box-sizing: border-box; padding: 14px 7px 10px; }
+  .solving-page--session { min-height: calc(100dvh - 50px); box-sizing: border-box; padding: 22px 7px 10px; }
   .solving-page--session .solving-page__header,
   .solving-page--session .solving-player-bar { display: none; }
   .solving-page--session .solving-page__layout { display: flex; flex-direction: column; gap: 8px; }
@@ -97,7 +97,7 @@
   .solving-page--session .solving-dates { order: 1; width: 100%; padding: 9px; }
   .solving-page--session .solving-panel { padding: 8px; border-radius: 8px; }
   .solving-page--session .solving-test__heading { margin: 0 2px 6px; align-items: center; }
-  .solving-page--session .solving-test__heading { scroll-margin-top: 10px; }
+  .solving-page--session .solving-test__heading { scroll-margin-top: 82px; }
   .solving-page--session .solving-test__heading h2 { font-size: 14px; }
   .solving-page--session .solving-test__heading p { font-size: 10px; }
   .solving-page--session .solving-test__board-layout { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }

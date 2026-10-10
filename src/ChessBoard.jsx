@@ -37,7 +37,7 @@ function playFallbackMoveSound() {
     oscillator.frequency.setValueAtTime(420, start);
     oscillator.frequency.exponentialRampToValueAtTime(260, start + 0.07);
     volume.gain.setValueAtTime(0.0001, start);
-    volume.gain.exponentialRampToValueAtTime(0.06, start + 0.006);
+    volume.gain.exponentialRampToValueAtTime(0.12, start + 0.006);
     volume.gain.exponentialRampToValueAtTime(0.0001, start + 0.1);
     oscillator.connect(volume);
     volume.connect(context.destination);
@@ -68,6 +68,8 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
   const [dragPreview, setDragPreview] = useState(null);
   const drag = useRef(null);
   const boardRef = useRef(null);
+  const touchInput = useRef(false);
+  const handledPointerDown = useRef(false);
   const destinations = selected ? chess.moves({ square: selected, verbose: true }).map((move) => move.to) : [];
 
   function submitMove(from, to, promote) {
@@ -86,7 +88,8 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
       setSelected(null);
       setPromotion(null);
       setMessage('');
-      playMoveSound();
+      if (touchInput.current) playFallbackMoveSound();
+      else playMoveSound();
       onMove(move.lan);
     }
   }
@@ -101,7 +104,9 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
   }
 
   function pointerDown(event, square) {
-    if (disabled || promotion || event.button !== 0) return;
+    if (disabled || promotion || (event.pointerType !== 'touch' && event.button !== 0)) return;
+    handledPointerDown.current = true;
+    touchInput.current = event.pointerType === 'touch';
     event.preventDefault();
     unlockMoveSound();
     if (chess.get(square)?.color === 'w') {
@@ -154,7 +159,14 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
                 }
               }}
               onPointerCancel={() => { drag.current = null; setDragPreview(null); }}
-              onClick={(event) => { if (event.detail === 0) chooseSquare(square); }}>
+              onClick={(event) => {
+                const pointerHandled = handledPointerDown.current;
+                handledPointerDown.current = false;
+                if (event.detail === 0 || !pointerHandled) {
+                  touchInput.current = event.pointerType === 'touch';
+                  chooseSquare(square);
+                }
+              }}>
               {index % 8 === 0 && <span className="chess-board__rank" aria-hidden="true">{rank}</span>}
               {piece && <img className={`chess-board__piece${dragPreview && selected === square ? ' chess-board__piece--dragging' : ''}`}
                 src={pieceImages[`${piece.color}${piece.type.toUpperCase()}`]} alt="" draggable="false" />}
