@@ -201,7 +201,11 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
                   setDragPreview({ url: pieceImages[`${movingPiece.color}${movingPiece.type.toUpperCase()}`], x: event.clientX, y: event.clientY });
                 }
               }}
-              onPointerCancel={() => { drag.current = null; setDragPreview(null); }}
+              onPointerCancel={(event) => {
+                if (event.pointerType === 'touch' || touchInput.current) return;
+                drag.current = null;
+                setDragPreview(null);
+              }}
               onClick={(event) => {
                 const pointerHandled = handledPointerDown.current;
                 handledPointerDown.current = false;
