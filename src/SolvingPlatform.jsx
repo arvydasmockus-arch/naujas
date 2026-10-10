@@ -43,6 +43,7 @@ function SolvingPlatform({ language = 'en' }) {
   const available = series?.available;
   const days = catalog?.days ?? [];
   const compactSession = Boolean(series && available && (!series.finished || feedback));
+  const canChangeDate = !feedback || Boolean(series?.finished);
   const pieceCounts = puzzle ? {
     white: (puzzle.fen.split(' ')[0].match(/[KQRBNP]/g) ?? []).length,
     black: (puzzle.fen.split(' ')[0].match(/[kqrbnp]/g) ?? []).length,
@@ -128,10 +129,10 @@ function SolvingPlatform({ language = 'en' }) {
   }, [refreshResults]);
 
   function chooseDate(date) {
-    if (!player || busy || feedback || date === activeDate) return;
+    if (!player || busy || !canChangeDate || date === activeDate) return;
     ++selection.current;
     startRequest.current = null;
-    setSeries(null); setError(''); setActiveDate(date);
+    setSeries(null); setFeedback(null); setError(''); setActiveDate(date);
   }
 
   function useName(event) {
@@ -218,7 +219,7 @@ function SolvingPlatform({ language = 'en' }) {
               day.date === activeDate ? 'solving-dates__active' : '',
               day.answered === 6 ? 'solving-dates__completed' : day.answered > 0 ? 'solving-dates__partial' : '',
             ].filter(Boolean).join(' ')}
-              aria-pressed={day.date === activeDate} disabled={!player || busy || Boolean(feedback)} onClick={() => chooseDate(day.date)}>
+              aria-pressed={day.date === activeDate} disabled={!player || busy || !canChangeDate} onClick={() => chooseDate(day.date)}>
               <span>{day.date}{day.date === catalog.today ? ` · ${t.today}` : ''}</span>
               <small>{day.answered === 6 ? `${day.points}/6 ${t.points}` : day.answered ? `${t.started} · ${day.answered}/6` : t.problems} · {day.players} {t.players}</small>
             </button>)}
