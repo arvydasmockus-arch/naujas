@@ -6,12 +6,30 @@ import './ChessBoard.css';
 const pieceImages = Object.fromEntries(Object.entries(import.meta.glob('./assets/chess/*.svg', { eager: true, query: '?url', import: 'default' }))
   .map(([path, url]) => [path.split('/').pop().replace('.svg', ''), url]));
 let moveSound;
+let audioContext;
+
+function unlockMoveSound() {
+  try {
+    if (typeof Audio !== 'undefined') {
+      moveSound ??= new Audio('https://lichess1.org/assets/sound/standard/Move.mp3');
+      moveSound.preload = 'auto';
+      moveSound.load();
+    }
+    const Context = window.AudioContext || window.webkitAudioContext;
+    if (Context) {
+      audioContext ??= new Context();
+      if (audioContext.state === 'suspended') void audioContext.resume();
+    }
+  } catch { /* Some browsers disable audio; moves must still work. */ }
+}
 
 function playFallbackMoveSound() {
   try {
     const Context = window.AudioContext || window.webkitAudioContext;
     if (!Context) return;
-    const context = new Context();
+    audioContext ??= new Context();
+    const context = audioContext;
+    if (context.state === 'suspended') void context.resume();
     const oscillator = context.createOscillator();
     const volume = context.createGain();
     const start = context.currentTime;
@@ -31,7 +49,7 @@ function playFallbackMoveSound() {
 
 function playMoveSound() {
   try {
-    if (typeof Audio === 'undefined') return;
+    if (typeof Audio === 'undefined') { playFallbackMoveSound(); return; }
     moveSound ??= new Audio('https://lichess1.org/assets/sound/standard/Move.mp3');
     moveSound.currentTime = 0;
     void moveSound.play().catch(playFallbackMoveSound);
@@ -85,11 +103,14 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
   function pointerDown(event, square) {
     if (disabled || promotion || event.button !== 0) return;
     event.preventDefault();
+    unlockMoveSound();
     if (chess.get(square)?.color === 'w') {
       drag.current = { from: square, x: event.clientX, y: event.clientY };
       setSelected(square);
       setMessage('');
-      event.currentTarget.setPointerCapture(event.pointerId);
+      if (event.pointerType !== 'touch') {
+        try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Pointer capture is optional. */ }
+      }
     } else chooseSquare(square);
   }
 
