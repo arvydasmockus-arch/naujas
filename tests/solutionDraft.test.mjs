@@ -65,5 +65,10 @@ test('four lines each get 1.25 points and tries retain refutations', () => {
   const solution = '1.e2-e4! 1...a7-a6 2.d2-d4 1...b7-b6 2.d2-d4 1...c7-c6 2.d2-d4 1...d7-d6 2.d2-d4';
   assert.deepEqual(solutionDraft({ fen, type: '#3', stipulation: '#3', solution }).text.match(/\[\d+(?:\.\d+)?\]/g), Array(4).fill('[1.25]'));
   const draft = solutionDraft({ fen, type: '#2', stipulation: '#2', solution: '1.e2-e4! 1...a7-a6 2.d2-d4 1.d2-d4? 1...e7-e5!' });
-  assert.equal(draft.text, '1.e4! [5]\n1.d4? 1...e5!');
+  assert.equal(draft.text, '1.e4! [5]\n1.d4? e5!');
+  const withThreat = solutionDraft({ fen, type: '#3', stipulation: '#3',
+    solution: '1.e2-e4! threat: 2.d2-d4 1...a7-a6 2.d2-d4 1...b7-b6 2.d2-d4 1...c7-c6 2.d2-d4 1...d7-d6 2.d2-d4' });
+  assert.match(withThreat.text, /1\.e4! ~ 2\.d4 \[1\]/);
+  assert.match(withThreat.text, /1\.\.\.a6 2\.d4 \[1\]/);
+  assert.doesNotMatch(withThreat.text, /1\.\.\.a6 2\.d4 1\.\.\./);
 });

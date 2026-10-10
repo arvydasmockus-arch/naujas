@@ -54,7 +54,12 @@ export function parseSolution(puzzle) {
   }
   return { phases, warnings: [...warnings] };
 }
-function display(tokens) { return tokens.map((token) => `${token.threat ? 'threat: ' : ''}${token.text}${token.points === null ? '' : ` [${rounded(token.points)}]`}`).join(' '); }
+function display(tokens) {
+  return tokens.map((token, index) => {
+    const move = !token.white && index > 0 ? token.text.replace(/^\d+\.\.\./, '') : token.text;
+    return `${token.threat ? '~ ' : ''}${move}${token.points === null ? '' : ` [${rounded(token.points)}]`}`;
+  }).join(' ');
+}
 export function solutionDraft(puzzle) {
   const cacheKey = `${puzzle.fen}:${puzzle.type}:${puzzle.solution}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey);
