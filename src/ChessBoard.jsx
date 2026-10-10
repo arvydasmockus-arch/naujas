@@ -113,9 +113,10 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
   }
 
   function pointerDown(event, square) {
+    if (event.pointerType === 'touch') return;
     if (disabled || promotion || (event.pointerType !== 'touch' && event.button !== 0)) return;
     handledPointerDown.current = true;
-    touchInput.current = event.pointerType === 'touch';
+    touchInput.current = false;
     event.preventDefault();
     unlockMoveSound();
     if (chess.get(square)?.color === 'w') {
@@ -127,6 +128,7 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
   }
 
   function pointerUp(event) {
+    if (event.pointerType === 'touch' || touchInput.current) return;
     const current = drag.current;
     drag.current = null;
     setDragPreview(null);
@@ -136,9 +138,51 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
     if (targetSquare) submitMove(current.from, targetSquare);
   }
 
+  function touchStart(event) {
+    if (disabled || promotion) return;
+    const square = event.target.closest('[data-square]')?.dataset.square;
+    if (!square) return;
+    event.preventDefault();
+    handledPointerDown.current = true;
+    touchInput.current = true;
+    unlockMoveSound();
+    const touch = event.changedTouches[0];
+    if (chess.get(square)?.color === 'w') {
+      drag.current = { from: square, x: touch.clientX, y: touch.clientY };
+      setSelected(square);
+      setMessage('');
+    } else chooseSquare(square);
+  }
+
+  function touchMove(event) {
+    const current = drag.current;
+    const touch = event.touches[0];
+    if (!current || !touch) return;
+    event.preventDefault();
+    if (Math.hypot(touch.clientX - current.x, touch.clientY - current.y) > 8) {
+      const movingPiece = chess.get(current.from);
+      setDragPreview({ url: pieceImages[`${movingPiece.color}${movingPiece.type.toUpperCase()}`], x: touch.clientX, y: touch.clientY });
+    }
+  }
+
+  function touchEnd(event) {
+    const current = drag.current;
+    const touch = event.changedTouches[0];
+    drag.current = null;
+    setDragPreview(null);
+    if (current && touch && !disabled) {
+      const moved = Math.hypot(touch.clientX - current.x, touch.clientY - current.y) > 8;
+      const targetSquare = moved ? squareAtPosition(touch.clientX, touch.clientY) : null;
+      if (targetSquare && targetSquare !== current.from) submitMove(current.from, targetSquare);
+    }
+    touchInput.current = false;
+  }
+
   return (
     <div className={`chess-board-wrap${compact ? ' chess-board-wrap--compact' : ''}`}>
-      <div ref={boardRef} className="chess-board" role="group" aria-label={description ?? t.boardLabel}>
+      <div ref={boardRef} className="chess-board" role="group" aria-label={description ?? t.boardLabel}
+        onTouchStart={touchStart} onTouchMove={touchMove} onTouchEnd={touchEnd}
+        onTouchCancel={() => { drag.current = null; touchInput.current = false; setDragPreview(null); }}>
         {chess.board().flat().map((piece, index) => {
           const rank = 8 - Math.floor(index / 8);
           const file = String.fromCharCode(97 + index % 8);
@@ -150,6 +194,7 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
               aria-label={label} aria-pressed={selected === square} disabled={disabled || Boolean(promotion)}
               onPointerDown={(event) => pointerDown(event, square)} onPointerUp={pointerUp}
               onPointerMove={(event) => {
+                if (event.pointerType === 'touch' || touchInput.current) return;
                 const current = drag.current;
                 if (current && Math.hypot(event.clientX - current.x, event.clientY - current.y) > 8) {
                   const movingPiece = chess.get(current.from);
