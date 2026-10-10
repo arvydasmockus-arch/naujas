@@ -43,7 +43,6 @@ function playFallbackMoveSound() {
     volume.connect(context.destination);
     oscillator.start(start);
     oscillator.stop(start + 0.105);
-    oscillator.onended = () => { void context.close(); };
   } catch { /* Sound is optional; it must never block a move. */ }
 }
 
@@ -88,8 +87,7 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
       setSelected(null);
       setPromotion(null);
       setMessage('');
-      if (touchInput.current) playFallbackMoveSound();
-      else playMoveSound();
+      playMoveSound();
       onMove(move.lan);
     }
   }
