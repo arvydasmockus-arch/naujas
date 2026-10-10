@@ -34,6 +34,7 @@ function SolvingPlatform({ language = 'en' }) {
   const submission = useRef(false);
   const selection = useRef(0);
   const boardLayoutRef = useRef(null);
+  const nextPuzzleScroll = useRef(false);
   const count = series?.results.length ?? 0;
   const ordinal = count;
   const puzzle = feedback?.puzzle ?? series?.puzzles[ordinal];
@@ -55,6 +56,13 @@ function SolvingPlatform({ language = 'en' }) {
     const timer = setInterval(() => setNow(Date.now()), 200);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!nextPuzzleScroll.current || !puzzle || feedback) return undefined;
+    nextPuzzleScroll.current = false;
+    const frame = requestAnimationFrame(() => boardLayoutRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    return () => cancelAnimationFrame(frame);
+  }, [puzzle, feedback]);
 
   useEffect(() => {
     try { localStorage.setItem(PREFERENCES, JSON.stringify({ name: player, date: activeDate, language })); } catch { /* Server keeps results even when local storage is unavailable. */ }
@@ -175,8 +183,8 @@ function SolvingPlatform({ language = 'en' }) {
   function continueToNextProblem() {
     if (!feedback || series?.finished) return;
     startRequest.current = null;
+    nextPuzzleScroll.current = true;
     setFeedback(null);
-    requestAnimationFrame(() => requestAnimationFrame(() => boardLayoutRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })));
   }
 
   function exportResults() {
@@ -235,10 +243,10 @@ function SolvingPlatform({ language = 'en' }) {
                 {puzzle && available && (series.startedAt !== null || feedback) && <div className="solving-timer"><strong>{feedback ? feedback.seconds : Math.floor(elapsedMs / 1000)}</strong><span>{t.seconds}</span></div>}
               </div>
               {!available && <p className="solving-page__warning">{t.closed}</p>}
-              {available && !series.finished && series.startedAt === null && !feedback && <div className="solving-test__ready">
+              {available && !series.finished && series.startedAt === null && !feedback && count === 0 && <div className="solving-test__ready">
                 <p>{t.startWhenReady}</p><button type="button" className="solving-button" disabled={busy} onClick={startFirstProblem}>{t.startTimer}</button>
               </div>}
-              {puzzle && available && (series.startedAt !== null || feedback) && <div ref={boardLayoutRef}
+              {puzzle && available && (series.startedAt !== null || feedback || (!series.finished && count > 0)) && <div ref={boardLayoutRef}
                 className="solving-test__board-layout">
                 <div className="solving-board-column">
                   <ChessBoard key={`${activeDate}-${puzzle.id}`} fen={puzzle.fen} language={language}
