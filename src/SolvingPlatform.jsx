@@ -15,7 +15,7 @@ function dateLabel(date, language) {
     { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function SolvingPlatform({ language = 'en', onLanguageChange }) {
+function SolvingPlatform({ language = 'en' }) {
   const t = solvingTranslations[language];
   const [player, setPlayer] = useState(() => preferences().name || '');
   const [draftName, setDraftName] = useState(() => preferences().name || '');
@@ -77,6 +77,7 @@ function SolvingPlatform({ language = 'en', onLanguageChange }) {
 
   useEffect(() => {
     if (!series || !available || series.finished || feedback || busy || !player || series.date !== activeDate || series.player.toLowerCase() !== player.toLowerCase()) return;
+    if (count === 0 && series.startedAt === null) return;
     const token = `${player}:${activeDate}:${count}:${visit}`;
     if (startRequest.current === token) return;
     let second;
@@ -148,6 +149,21 @@ function SolvingPlatform({ language = 'en', onLanguageChange }) {
     finally { submission.current = false; setBusy(false); }
   }
 
+  async function startFirstProblem() {
+    if (!series || !available || series.startedAt !== null || busy || count !== 0) return;
+    const token = `${player}:${activeDate}:${count}:${visit}`;
+    startRequest.current = token;
+    setBusy(true); setError('');
+    try {
+      const data = await startSolvingProblem({ date: activeDate, name: player, ordinal: count, visit });
+      if (data.date !== activeDate || data.player.toLowerCase() !== player.toLowerCase()) return;
+      setSeries(data); setClockOffset(Date.now() - data.serverNow);
+    } catch (problem) {
+      startRequest.current = null;
+      showError(problem);
+    } finally { setBusy(false); }
+  }
+
   function continueToNextProblem() {
     if (!feedback || series?.finished) return;
     startRequest.current = null;
@@ -167,8 +183,6 @@ function SolvingPlatform({ language = 'en', onLanguageChange }) {
     <main className="solving-page" lang={language}>
       <header className="solving-page__header">
         <div><span className="solving-page__eyebrow">{t.badge}</span><h1>{t.title}</h1><p>{t.subtitle}</p></div>
-        <label className="solving-language">{t.language}<select value={language} onChange={(event) => onLanguageChange(event.target.value)}>
-          <option value="en">English</option><option value="lt">Lietuvių</option></select></label>
       </header>
       <form className="solving-player-bar" onSubmit={useName}>
         <label htmlFor="solver-name">{t.player}</label>
@@ -183,7 +197,10 @@ function SolvingPlatform({ language = 'en', onLanguageChange }) {
         <aside className="solving-panel solving-dates" aria-label={t.dates}>
           <h2>{t.dates}</h2><p>{t.dateHint} · UTC</p>
           <div className="solving-dates__list">
-            {days.map((day) => <button key={day.date} type="button" className={day.date === activeDate ? 'solving-dates__active' : ''}
+            {days.map((day) => <button key={day.date} type="button" className={[
+              day.date === activeDate ? 'solving-dates__active' : '',
+              day.answered === 6 ? 'solving-dates__completed' : day.answered > 0 ? 'solving-dates__partial' : '',
+            ].filter(Boolean).join(' ')}
               aria-pressed={day.date === activeDate} disabled={!player || busy || Boolean(feedback)} onClick={() => chooseDate(day.date)}>
               <span>{day.date}{day.date === catalog.today ? ` · ${t.today}` : ''}</span>
               <small>{day.answered === 6 ? `${day.points}/6 ${t.points}` : day.answered ? `${t.started} · ${day.answered}/6` : t.problems} · {day.players} {t.players}</small>
@@ -206,10 +223,13 @@ function SolvingPlatform({ language = 'en', onLanguageChange }) {
             <section className="solving-panel">
               <div className="solving-test__heading"><div><h2>{dateLabel(activeDate, language)}</h2>
                 <p>{series.finished && !feedback ? t.finished : `${t.problem} ${feedback ? feedback.ordinal + 1 : Math.min(count + 1, 6)} ${t.of} 6 · #2`}</p></div>
-                {puzzle && available && <div className="solving-timer"><strong>{feedback ? feedback.seconds : Math.floor(elapsedMs / 1000)}</strong><span>{t.seconds}</span></div>}
+                {puzzle && available && (series.startedAt !== null || feedback) && <div className="solving-timer"><strong>{feedback ? feedback.seconds : Math.floor(elapsedMs / 1000)}</strong><span>{t.seconds}</span></div>}
               </div>
               {!available && <p className="solving-page__warning">{t.closed}</p>}
-              {puzzle && available && <div className="solving-test__board-layout">
+              {available && !series.finished && series.startedAt === null && !feedback && <div className="solving-test__ready">
+                <p>{t.startWhenReady}</p><button type="button" className="solving-button" disabled={busy} onClick={startFirstProblem}>{t.startTimer}</button>
+              </div>}
+              {puzzle && available && (series.startedAt !== null || feedback) && <div className="solving-test__board-layout">
                 <ChessBoard key={`${activeDate}-${puzzle.id}`} fen={puzzle.fen} language={language}
                   disabled={busy || Boolean(feedback) || series.startedAt === null} onMove={submit} />
                 <div className="solving-test__instructions"><h3>{t.whiteToMove}</h3><p>{t.goal}</p>
@@ -223,7 +243,6 @@ function SolvingPlatform({ language = 'en', onLanguageChange }) {
                   </div> : <><p className="solving-test__note">{t.immediate}</p>
                     <button type="button" className="solving-button solving-button--secondary" disabled={busy || series.startedAt === null}
                       onClick={() => submit(null)}>{t.skip}</button>
-                    {series.startedAt === null && <p className="solving-test__note" role="status">{t.loadingDiagram}</p>}
                   </>}
                 </div>
               </div>}

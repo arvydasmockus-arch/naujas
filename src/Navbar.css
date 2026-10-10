@@ -8,12 +8,6 @@
   box-sizing: border-box;
 }
 
-.navbar--solving { background: #ffffff; border-bottom-color: #d7e2d2; }
-.navbar--solving .navbar__brand-name { color: #263c2c; }
-.navbar--solving .navbar__link { color: #5e715d; }
-.navbar--solving .navbar__link--active,
-.navbar--solving .navbar__link[aria-disabled="false"]:hover,
-.navbar--solving .navbar__link[aria-disabled="false"]:focus-visible { color: #086b34; background: #eaf4e5; border-color: #c5dcbc; }
 
 .navbar__container {
   width: 100%;
@@ -220,3 +214,8 @@
 .navbar__brand-logo { display: block; width: 126px; height: 70px; object-fit: contain; background: #fff; border-radius: 5px; flex-shrink: 0; }
 .navbar__container { min-height: 88px; padding-block: 8px; }
 @media (max-width: 580px) { .navbar__brand-logo { width: 108px; height: 60px; } }
+
+.navbar__language { display: inline-flex; align-items: center; justify-content: center; min-width: 42px; padding: 9px 12px; border: 1px solid #575562; border-radius: 8px; background: #24232d; color: #f4f2f7; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.navbar__language:hover { border-color: #15994c; background: rgba(21, 153, 76, 0.14); }
+@media (max-width: 768px) { .navbar__language { margin-left: auto; } }
+@media (max-width: 580px) { .navbar__language { justify-content: flex-end; margin-top: 8px; } }

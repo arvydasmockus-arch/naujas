@@ -22,7 +22,7 @@ function scoredText(doc, text, x, y, width, height, number) {
   let size = 10, lines;
   while (size >= 6) {
     lines = solutionLines(doc, text, width, size);
-    if (lines.length * (size * 1.2 + 1) <= height) break;
+    if (lines.length * size * 1.12 <= height) break;
     size -= .25;
   }
   if (size < 6) throw new Error(`Solution ${number} is too long for the two-page layout. Shorten the draft or scoring notes.`);
@@ -30,7 +30,7 @@ function scoredText(doc, text, x, y, width, height, number) {
   lines.forEach((line, index) => {
     let left = x;
     for (const run of line) {
-      doc.fillColor(run.red ? '#bd2424' : '#111111').text(run.text, left, y + index * (size * 1.2 + 1), { lineBreak: false });
+      doc.fillColor(run.red ? '#bd2424' : '#111111').text(run.text, left, y + index * size * 1.12, { lineBreak: false });
       left += run.width;
     }
   });

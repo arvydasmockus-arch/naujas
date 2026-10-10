@@ -14,7 +14,7 @@ function remainingTime(milliseconds) {
   return `${String(Math.floor(seconds / 3600)).padStart(2, '0')}:${String(Math.floor(seconds / 60) % 60).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
-function TournamentPlatform({ language = 'en', onLanguageChange }) {
+function TournamentPlatform({ language = 'en' }) {
   const t = tournamentTranslations[language];
   const [judge, setJudge] = useState(false);
   const [accessKey, setAccessKey] = useState('');
@@ -115,7 +115,21 @@ function TournamentPlatform({ language = 'en', onLanguageChange }) {
   }
   function start(e) {
     e.preventDefault();
-    perform(async () => { const data = await tournamentRequest('start', { data: { id: selected, name } }); setSession(data); setOffset(Date.now() - data.serverNow); });
+    perform(async () => {
+      const data = await tournamentRequest('start', { data: { id: selected, name } });
+      setSession(data); setOffset(Date.now() - data.serverNow);
+      setAnswers(data.answers ?? Array(6).fill(''));
+    });
+  }
+  function switchPlayer() {
+    try { localStorage.removeItem(storageKey); } catch { /* Optional local draft. */ }
+    setSession(null); setName(''); setAnswers(Array(6).fill(''));
+  }
+  function refreshSubmissions() {
+    perform(async () => {
+      const data = await tournamentRequest('event', { key, params: { id: selected, judge: 1 } });
+      setEvent(data);
+    });
   }
   function answerText() {
     return `${event.displayTitle}\nPlayer: ${session?.name ?? name}\n120-minute solving session\n\n` + answers.map((answer, index) => `${index + 1}. ${event.puzzles[index].stipulation}\n${answer || '—'}`).join('\n\n');
@@ -135,7 +149,7 @@ function TournamentPlatform({ language = 'en', onLanguageChange }) {
     e.preventDefault();
     perform(async () => {
       const receipt = await tournamentRequest('submit', { data: { id: selected, sessionId: session.id, answers } });
-      setSession((current) => ({ ...current, submittedAt: receipt.submittedAt })); mail();
+      setSession((current) => ({ ...current, submittedAt: receipt.submittedAt }));
     });
   }
   function pdf(kind, id = selected) {
@@ -155,8 +169,7 @@ function TournamentPlatform({ language = 'en', onLanguageChange }) {
   }
 
   return <main className="tournament-page" lang={language}>
-    <header className="tournament-page__header"><div><h1>{t.title}</h1><p>{t.subtitle}</p><small>{t.schedule}</small></div>
-      <select aria-label={language === 'lt' ? 'Kalba' : 'Language'} value={language} onChange={(e) => onLanguageChange(e.target.value)}><option value="en">English</option><option value="lt">Lietuvių</option></select></header>
+    <header className="tournament-page__header"><div><h1>{t.title}</h1><p>{t.subtitle}</p><small>{t.schedule}</small></div></header>
     <div className="tournament-page__views"><strong>{judge ? t.judgeView : t.playerView}</strong>
       {judge ? <button type="button" onClick={() => { setJudge(false); setEvent(null); setAccessKey(''); }}>{t.logout}</button> :
         <details><summary>{t.judgeView}</summary><form onSubmit={login}><label>{t.access}<input type="password" value={accessKey} onChange={(e) => setAccessKey(e.target.value)} required /></label><button disabled={busy}>{t.login}</button><p>{t.keyHint}</p></form></details>}
@@ -188,7 +201,8 @@ function TournamentPlatform({ language = 'en', onLanguageChange }) {
       </section>}
       {!judge && <section className="tournament-panel">
         {!session ? <form className="tournament-start" onSubmit={start}><label>{t.name}<input value={name} onChange={(e) => setName(e.target.value)} minLength={2} maxLength={40} required /></label><button disabled={busy}>{t.start}</button></form>
-          : <div className="tournament-clock"><strong>{session.name}</strong><span>{t.remaining}: {remainingTime(session.deadline - (now - offset))}</span>{session.submittedAt && <p role="status">{t.submitted}</p>}{expired && !session.submittedAt && <p>{t.deadline}</p>}</div>}
+          : <div className="tournament-clock"><strong>{session.name}</strong><span>{t.remaining}: {remainingTime(session.deadline - (now - offset))}</span>{session.submittedAt && <p role="status">{t.submitted}</p>}{expired && !session.submittedAt && <p>{t.deadline}</p>}
+            {(session.submittedAt || expired) && <button type="button" onClick={switchPlayer}>{t.switchPlayer}</button>}</div>}
       </section>}
       <section className="tournament-problems">{event.puzzles.map((puzzle, index) => <article className="tournament-panel tournament-problem" key={`${selected}-${index}-${puzzle.fen}`}>
         <h2>{index + 1}.</h2>
@@ -226,7 +240,7 @@ function TournamentPlatform({ language = 'en', onLanguageChange }) {
           <label>{t.notesResult}<textarea rows={2} value={result.notes} onChange={(e) => setResult((current) => ({ ...current, notes: e.target.value }))} /></label>
           <div className="tournament-downloads"><button disabled={busy}>{t.saveResult}</button><button type="button" onClick={() => setResult(emptyResult())}>{t.reset}</button></div>
         </form>
-        <section className="tournament-panel"><h2>{t.submissions}</h2>{!event.submissions?.length && <p>{t.noSubmissions}</p>}
+        <section className="tournament-panel"><div className="tournament-event-heading"><h2>{t.submissions}</h2><button type="button" disabled={busy} onClick={refreshSubmissions}>{t.refreshSubmissions}</button></div>{!event.submissions?.length && <p>{t.noSubmissions}</p>}
           {event.submissions?.map((submission) => <details className="tournament-submission" key={submission.id}><summary>{submission.name} · {submission.minutes.toFixed(2)} min</summary>
             {submission.answers.map((answer, index) => <div key={index}><strong>{index + 1}.</strong><pre>{answer || '—'}</pre></div>)}
             <button onClick={() => setResult({ ...emptyResult(), name: submission.name, minutes: Number(submission.minutes.toFixed(2)) })}>{t.manual}</button></details>)}

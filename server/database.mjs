@@ -17,6 +17,9 @@ export function openDatabase(path = defaultDatabasePath, seed = true) {
     CREATE INDEX IF NOT EXISTS puzzle_selection ON puzzles(eligible, verified);
     CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS import_pages (page INTEGER PRIMARY KEY, count INTEGER NOT NULL, fetched_at TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS puzzle_training_difficulty (
+      puzzle_id TEXT PRIMARY KEY, hard INTEGER NOT NULL, pieces INTEGER NOT NULL, alternative_moves INTEGER NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS daily (date TEXT PRIMARY KEY, created_at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS daily_puzzles (
       date TEXT NOT NULL REFERENCES daily(date), ordinal INTEGER NOT NULL,

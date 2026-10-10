@@ -11,6 +11,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "cloudflare:export": "node scripts/export-cloudflare-data.mjs",
+    "cloudflare:export-tournaments": "node scripts/export-tournament-pool.mjs",
+    "cloudflare:sync": "node scripts/sync-cloudflare-data.mjs",
     "cloudflare:dev": "wrangler dev --config wrangler.jsonc",
     "cloudflare:deploy": "wrangler deploy --config wrangler.jsonc",
     "cloudflare:migrate": "wrangler d1 migrations apply ml-academy --remote --config wrangler.jsonc",

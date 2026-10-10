@@ -4,7 +4,7 @@ import { Chess } from 'chess.js';
 import { tournamentPdf } from '../server/tournamentPdf.mjs';
 import { pdfAssets } from './pdfAssets.js';
 import PDFDocumentBrowser from '../node_modules/pdfkit/js/pdfkit.browser.js';
-import { verifyPuzzle } from '../server/puzzleTools.mjs';
+import { trainingDifficulty, verifyPuzzle } from '../server/puzzleTools.mjs';
 
 const DEFAULT_TITLE = 'Solving tournament of Martynas Limontas';
 const ALLOWED_ORIGINS = new Set([
@@ -148,11 +148,18 @@ async function ensureDaily(db, date) {
   while (chosen.length < 6) {
     const rows = await db.prepare(`SELECT id, puzzle, position_hash FROM puzzles p
       WHERE eligible = 1 AND verified = 1 AND position_hash IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM puzzle_training_difficulty d WHERE d.puzzle_id = p.id AND d.hard = 0)
       AND NOT EXISTS (SELECT 1 FROM daily_puzzles d WHERE d.position_hash = p.position_hash)
       ORDER BY RANDOM() LIMIT 32`).all();
+    if (!rows.results?.length) throw new Error('No unused difficult verified puzzles are available.');
     let found = false;
     for (const row of rows.results ?? []) {
       if (positions.has(row.position_hash)) continue;
+      const difficulty = trainingDifficulty(JSON.parse(row.puzzle));
+      await db.prepare(`INSERT INTO puzzle_training_difficulty(puzzle_id,hard,pieces,alternative_moves) VALUES(?,?,?,?)
+        ON CONFLICT(puzzle_id) DO UPDATE SET hard=excluded.hard,pieces=excluded.pieces,alternative_moves=excluded.alternative_moves`)
+        .bind(row.id, Number(difficulty.hard), difficulty.pieces, difficulty.alternativeMoves).run();
+      if (!difficulty.hard) continue;
       chosen.push(row); positions.add(row.position_hash); found = true;
       if (chosen.length === 6) break;
     }
@@ -171,11 +178,13 @@ async function ensureDaily(db, date) {
 async function enqueuePuzzleVerification(db, queue, target = 180) {
   const reserve = await db.prepare(`SELECT COUNT(DISTINCT p.position_hash) AS n FROM puzzles p
     WHERE p.eligible = 1 AND p.verified = 1 AND p.position_hash IS NOT NULL
+    AND NOT EXISTS (SELECT 1 FROM puzzle_training_difficulty d WHERE d.puzzle_id = p.id AND d.hard = 0)
     AND NOT EXISTS (SELECT 1 FROM daily_puzzles d WHERE d.position_hash = p.position_hash)`).first();
   const needed = target - reserve.n;
   if (needed <= 0) return 0;
   const rows = await db.prepare(`SELECT p.id FROM puzzles p WHERE p.eligible = 1 AND p.verified = 0
     AND p.position_hash IS NOT NULL AND NOT EXISTS (SELECT 1 FROM daily_puzzles d WHERE d.position_hash = p.position_hash)
+    AND NOT EXISTS (SELECT 1 FROM puzzle_training_difficulty d WHERE d.puzzle_id = p.id AND d.hard = 0)
     AND NOT EXISTS (SELECT 1 FROM puzzle_verification_queue q WHERE q.puzzle_id = p.id)
     ORDER BY RANDOM() LIMIT ?`).bind(Math.min(needed, 100)).all();
   const candidates = rows.results ?? [];
@@ -210,6 +219,59 @@ async function verifyPuzzleMessages(batch, db) {
       message.retry();
     }
   }
+}
+
+async function importData(request, env) {
+  if (!isJudge(request, env)) return json({ error: 'Unauthorized.' }, 401);
+  if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
+  const data = await requestData(request);
+  if (data.listExisting) {
+    const table = data.listExisting === 'puzzles' ? 'puzzles' : data.listExisting === 'tournament_pool' ? 'tournament_pool' : null;
+    const limit = Number(data.limit), offset = Number(data.offset);
+    if (!table || !Number.isInteger(limit) || limit < 1 || limit > 5000 || !Number.isInteger(offset) || offset < 0)
+      return json({ error: 'Invalid ID-list request.' }, 400);
+    const rows = await env.DB.prepare(`SELECT id FROM ${table} ORDER BY id LIMIT ? OFFSET ?`).bind(limit, offset).all();
+    return json({ ids: (rows.results ?? []).map((row) => row.id) });
+  }
+  const puzzles = Array.isArray(data.puzzles) ? data.puzzles : [];
+  const tournamentPool = Array.isArray(data.tournamentPool) ? data.tournamentPool : [];
+  if (puzzles.length > 100 || tournamentPool.length > 100 || (!puzzles.length && !tournamentPool.length && !data.refreshLibraryStatus))
+    return json({ error: 'Invalid import batch.' }, 400);
+
+  const statements = [];
+  for (const row of puzzles) {
+    if (typeof row.id !== 'string' || (row.raw !== null && typeof row.raw !== 'string')
+      || (row.puzzle !== null && typeof row.puzzle !== 'string')) return json({ error: 'Invalid puzzle row.' }, 400);
+    statements.push(env.DB.prepare(`INSERT OR IGNORE INTO puzzles(id,raw,puzzle,eligible,verified,position_hash)
+      VALUES(?,?,?,?,?,?)`).bind(row.id, row.raw, row.puzzle, Number(row.eligible) || 0,
+      Number(row.verified) || 0, row.position_hash ?? null));
+  }
+  for (const row of tournamentPool) {
+    if (typeof row.id !== 'string' || typeof row.type !== 'string' || typeof row.raw !== 'string'
+      || typeof row.puzzle !== 'string' || typeof row.position_hash !== 'string' || typeof row.checked_at !== 'string')
+      return json({ error: 'Invalid tournament row.' }, 400);
+    statements.push(env.DB.prepare(`INSERT INTO tournament_pool(id,type,raw,puzzle,position_hash,checked_at) VALUES(?,?,?,?,?,?)
+      ON CONFLICT(id) DO UPDATE SET type=excluded.type,raw=excluded.raw,puzzle=excluded.puzzle,
+        position_hash=excluded.position_hash,checked_at=excluded.checked_at`)
+      .bind(row.id, row.type, row.raw, row.puzzle, row.position_hash, row.checked_at));
+  }
+  const results = statements.length ? await env.DB.batch(statements) : [];
+  const changes = results.reduce((sum, result) => sum + (result.meta?.changes ?? 0), 0);
+  const rowsWritten = results.reduce((sum, result) => sum + (result.meta?.rows_written ?? 0), 0);
+  if (data.refreshLibraryStatus) {
+    const stats = await env.DB.prepare(`SELECT COUNT(*) AS imported, SUM(eligible = 1) AS eligible,
+      SUM(verified = 1) AS verified FROM puzzles WHERE raw IS NOT NULL`).first();
+    const expected = Number(data.expected) || 217629;
+    const status = { running: false, complete: stats.imported >= expected, ...stats,
+      expected, finishedAt: new Date().toISOString() };
+    await env.DB.batch([
+      env.DB.prepare(`INSERT INTO metadata(key,value) VALUES('import_expected',?)
+        ON CONFLICT(key) DO UPDATE SET value=excluded.value`).bind(JSON.stringify(expected)),
+      env.DB.prepare(`INSERT INTO metadata(key,value) VALUES('import_status',?)
+        ON CONFLICT(key) DO UPDATE SET value=excluded.value`).bind(JSON.stringify(status)),
+    ]);
+  }
+  return json({ receivedPuzzles: puzzles.length, receivedTournamentRows: tournamentPool.length, changes, rowsWritten });
 }
 
 async function puzzlesForDay(db, date) {
@@ -285,11 +347,14 @@ async function solvingApi(request, url, env) {
     const playersByDate = new Map((playerRows.results ?? []).map((row) => [row.date, row.players]));
     const days = dates.map((date) => ({ date, answered: answersByDate.get(date)?.answered ?? 0,
       points: answersByDate.get(date)?.points ?? 0, players: playersByDate.get(date) ?? 0 }));
-    const stats = await db.prepare('SELECT COUNT(*) AS total, SUM(raw IS NOT NULL) AS imported, SUM(eligible = 1) AS eligible, SUM(verified = 1) AS verified FROM puzzles').first();
     const expected = await db.prepare("SELECT value FROM metadata WHERE key = 'import_expected'").first();
     const status = await db.prepare("SELECT value FROM metadata WHERE key = 'import_status'").first();
-    return json({ days, today, timezone: 'UTC', library: { ...stats, expected: expected ? JSON.parse(expected.value) : 217611,
-      importStatus: status ? JSON.parse(status.value) : {} }, serverNow: Date.now() });
+    const importStatus = status ? JSON.parse(status.value) : {};
+    return json({ days, today, timezone: 'UTC', library: {
+      total: importStatus.imported ?? 0, imported: importStatus.imported ?? 0,
+      eligible: importStatus.eligible ?? 0, verified: importStatus.verified ?? 0,
+      expected: expected ? JSON.parse(expected.value) : 217629, importStatus,
+    }, serverNow: Date.now() });
   }
   if (request.method === 'GET' && url.pathname === '/api/solving/series') {
     try { return json(await solvingSeries(db, url.searchParams.get('date'), url.searchParams.get('name'))); }
@@ -475,6 +540,11 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
     const url = new URL(request.url);
     if (request.method === 'GET' && url.pathname === '/healthz') return json({ ok: true, service: 'ml-academy-api' }, 200, headers);
+    if (url.pathname === '/api/admin/import') {
+      const response = await importData(request, env);
+      for (const [key, value] of headers) response.headers.set(key, value);
+      return response;
+    }
     if (url.pathname.startsWith('/api/tournaments/')) {
       const response = await tournamentApi(request, url, env);
       for (const [key, value] of headers) response.headers.set(key, value);

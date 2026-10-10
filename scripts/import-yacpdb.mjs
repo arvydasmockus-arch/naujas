@@ -60,7 +60,9 @@ try {
   const pageSize = first.entries.length;
   if (!pageSize) throw new Error('Empty first page');
   const pages = Math.ceil(expected / pageSize);
-  const existing = new Set(db.prepare('SELECT page FROM import_pages').all().map((row) => row.page));
+  const finalPageCount = expected - (pages - 1) * pageSize;
+  const existing = new Set(db.prepare('SELECT page FROM import_pages WHERE count >= CASE WHEN page = ? THEN ? ELSE ? END')
+    .all(pages, finalPageCount, pageSize).map((row) => row.page));
   const pending = Array.from({ length: pages }, (_, index) => index + 1).filter((page) => !existing.has(page));
   completed = existing.size;
   console.log(`YACPDB #2: ${expected} records, ${pages} pages. Resuming with ${completed} cached pages.`);
@@ -83,12 +85,13 @@ try {
   const failure = workers.find((result) => result.status === 'rejected');
   if (failure) throw failure.reason;
   report();
-  const count = db.prepare('SELECT COUNT(*) AS count FROM puzzles WHERE raw IS NOT NULL').get().count;
+  const counts = db.prepare(`SELECT COUNT(*) AS imported, SUM(eligible) AS eligible,
+    SUM(verified = 1) AS verified FROM puzzles WHERE raw IS NOT NULL`).get();
   const received = db.prepare('SELECT SUM(count) AS n FROM import_pages WHERE page<=?').get(pages).n;
   const complete = !stopped && completed === pages && received >= expected;
-  setMetadata(db, 'import_status', { running: false, complete, imported: count, received, expected, pages: completed,
-    duplicateRecords: Math.max(0, received - count), finishedAt: new Date().toISOString() });
-  console.log(complete ? `Complete: all ${pages} search pages stored; ${received} received records, ${count} distinct IDs.`
+  setMetadata(db, 'import_status', { running: false, complete, ...counts, received, expected, pages: completed,
+    duplicateRecords: Math.max(0, received - counts.imported), finishedAt: new Date().toISOString() });
+  console.log(complete ? `Complete: all ${pages} search pages stored; ${received} received records, ${counts.imported} distinct IDs.`
     : 'Stopped or source changed: rerun npm run import:puzzles to resume/reconcile.');
 } catch (error) {
   setMetadata(db, 'import_status', { running: false, complete: false, error: error.message });

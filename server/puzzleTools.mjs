@@ -42,6 +42,15 @@ export function parseEntry(entry) {
   } catch { return null; }
 }
 
+export function trainingDifficulty(puzzle) {
+  try {
+    const chess = new Chess(puzzle.fen);
+    const pieces = chess.board().flat().filter(Boolean).length;
+    const alternativeMoves = Math.max(0, chess.moves().length - 1);
+    return { pieces, alternativeMoves, hard: pieces > 20 || alternativeMoves >= 15 };
+  } catch { return { pieces: 0, alternativeMoves: 0, hard: false }; }
+}
+
 export function forcesMateInTwo(chess, move) {
   chess.move(move);
   const replies = chess.moves({ verbose: true });

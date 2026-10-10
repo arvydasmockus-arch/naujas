@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { Worker } from 'node:worker_threads';
 import { Chess } from 'chess.js';
 import { openDatabase, getMetadata } from './database.mjs';
+import { trainingDifficulty } from './puzzleTools.mjs';
 
 export function utcDay(now = new Date()) { return now.toISOString().slice(0, 10); }
 export function calendarDays(today = utcDay()) {
@@ -50,6 +51,7 @@ export class GameStore {
     while (chosen.length < 6) {
       const rows = this.db.prepare(`SELECT id,puzzle,position_hash,verified FROM puzzles p
         WHERE eligible=1 AND verified>=0 AND position_hash IS NOT NULL
+        AND NOT EXISTS(SELECT 1 FROM puzzle_training_difficulty d WHERE d.puzzle_id=p.id AND d.hard=0)
         AND NOT EXISTS(SELECT 1 FROM daily_puzzles d WHERE d.position_hash=p.position_hash)
         ORDER BY verified DESC, RANDOM() LIMIT 24`).all();
       if (!rows.length) throw new Error('No unused verified puzzles available. Continue the puzzle import.');
@@ -57,6 +59,11 @@ export class GameStore {
       for (const row of rows) {
         if (hashes.has(row.position_hash)) continue;
         const puzzle = JSON.parse(row.puzzle);
+        const difficulty = trainingDifficulty(puzzle);
+        this.db.prepare(`INSERT INTO puzzle_training_difficulty(puzzle_id,hard,pieces,alternative_moves) VALUES(?,?,?,?)
+          ON CONFLICT(puzzle_id) DO UPDATE SET hard=excluded.hard,pieces=excluded.pieces,alternative_moves=excluded.alternative_moves`)
+          .run(row.id, Number(difficulty.hard), difficulty.pieces, difficulty.alternativeMoves);
+        if (!difficulty.hard) continue;
         let valid = row.verified === 1;
         if (!valid) {
           try { valid = await verifyInWorker(puzzle); }

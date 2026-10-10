@@ -28,7 +28,11 @@
 .solving-dates__list button { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 10px; border: 1px solid #e0e8dc; border-radius: 7px; color: #415343; background: #f8faf6; text-align: left; font: inherit; font-size: 12px; cursor: pointer; }
 .solving-dates__list button:disabled { opacity: 0.55; cursor: default; }
 .solving-dates__list small { color: #7b8777; font-size: 10px; }
-.solving-dates__list .solving-dates__active { border-color: #81b785; background: #e8f3e3; }
+.solving-dates__list .solving-dates__completed { border-color: #79b787; background: #e9f6eb; color: #245c34; }
+.solving-dates__list .solving-dates__completed small { color: #39754a; }
+.solving-dates__list .solving-dates__partial { border-color: #dec47d; background: #fff8e8; color: #705720; }
+.solving-dates__list .solving-dates__partial small { color: #8b7135; }
+.solving-dates__list .solving-dates__active { box-shadow: 0 0 0 2px #83a889; }
 .solving-library { border-top: 1px solid #e0e8dc; padding-top: 12px; margin-top: 14px; font-size: 11px; }
 .solving-library strong { color: #496d4a; }
 .solving-library p { margin: 3px 0; }
@@ -38,6 +42,8 @@
 .solving-intro ul { padding-left: 20px; line-height: 1.9; font-size: 13px; }
 .solving-test__heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
 .solving-test__heading p { font-size: 12px; }
+.solving-test__ready { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px; border: 1px solid #dce8d7; border-radius: 9px; background: #f8fbf6; }
+.solving-test__ready p { margin: 0; font-size: 13px; }
 .solving-timer { display: flex; align-items: baseline; gap: 6px; padding: 10px 15px; border: 1px solid #d1e2cb; background: #f4f9ef; border-radius: 8px; font-variant-numeric: tabular-nums; }
 .solving-timer strong { color: #087a3b; font-size: 26px; }
 .solving-timer span { font-size: 11px; }
@@ -62,6 +68,7 @@
   .solving-dates__list button { flex: 0 0 158px; }
   .solving-panel { padding: 17px; }
   .solving-test__heading { align-items: flex-start; }
+  .solving-test__ready { align-items: stretch; flex-direction: column; }
   .solving-player-bar input { flex: 1 1 140px; min-width: 0; }
   .solving-player-bar > span { width: 100%; }
   .solving-player-bar__active { margin-left: 0; }
