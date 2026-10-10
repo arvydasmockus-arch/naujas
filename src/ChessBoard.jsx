@@ -5,54 +5,26 @@ import './ChessBoard.css';
 
 const pieceImages = Object.fromEntries(Object.entries(import.meta.glob('./assets/chess/*.svg', { eager: true, query: '?url', import: 'default' }))
   .map(([path, url]) => [path.split('/').pop().replace('.svg', ''), url]));
-let moveSound;
-let audioContext;
+const MOVE_SOUND_URL = 'https://lichess1.org/assets/sound/standard/Move.mp3';
+let moveSoundPreload;
 
 function unlockMoveSound() {
   try {
     if (typeof Audio !== 'undefined') {
-      moveSound ??= new Audio('https://lichess1.org/assets/sound/standard/Move.mp3');
-      moveSound.preload = 'auto';
-      moveSound.load();
+      moveSoundPreload ??= new Audio(MOVE_SOUND_URL);
+      moveSoundPreload.preload = 'auto';
+      if (moveSoundPreload.readyState === 0) moveSoundPreload.load();
     }
-    const Context = window.AudioContext || window.webkitAudioContext;
-    if (Context) {
-      audioContext ??= new Context();
-      if (audioContext.state === 'suspended') void audioContext.resume();
-    }
-  } catch { /* Some browsers disable audio; moves must still work. */ }
-}
-
-function playFallbackMoveSound() {
-  try {
-    const Context = window.AudioContext || window.webkitAudioContext;
-    if (!Context) return;
-    audioContext ??= new Context();
-    const context = audioContext;
-    if (context.state === 'suspended') void context.resume();
-    const oscillator = context.createOscillator();
-    const volume = context.createGain();
-    const start = context.currentTime;
-    oscillator.type = 'triangle';
-    oscillator.frequency.setValueAtTime(420, start);
-    oscillator.frequency.exponentialRampToValueAtTime(260, start + 0.07);
-    volume.gain.setValueAtTime(0.0001, start);
-    volume.gain.exponentialRampToValueAtTime(0.12, start + 0.006);
-    volume.gain.exponentialRampToValueAtTime(0.0001, start + 0.1);
-    oscillator.connect(volume);
-    volume.connect(context.destination);
-    oscillator.start(start);
-    oscillator.stop(start + 0.105);
   } catch { /* Sound is optional; it must never block a move. */ }
 }
 
 function playMoveSound() {
   try {
-    if (typeof Audio === 'undefined') { playFallbackMoveSound(); return; }
-    moveSound ??= new Audio('https://lichess1.org/assets/sound/standard/Move.mp3');
-    moveSound.currentTime = 0;
-    void moveSound.play().catch(playFallbackMoveSound);
-  } catch { playFallbackMoveSound(); }
+    if (typeof Audio === 'undefined') return;
+    const sound = new Audio(MOVE_SOUND_URL);
+    sound.volume = 0.8;
+    void sound.play().catch(() => {});
+  } catch { /* Sound is optional; it must never block a move. */ }
 }
 
 function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, description }) {
