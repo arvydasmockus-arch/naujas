@@ -33,7 +33,7 @@ function SolvingPlatform({ language = 'en' }) {
   const startRequest = useRef(null);
   const submission = useRef(false);
   const selection = useRef(0);
-  const boardLayoutRef = useRef(null);
+  const testHeadingRef = useRef(null);
   const nextPuzzleScroll = useRef(false);
   const count = series?.results.length ?? 0;
   const ordinal = count;
@@ -61,7 +61,7 @@ function SolvingPlatform({ language = 'en' }) {
   useEffect(() => {
     if (!nextPuzzleScroll.current || !puzzle || feedback) return undefined;
     nextPuzzleScroll.current = false;
-    const frame = requestAnimationFrame(() => boardLayoutRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    const frame = requestAnimationFrame(() => testHeadingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     return () => cancelAnimationFrame(frame);
   }, [puzzle, feedback]);
 
@@ -239,7 +239,7 @@ function SolvingPlatform({ language = 'en' }) {
           </section>}
           {series && <>
             <section className="solving-panel">
-              <div className="solving-test__heading"><div><h2>{dateLabel(activeDate, language)}</h2>
+              <div ref={testHeadingRef} className="solving-test__heading"><div><h2>{dateLabel(activeDate, language)}</h2>
                 <p>{series.finished && !feedback ? t.finished : `${t.problem} ${feedback ? feedback.ordinal + 1 : Math.min(count + 1, 6)} ${t.of} 6`}</p></div>
                 {puzzle && available && (series.startedAt !== null || feedback) && <div className="solving-timer"><strong>{feedback ? feedback.seconds : Math.floor(elapsedMs / 1000)}</strong><span>{t.seconds}</span></div>}
               </div>
@@ -247,7 +247,7 @@ function SolvingPlatform({ language = 'en' }) {
               {available && !series.finished && series.startedAt === null && !feedback && count === 0 && <div className="solving-test__ready">
                 <p>{t.startWhenReady}</p><button type="button" className="solving-button" disabled={busy} onClick={startFirstProblem}>{t.startTimer}</button>
               </div>}
-              {puzzle && available && (series.startedAt !== null || feedback || (!series.finished && count > 0)) && <div ref={boardLayoutRef}
+              {puzzle && available && (series.startedAt !== null || feedback || (!series.finished && count > 0)) && <div
                 className="solving-test__board-layout">
                 <div className="solving-board-column">
                   <ChessBoard key={`${activeDate}-${puzzle.id}`} fen={puzzle.fen} language={language}
