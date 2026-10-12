@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import { solvingTranslations } from './solvingTranslations';
 import './ChessBoard.css';
@@ -27,7 +27,8 @@ function playMoveSound() {
   } catch { /* Sound is optional; it must never block a move. */ }
 }
 
-function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, description }) {
+function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, description,
+  requireConfirmation = false, onPendingMove, onRegisterControls, caption }) {
   const t = solvingTranslations[language];
   const names = t.pieceNames;
   const [preview, setPreview] = useState(() => ({ source: fen, position: fen }));
@@ -36,6 +37,7 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
   const [selected, setSelected] = useState(null);
   const [promotion, setPromotion] = useState(null);
   const [message, setMessage] = useState('');
+  const [pendingMove, setPendingMove] = useState(null);
   const [dragPreview, setDragPreview] = useState(null);
   const drag = useRef(null);
   const boardRef = useRef(null);
@@ -44,7 +46,7 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
   const destinations = selected ? chess.moves({ square: selected, verbose: true }).map((move) => move.to) : [];
 
   function submitMove(from, to, promote) {
-    if (disabled) return;
+    if (disabled || pendingMove) return;
     const moves = chess.moves({ square: from, verbose: true }).filter((move) => move.to === to);
     if (!moves.length) { setMessage(t.invalidMove); return; }
     if (moves.some((move) => move.promotion) && !promote) {
@@ -60,12 +62,46 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
       setPromotion(null);
       setMessage('');
       playMoveSound();
-      onMove(move.lan);
+      if (requireConfirmation) {
+        setPendingMove(move.lan);
+        onPendingMove?.({ lan: move.lan, san: move.san });
+      } else onMove(move.lan);
     }
   }
 
+  function cancelPendingMove() {
+    setPreview({ source: fen, position: fen });
+    setPendingMove(null);
+    setSelected(null);
+    setPromotion(null);
+    setMessage('');
+    onPendingMove?.(null);
+  }
+
+  function completePendingMove() {
+    setPendingMove(null);
+    onPendingMove?.(null);
+  }
+
+  function submitNotation(notation) {
+    if (disabled || pendingMove || !notation.trim()) return null;
+    try {
+      const parsed = new Chess(chess.fen()).move(notation.trim());
+      if (!parsed) return null;
+      submitMove(parsed.from, parsed.to, parsed.promotion);
+      return parsed.lan;
+    } catch {
+      setMessage(t.invalidNotation);
+      return null;
+    }
+  }
+
+  useEffect(() => {
+    onRegisterControls?.({ submitNotation, clear: cancelPendingMove, complete: completePendingMove });
+  });
+
   function chooseSquare(square) {
-    if (disabled || promotion) return;
+    if (disabled || promotion || pendingMove) return;
     const piece = chess.get(square);
     if (piece?.color === 'w') {
       setSelected(square === selected ? null : square);
@@ -84,7 +120,7 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
 
   function pointerDown(event, square) {
     if (event.pointerType === 'touch') return;
-    if (disabled || promotion || (event.pointerType !== 'touch' && event.button !== 0)) return;
+    if (disabled || promotion || pendingMove || (event.pointerType !== 'touch' && event.button !== 0)) return;
     handledPointerDown.current = true;
     touchInput.current = false;
     event.preventDefault();
@@ -109,7 +145,7 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
   }
 
   function touchStart(event) {
-    if (disabled || promotion) return;
+    if (disabled || promotion || pendingMove) return;
     const square = event.target.closest('[data-square]')?.dataset.square;
     if (!square) return;
     event.preventDefault();
@@ -193,6 +229,7 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
           );
         })}
       </div>
+      {caption}
       {dragPreview && <img className="chess-board__drag-preview" src={dragPreview.url} alt="" style={{ left: dragPreview.x, top: dragPreview.y }} />}
       {promotion && <div className="chess-board__promotion" role="group" aria-label={t.promote}>
         <p>{t.promote}</p>

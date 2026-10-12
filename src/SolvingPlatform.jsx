@@ -26,6 +26,8 @@ function SolvingPlatform({ language = 'en' }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [pendingMove, setPendingMove] = useState(null);
+  const [keyDraft, setKeyDraft] = useState('');
   const [now, setNow] = useState(Date.now);
   const [clockOffset, setClockOffset] = useState(0);
   const [showAllTimeStats, setShowAllTimeStats] = useState(false);
@@ -34,6 +36,7 @@ function SolvingPlatform({ language = 'en' }) {
   const submission = useRef(false);
   const selection = useRef(0);
   const testHeadingRef = useRef(null);
+  const boardControls = useRef(null);
   const nextPuzzleScroll = useRef(false);
   const count = series?.results.length ?? 0;
   const ordinal = count;
@@ -132,7 +135,7 @@ function SolvingPlatform({ language = 'en' }) {
     if (!player || busy || !canChangeDate || date === activeDate) return;
     ++selection.current;
     startRequest.current = null;
-    setSeries(null); setFeedback(null); setError(''); setActiveDate(date);
+    setSeries(null); setFeedback(null); setPendingMove(null); setKeyDraft(''); setError(''); setActiveDate(date);
   }
 
   function useName(event) {
@@ -141,7 +144,7 @@ function SolvingPlatform({ language = 'en' }) {
     if (name.length < 2 || name.length > 40) return;
     ++selection.current;
     startRequest.current = null;
-    setSeries(null); setFeedback(null); setError('');
+    setSeries(null); setFeedback(null); setPendingMove(null); setKeyDraft(''); setError('');
     setPlayer(name); setDraftName(name);
     if (name === player && activeDate) {
       const request = selection.current;
@@ -150,7 +153,7 @@ function SolvingPlatform({ language = 'en' }) {
   }
 
   async function submit(move) {
-    if (submission.current || !series || !available || feedback || series.startedAt === null) return;
+    if (submission.current || !series || !available || feedback || series.startedAt === null) return false;
     submission.current = true;
     setBusy(true); setError('');
     const submittedOrdinal = count;
@@ -159,11 +162,31 @@ function SolvingPlatform({ language = 'en' }) {
       const data = await submitSolvingAnswer({ date: activeDate, name: player, ordinal: submittedOrdinal, move,
         elapsedMs: Math.max(0, Date.now() - clockOffset - series.startedAt) });
       const result = data.results[submittedOrdinal];
+      setPendingMove(null);
+      boardControls.current?.complete();
       setFeedback(data.finished ? null : { ...result, puzzle: currentPuzzle });
       setSeries(data); setClockOffset(Date.now() - data.serverNow);
       getSolvingCatalog(player).then(setCatalog).catch(() => {});
-    } catch (problem) { showError(problem); }
+      return true;
+    } catch (problem) { showError(problem); return false; }
     finally { submission.current = false; setBusy(false); }
+  }
+
+  function submitKey(event) {
+    event.preventDefault();
+    if (busy || feedback || series?.startedAt === null) return;
+    if (pendingMove) {
+      void submit(pendingMove.lan);
+      return;
+    }
+    const move = boardControls.current?.submitNotation(keyDraft);
+    if (move) void submit(move);
+  }
+
+  function clearKey() {
+    boardControls.current?.clear();
+    setPendingMove(null);
+    setKeyDraft('');
   }
 
   async function startFirstProblem() {
@@ -185,6 +208,8 @@ function SolvingPlatform({ language = 'en' }) {
     if (!feedback || series?.finished) return;
     startRequest.current = null;
     nextPuzzleScroll.current = true;
+    setPendingMove(null);
+    setKeyDraft('');
     setFeedback(null);
   }
 
@@ -251,22 +276,45 @@ function SolvingPlatform({ language = 'en' }) {
                 className="solving-test__board-layout">
                 <div className="solving-board-column">
                   <ChessBoard key={`${activeDate}-${puzzle.id}`} fen={puzzle.fen} language={language}
-                    disabled={busy || Boolean(feedback) || series.startedAt === null} onMove={submit} />
-                  <div className="solving-diagram-caption"><span>#2</span>
-                    <span>({pieceCounts.white} + {pieceCounts.black})</span></div>
+                    disabled={busy || Boolean(feedback) || series.startedAt === null} onMove={submit}
+                    requireConfirmation onPendingMove={(move) => {
+                      setPendingMove(move);
+                      setKeyDraft(move?.san ?? '');
+                    }} onRegisterControls={(controls) => { boardControls.current = controls; }}
+                    caption={<div className="solving-diagram-caption"><span>#2</span>
+                      <span>({pieceCounts.white} + {pieceCounts.black})</span></div>} />
                 </div>
-                <div className="solving-test__instructions"><h3>{t.whiteToMove}</h3><p>{t.goal}</p>
-                  {feedback ? <div className={`solving-feedback ${feedback.correct ? 'solving-feedback--correct' : 'solving-feedback--wrong'}`} role="status">
+                <div className="solving-test__instructions">
+                  {feedback ? <div className={`solving-feedback solving-feedback--inline ${feedback.correct ? 'solving-feedback--correct' : 'solving-feedback--wrong'}`} role="status">
                     <strong>{feedback.correct ? t.correct : feedback.move === null ? t.skipped : t.wrong}</strong>
                     <p>{feedback.san ? `${t.yourMove}: ${feedback.san}` : t.skipped}</p>
                     <p>{feedback.seconds} {t.seconds}</p>
                     {series.finished
                       ? <p>{t.resultsSoon}</p>
                       : <button type="button" className="solving-button" onClick={continueToNextProblem}>{t.next}</button>}
-                  </div> : <><p className="solving-test__note">{t.immediate}</p>
-                    <button type="button" className="solving-button solving-button--secondary" disabled={busy || series.startedAt === null}
-                      onClick={() => submit(null)}>{t.skip}</button>
+                  </div> : <>
+                    <form className="solving-key-entry" onSubmit={submitKey}>
+                      <label htmlFor="solving-key">{t.key}</label>
+                      <div className="solving-key-entry__row">
+                        <input id="solving-key" value={keyDraft} disabled={busy || series.startedAt === null}
+                          autoComplete="off" autoCapitalize="off" spellCheck="false"
+                          onChange={(event) => {
+                            const value = event.target.value;
+                            if (pendingMove && value.trim() !== pendingMove.san) {
+                              boardControls.current?.clear();
+                              setPendingMove(null);
+                            }
+                            setKeyDraft(value);
+                          }}
+                          onKeyDown={(event) => { if (event.key === 'Escape') clearKey(); }} />
+                        <button type="submit" className="solving-button" disabled={busy || series.startedAt === null || (!pendingMove && !keyDraft.trim())}>{t.ok}</button>
+                        <button type="button" className="solving-button solving-button--secondary" disabled={busy || (!pendingMove && !keyDraft)} onClick={clearKey}>{t.clearKey}</button>
+                      </div>
+                    </form>
+                    {!pendingMove && <button type="button" className="solving-button solving-button--secondary" disabled={busy || series.startedAt === null}
+                      onClick={() => submit(null)}>{t.skip}</button>}
                   </>}
+                  <div className="solving-test__instructions-copy"><h3>{t.whiteToMove}</h3><p>{t.goal}</p></div>
                 </div>
               </div>}
               {series.finished && !feedback && <div className="solving-complete" role="status"><strong>{points} / 6 {t.points}</strong>
