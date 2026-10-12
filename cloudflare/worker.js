@@ -288,7 +288,8 @@ async function importData(request, env) {
   for (const round of sprintRounds) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(round.date) || !Array.isArray(round.puzzles) || round.puzzles.length !== 3 || !Array.isArray(round.sessions))
       return json({ error: 'Invalid sprint round.' }, 400);
-    if (await env.DB.prepare('SELECT date FROM sprint_days WHERE date=?').bind(round.date).first()) continue;
+    if (await env.DB.prepare('SELECT date FROM sprint_days WHERE date=?').bind(round.date).first()
+      || await env.DB.prepare('SELECT value FROM metadata WHERE key=?').bind(`sprint_cancelled:${round.date}`).first()) continue;
     statements.push(env.DB.prepare('INSERT OR IGNORE INTO sprint_days(date,created_at) VALUES(?,?)').bind(round.date, round.created_at));
     for (const puzzle of round.puzzles) statements.push(env.DB.prepare('INSERT OR IGNORE INTO sprint_puzzles(date,ordinal,puzzle_id,puzzle,position_hash,pieces,alternative_moves) VALUES(?,?,?,?,?,?,?)')
       .bind(round.date, puzzle.ordinal, puzzle.puzzle_id, puzzle.puzzle, puzzle.position_hash, puzzle.pieces, puzzle.alternative_moves));
@@ -574,12 +575,14 @@ async function pickSprintPuzzles(db, date) {
   return puzzles;
 }
 
-async function ensureSprintDay(db, date = localSprintDate()) {
+async function ensureSprintDay(db, date = localSprintDate(), recreate = false) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(date + 'T12:00:00Z')) || new Date(date + 'T12:00:00Z').toISOString().slice(0,10) !== date) throw new Error('Invalid tournament date.');
+  if (!recreate && await db.prepare('SELECT value FROM metadata WHERE key=?').bind(`sprint_cancelled:${date}`).first()) return;
   const existing = await db.prepare('SELECT COUNT(*) AS n FROM sprint_puzzles WHERE date = ?').bind(date).first();
   if (existing.n === SPRINT_PROBLEM_COUNT) return;
   const puzzles = await pickSprintPuzzles(db, date);
-  const statements = [db.prepare('INSERT OR IGNORE INTO sprint_days(date,created_at) VALUES(?,?)').bind(date, Date.now()),
+  const statements = [...(recreate ? [db.prepare('DELETE FROM metadata WHERE key=?').bind(`sprint_cancelled:${date}`)] : []),
+    db.prepare('INSERT OR IGNORE INTO sprint_days(date,created_at) VALUES(?,?)').bind(date, Date.now()),
     ...puzzles.map((puzzle, ordinal) => db.prepare('INSERT OR IGNORE INTO sprint_puzzles(date,ordinal,puzzle_id,puzzle,position_hash,pieces,alternative_moves) VALUES(?,?,?,?,?,?,?)')
       .bind(date, ordinal, puzzle.id, JSON.stringify(puzzle), puzzle.positionHash, puzzle.pieces, puzzle.alternativeMoves))];
   await db.batch(statements);
@@ -625,11 +628,13 @@ function rankSprintRows(rows) {
     && row.averageSeconds === ordered[index - 1].averageSeconds ? ordered[index - 1].rank : index + 1 }));
 }
 
-async function sprintRound(db, date = localSprintDate(), sessionId) {
-  if (date > localSprintDate()) throw new Error('This tournament is not available yet.');
+async function sprintRound(db, date, sessionId) {
   await ensureSprintDay(db);
+  date ??= (await db.prepare('SELECT date FROM sprint_days WHERE date<=? ORDER BY date DESC LIMIT 1').bind(localSprintDate()).first())?.date ?? localSprintDate();
+  if (date > localSprintDate()) throw new Error('This tournament is not available yet.');
   if (date !== localSprintDate() && !await db.prepare('SELECT date FROM sprint_days WHERE date=?').bind(date).first()) throw new Error('Tournament not found.');
   await ensureSprintDay(db, date);
+  if (!await db.prepare('SELECT date FROM sprint_days WHERE date=?').bind(date).first()) throw new Error('Tournament not found.');
   const requested = sessionId && await db.prepare('SELECT submitted_at FROM sprint_sessions WHERE id=? AND date=?').bind(sessionId, date).first();
   const completed = requested && requested.submitted_at !== null;
   const [puzzles, daily, overall, winners, problemStatistics] = await Promise.all([
@@ -693,8 +698,25 @@ async function sprintJudgeApi(request, url, env) {
     if (action === 'generate') {
       const existing = await db.prepare('SELECT date FROM sprint_days WHERE date=?').bind(data.date).first();
       if (existing) return json({ date: data.date, created: false });
-      await ensureSprintDay(db, data.date);
+      await ensureSprintDay(db, data.date, true);
       return json({ date: data.date, created: true });
+    }
+    if (action === 'delete') {
+      if (data.confirmed !== true) throw new Error('Confirm deleting the round and all its results.');
+      const day = await db.prepare('SELECT created_at FROM sprint_days WHERE date=?').bind(data.date).first();
+      if (!day) throw new Error('Tournament not found.');
+      if (day.created_at !== data.revision) throw new Error('Tournament changed. Refresh the judge workspace.');
+      const results = await db.batch([
+        db.prepare("INSERT INTO metadata(key,value) SELECT ?,'true' FROM sprint_days WHERE date=? AND created_at=? ON CONFLICT(key) DO UPDATE SET value=excluded.value")
+          .bind(`sprint_cancelled:${data.date}`, data.date, data.revision),
+        db.prepare('INSERT OR IGNORE INTO sprint_retired_positions(position_hash,puzzle_id,retired_at) SELECT p.position_hash,p.puzzle_id,? FROM sprint_puzzles p JOIN sprint_days d ON d.date=p.date WHERE d.date=? AND d.created_at=?')
+          .bind(Date.now(), data.date, data.revision),
+        db.prepare('DELETE FROM sprint_sessions WHERE date=? AND EXISTS(SELECT 1 FROM sprint_days WHERE date=? AND created_at=?)').bind(data.date, data.date, data.revision),
+        db.prepare('DELETE FROM sprint_puzzles WHERE date=? AND EXISTS(SELECT 1 FROM sprint_days WHERE date=? AND created_at=?)').bind(data.date, data.date, data.revision),
+        db.prepare('DELETE FROM sprint_days WHERE date=? AND created_at=?').bind(data.date, data.revision),
+      ]);
+      if (!results.at(-1).meta?.changes) throw new Error('Tournament changed. Refresh the judge workspace.');
+      return json({ deleted: true, date: data.date });
     }
     if (action === 'delete-session') {
       const result = await db.prepare('DELETE FROM sprint_sessions WHERE id=?').bind(data.id).run();
@@ -771,6 +793,7 @@ async function sprintApi(request, url, env) {
       if (date > localSprintDate()) throw new Error('This tournament is not available yet.');
       if (date !== localSprintDate() && !await db.prepare('SELECT date FROM sprint_days WHERE date=?').bind(date).first()) throw new Error('Tournament not found.');
       await ensureSprintDay(db, date);
+      if (!await db.prepare('SELECT date FROM sprint_days WHERE date=?').bind(date).first()) throw new Error('Tournament not found.');
       const player = await getPlayer(db, data.name);
       await db.prepare('INSERT OR IGNORE INTO sprint_sessions(id,date,player_id,name,started_at) VALUES(?,?,?,?,?)')
         .bind(crypto.randomUUID(), date, player.id, player.name, Date.now()).run();

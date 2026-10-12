@@ -86,6 +86,7 @@ const server = createServer(async (req, res) => {
         else if (action === 'judge/regenerate') result = sprint.regenerate(data);
         else if (action === 'judge/delete-session') result = sprint.deleteSession(data.id);
         else if (action === 'judge/delete-player') result = sprint.deletePlayer(data.playerId);
+        else if (action === 'judge/delete') result = sprint.deleteRound(data);
       }
       if (!result) { res.statusCode = 404; result = { error: 'Not found.' }; }
       res.end(JSON.stringify(result)); return;

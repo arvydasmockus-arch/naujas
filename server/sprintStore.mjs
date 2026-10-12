@@ -70,13 +70,15 @@ export class SprintStore {
     return selectSprintPuzzles(sampleSprintRows(rows, date), date, this.validate, usedPositions);
   }
 
-  ensureDay(date = this.today()) {
+  ensureDay(date = this.today(), recreate = false) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(date + 'T12:00:00Z'))
       || new Date(date + 'T12:00:00Z').toISOString().slice(0, 10) !== date) throw new Error('Invalid tournament date.');
+    if (!recreate && this.db.prepare('SELECT value FROM metadata WHERE key=?').get(`sprint_cancelled:${date}`)) return;
     if (this.db.prepare('SELECT COUNT(*) AS n FROM sprint_puzzles WHERE date=?').get(date).n === PROBLEM_COUNT) return;
     const chosen = this.selectPuzzles(date);
     this.db.exec('BEGIN IMMEDIATE');
     try {
+      if (recreate) this.db.prepare('DELETE FROM metadata WHERE key=?').run(`sprint_cancelled:${date}`);
       if (this.db.prepare('SELECT COUNT(*) AS n FROM sprint_puzzles WHERE date=?').get(date).n !== PROBLEM_COUNT) {
         this.db.prepare('INSERT OR IGNORE INTO sprint_days(date,created_at) VALUES(?,?)').run(date, this.clock());
         const save = this.db.prepare('INSERT OR IGNORE INTO sprint_puzzles(date,ordinal,puzzle_id,puzzle,position_hash,pieces,alternative_moves) VALUES(?,?,?,?,?,?,?)');
@@ -108,8 +110,25 @@ export class SprintStore {
   generate(date) {
     const existing = this.db.prepare('SELECT date FROM sprint_days WHERE date=?').get(date);
     if (existing) return { date, created: false };
-    this.ensureDay(date);
+    this.ensureDay(date, true);
     return { date, created: true };
+  }
+
+  deleteRound({ date, revision, confirmed }) {
+    if (confirmed !== true) throw new Error('Confirm deleting the round and all its results.');
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const day = this.db.prepare('SELECT created_at FROM sprint_days WHERE date=?').get(date);
+      if (!day) throw new Error('Tournament not found.');
+      if (day.created_at !== revision) throw new Error('Tournament changed. Refresh the judge workspace.');
+      this.db.prepare('INSERT OR IGNORE INTO sprint_retired_positions(position_hash,puzzle_id,retired_at) SELECT position_hash,puzzle_id,? FROM sprint_puzzles WHERE date=?').run(this.clock(), date);
+      this.db.prepare('INSERT INTO metadata(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run(`sprint_cancelled:${date}`, 'true');
+      this.db.prepare('DELETE FROM sprint_sessions WHERE date=?').run(date);
+      this.db.prepare('DELETE FROM sprint_puzzles WHERE date=?').run(date);
+      this.db.prepare('DELETE FROM sprint_days WHERE date=?').run(date);
+      this.db.exec('COMMIT');
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+    return { deleted: true, date };
   }
 
   regenerate({ date, revision, resetResults = false }) {
@@ -183,12 +202,14 @@ export class SprintStore {
     return [...winners.values()].slice(0, 30);
   }
 
-  round(date = this.today(), sessionId) {
-    if (date > this.today()) throw new Error('This tournament is not available yet.');
+  round(date, sessionId) {
     this.ensureDay();
+    date ??= this.db.prepare('SELECT date FROM sprint_days WHERE date<=? ORDER BY date DESC LIMIT 1').get(this.today())?.date ?? this.today();
+    if (date > this.today()) throw new Error('This tournament is not available yet.');
     if (date !== this.today() && !this.db.prepare('SELECT date FROM sprint_days WHERE date=?').get(date))
       throw new Error('Tournament not found.');
     this.ensureDay(date);
+    if (!this.db.prepare('SELECT date FROM sprint_days WHERE date=?').get(date)) throw new Error('Tournament not found.');
     const requested = sessionId && this.db.prepare('SELECT submitted_at FROM sprint_sessions WHERE id=? AND date=?').get(sessionId, date);
     const completed = requested && requested.submitted_at !== null;
     return { date, dates: this.db.prepare('SELECT date FROM sprint_days WHERE date<=? ORDER BY date DESC').all(this.today()).map((row) => row.date), durationSeconds: SPRINT_DURATION_MS / 1000, puzzles: publicPuzzles(this.db, date),
@@ -220,6 +241,7 @@ export class SprintStore {
     if (date !== this.today() && !this.db.prepare('SELECT date FROM sprint_days WHERE date=?').get(date))
       throw new Error('Tournament not found.');
     this.ensureDay(date);
+    if (!this.db.prepare('SELECT date FROM sprint_days WHERE date=?').get(date)) throw new Error('Tournament not found.');
     const player = normalizePlayer(name);
     this.db.prepare('INSERT OR IGNORE INTO players(id,name) VALUES(?,?)').run(player.id, player.name);
     this.db.prepare('INSERT OR IGNORE INTO sprint_sessions(id,date,player_id,name,started_at) VALUES(?,?,?,?,?)')

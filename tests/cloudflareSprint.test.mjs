@@ -45,10 +45,40 @@ function setup() {
 test('Cloudflare judge endpoints reject unauthenticated reads and mutations', async () => {
   const { db, request } = setup();
   try {
-    for (const action of ['catalog', 'round', 'generate', 'regenerate', 'delete-player', 'delete-session']) {
+    for (const action of ['catalog', 'round', 'generate', 'regenerate', 'delete-player', 'delete-session', 'delete']) {
       const response = await request('/api/sprint/judge/' + action, ['catalog', 'round'].includes(action) ? undefined : {}, false);
       assert.equal(response.status, 401);
     }
+  } finally { db.close(); }
+});
+
+test('Cloudflare deletes the selected round, preserves other results and never restores it automatically', async () => {
+  const { db, request } = setup();
+  try {
+    const today = localSprintDate();
+    const previous = new Date(Date.parse(today + 'T12:00:00Z') - 86400000).toISOString().slice(0, 10);
+    const raw = { id: 100, stipulation: '#2', algebraic: { white: ['Ke1', 'Pe2'], black: ['Ke8'] }, solution: '1.e2-e4 !' };
+    const puzzle = parseEntry(raw);
+    db.prepare('INSERT INTO players(id,name) VALUES(?,?)').run('p1', 'Player');
+    for (const date of [today, previous]) {
+      db.prepare('INSERT INTO sprint_days(date,created_at) VALUES(?,?)').run(date, 1000);
+      for (let ordinal = 0; ordinal < 3; ordinal++) db.prepare('INSERT INTO sprint_puzzles(date,ordinal,puzzle_id,puzzle,position_hash,pieces,alternative_moves) VALUES(?,?,?,?,?,?,?)')
+        .run(date, ordinal, date + ordinal, JSON.stringify({ ...puzzle, id: date + ordinal }), date + ordinal, 3, 0);
+      db.prepare('INSERT INTO sprint_sessions(id,date,player_id,name,started_at,submitted_at,answers,scores,points,elapsed_seconds) VALUES(?,?,?,?,?,?,?,?,?,?)')
+        .run(date, date, 'p1', 'Player', 1000, 2000, '["","",""]', '[0,0,0]', 0, 1);
+    }
+    assert.equal((await request('/api/sprint/judge/delete', { date: today, revision: 1000 })).status, 400);
+    assert.equal((await request('/api/sprint/judge/delete', { date: today, revision: 999, confirmed: true })).status, 400);
+    assert.equal((await request('/api/sprint/judge/delete', { date: today, revision: 1000, confirmed: true })).status, 200);
+    const calendar = await (await request('/api/sprint/calendar')).json();
+    assert.deepEqual(calendar.dates, [previous]);
+    assert.equal(db.prepare('SELECT count(*) AS n FROM sprint_retired_positions').get().n, 3);
+    assert.equal(db.prepare('SELECT count(*) AS n FROM sprint_sessions WHERE date=?').get(previous).n, 1);
+    assert.equal((await request('/api/sprint/round?date=' + today)).status, 400);
+    assert.equal((await request('/api/sprint/start', { date: today, name: 'Player' })).status, 400);
+    assert.equal((await (await request('/api/sprint/round')).json()).date, previous);
+    await request('/api/admin/import', { sprintRounds: [{ date: today, puzzles: [{}, {}, {}], sessions: [], created_at: 1000 }] });
+    assert.equal(db.prepare('SELECT count(*) AS n FROM sprint_days WHERE date=?').get(today).n, 0);
   } finally { db.close(); }
 });
 

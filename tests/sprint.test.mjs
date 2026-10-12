@@ -46,6 +46,38 @@ function addJudgeCandidates(db) {
   }
 }
 
+test('judge deletes one complete round, keeps other dates and prevents automatic recreation', () => {
+  const { db, store } = setup();
+  try {
+    addJudgeCandidates(db);
+    const previous = '2026-10-11';
+    store.generate(previous);
+    const earlier = store.start('Alice', previous);
+    store.submit(earlier.id, ['', '', '']);
+    const current = store.start('Alice');
+    store.submit(current.id, ['e4', '', '']);
+    const day = store.judgeRound(store.today());
+    assert.throws(() => store.deleteRound({ date: day.date, revision: day.revision }), /Confirm deleting/);
+    assert.throws(() => store.deleteRound({ date: day.date, revision: day.revision - 1, confirmed: true }), /Tournament changed/);
+    assert.equal(store.judgeRound(day.date).sessions.length, 1);
+    store.deleteRound({ date: day.date, revision: day.revision, confirmed: true });
+    assert.deepEqual(store.calendar('Alice').dates, [previous]);
+    assert.deepEqual(store.calendar('Alice').completedDates, [previous]);
+    assert.equal(store.restore('Alice', day.date).session, null);
+    assert.throws(() => store.start('Alice', day.date), /Tournament not found/);
+    assert.throws(() => store.round(day.date), /Tournament not found/);
+    assert.equal(store.round().date, previous);
+    assert.equal(store.judgeRound(previous).sessions[0].id, earlier.id);
+    const reopened = new SprintStore(db, store.clock, () => true);
+    assert.deepEqual(reopened.calendar().dates, [previous]);
+    store.generate(day.date);
+    const replacement = store.judgeRound(day.date);
+    assert.equal(replacement.puzzles.length, 3);
+    assert.equal(replacement.sessions.length, 0);
+    assert.ok(replacement.puzzles.every((puzzle) => !day.puzzles.some((old) => old.id === puzzle.id)));
+  } finally { db.close(); }
+});
+
 test('judge schedules future rounds privately and does not overwrite existing dates', () => {
   const { db, store } = setup();
   try {

@@ -92,6 +92,18 @@ function SprintJudgePanel({ accessKey, language }) {
     perform(async () => { await sprintRequest('judge/delete-session', { id: item.id }, accessKey); await refresh(); });
   }
 
+  function deleteRound() {
+    if (!round || round.date !== selected) return;
+    if (!window.confirm(text(`Ištrinti ${selected} 3×#2 turnyrą? Bus pašalinti visi 3 uždaviniai ir visi šios dienos žaidėjų atsakymai bei rezultatai.`,
+      `Delete the ${selected} 3×#2 round? All 3 problems and every player session and result for this date will be deleted.`))) return;
+    perform(async () => {
+      await sprintRequest('judge/delete', { date: selected, revision: round.revision, confirmed: true }, accessKey);
+      setRound(null);
+      await refreshCatalog();
+      setStatus(text('Turnyras ištrintas.', 'Round deleted.'));
+    });
+  }
+
   function deletePlayer(item) {
     if (!window.confirm(text(`Pašalinti ${item.name} iš „3×#2“? Bus ištrinti visi jo ${item.rounds} šio režimo turnyrų atsakymai ir rezultatai.`, `Remove ${item.name} from 3×#2? All ${item.rounds} of their sessions and results in this mode will be deleted.`))) return;
     perform(async () => { await sprintRequest('judge/delete-player', { playerId: item.id }, accessKey); await refresh(); });
@@ -116,6 +128,7 @@ function SprintJudgePanel({ accessKey, language }) {
       <section className="tournament-panel"><div className="sprint-judge__actions"><h2>3 × #2 · {selected}</h2>
         <button disabled={busy} onClick={() => perform(refresh)}>{text('Atnaujinti', 'Refresh')}</button>
         <button disabled={busy} onClick={regenerate}>{text('Pergeneruoti 3 uždavinius', 'Regenerate 3 problems')}</button>
+        <button className="sprint-judge__delete" disabled={busy} onClick={deleteRound}>{text('Ištrinti turnyrą', 'Delete round')}</button>
       </div></section>
       <div className="sprint-judge__problems">{round.puzzles.map((puzzle, index) => <article key={`${round.revision}-${puzzle.id}`} className="tournament-panel">
         <h3>{index + 1}. #2 · ({puzzle.whiteCount} + {puzzle.blackCount})</h3>

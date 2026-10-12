@@ -74,3 +74,9 @@ Kai siūlai pakeitimus:
 - pateik visą failo kodą;
 - aiškiai parašyk, ar failą reikia sukurti, ar pakeisti;
 - pabaigoje trumpai parašyk, kaip patikrinti rezultatą.
+
+## Publikavimas
+
+- „Atnaujinti viską“ reiškia paskelbti dabartinę kompiuteryje esančią projekto versiją į GitHub, Cloudflare serverį ir pagrindinį puslapį `https://ml-mokykla.pages.dev`.
+- GitHub Pages adresas nėra pagrindinio Cloudflare Pages puslapio pakaitalas.
+- Prieš teigdamas, kad viskas atnaujinta, patikrink GitHub pakeitimus, serverio atsakymus ir pagrindiniame puslapyje pateikiamą naują versiją.
