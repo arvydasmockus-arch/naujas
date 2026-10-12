@@ -1,0 +1,1 @@
+ALTER TABLE puzzles ADD COLUMN verification_version INTEGER NOT NULL DEFAULT 0;

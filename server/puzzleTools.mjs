@@ -24,9 +24,18 @@ export function positionToFen(algebraic) {
   }).join('/') + ' w - - 0 1';
 }
 
+export function hasPuzzleDefect(entry) {
+  const notes = JSON.stringify([entry.keywords ?? [], entry.comments ?? [], entry.solution ?? '',
+    ...(entry.reprints ?? []).map((source) => source.comments ?? [])]).replace(/dual[- ]avoidance/gi, '');
+  return /\b(?:duals?|dualized|cooked|cook|unsound|incorrect|to delete|attention)\b/i.test(notes)
+    || Boolean(entry.twins || entry['non-standard-stipulation'])
+    || Boolean(entry['intended-solutions'] && String(entry['intended-solutions']) !== '1')
+    || /^\s*(?:[ab]\s*[).:]|\([ab]\))\s*/mi.test(entry.solution ?? '');
+}
+
 export function parseEntry(entry) {
   try {
-    if (entry.stipulation !== '#2' || entry.twins || entry['non-standard-stipulation']
+    if (entry.stipulation !== '#2' || hasPuzzleDefect(entry)
       || (entry.options ?? []).some((option) => !['SetPlay', 'Defence 1'].includes(option))
       || (entry.keywords ?? []).some((keyword) => /cooked|incorrect|to delete|attention/i.test(keyword))) return null;
     const fen = positionToFen(entry.algebraic);
@@ -47,7 +56,7 @@ export function trainingDifficulty(puzzle) {
     const chess = new Chess(puzzle.fen);
     const pieces = chess.board().flat().filter(Boolean).length;
     const alternativeMoves = Math.max(0, chess.moves().length - 1);
-    return { pieces, alternativeMoves, hard: pieces > 20 || alternativeMoves >= 15 };
+    return { pieces, alternativeMoves, hard: pieces >= 9 };
   } catch { return { pieces: 0, alternativeMoves: 0, hard: false }; }
 }
 
@@ -77,6 +86,20 @@ export function verifyPuzzle(puzzle) {
     const moves = chess.moves({ verbose: true });
     const key = moves.find((move) => move.lan === puzzle.key);
     if (!key || !forcesMateInTwo(chess, key)) return false;
+    chess.move(key);
+    for (const reply of chess.moves({ verbose: true })) {
+      chess.move(reply);
+      let mates = 0;
+      for (const response of chess.moves({ verbose: true })) {
+        chess.move(response);
+        mates += Number(chess.isCheckmate());
+        chess.undo();
+        if (mates > 1) return false;
+      }
+      chess.undo();
+      if (mates !== 1) return false;
+    }
+    chess.undo();
     for (const move of moves.filter((candidate) => candidate.lan !== key.lan)) {
       chess.move(move);
       const mateInOne = chess.isCheckmate();

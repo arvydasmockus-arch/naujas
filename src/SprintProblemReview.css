@@ -1,0 +1,20 @@
+.sprint-review { margin-top: 14px; padding-top: 14px; border-top: 1px solid #e2e9df; font-size: 12px; }
+.sprint-review h3 { margin: 0 0 5px; color: #354d3c; font-size: 15px; overflow-wrap: anywhere; }
+.sprint-review__source { margin: 0; color: #788575; }
+.sprint-review__source a { color: #087a3b; }
+.sprint-review .sprint-review__key { margin: 10px 0; color: #235e42; font-size: 20px; font-weight: 700; }
+.sprint-review__stats { display: flex; flex-wrap: wrap; gap: 7px 14px; }
+.sprint-review__stats strong { color: #354d3c; font-size: 14px; }
+.sprint-review h4 { margin: 14px 0 6px; color: #656773; font-size: 12px; }
+.sprint-review__table-wrap { max-width: 100%; overflow-x: auto; }
+.sprint-review table { width: 100%; border-collapse: collapse; }
+.sprint-review th, .sprint-review td { padding: 6px 8px; border: 1px solid #dbe4d6; text-align: left; vertical-align: top; }
+.sprint-review th { background: #eff5eb; font-weight: 600; }
+.sprint-review td:first-child, .sprint-review td:last-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sprint-review td:nth-child(3) { min-width: 90px; overflow-wrap: anywhere; }
+.sprint-review__correct { color: #23834d; font-weight: 600; }
+.sprint-review__wrong { color: #c84949; font-weight: 600; }
+.sprint-review__solution { margin-top: 14px; }
+.sprint-review__solution summary { width: fit-content; padding: 9px 15px; border: 1px solid #c8dec0; border-radius: 7px; background: #eef6ec; color: #216e3c; font-size: 13px; font-weight: 650; cursor: pointer; }
+.sprint-review__solution summary:focus-visible { outline: 2px solid #15994c; outline-offset: 3px; }
+.sprint-review__solution pre { max-height: 360px; overflow-y: auto; padding: 12px; border-radius: 7px; background: #f4f7f3; color: #34363e; font: 12px/1.65 ui-monospace, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }

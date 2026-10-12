@@ -6,6 +6,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { GameStore } from './gameStore.mjs';
 import { TournamentStore } from './tournamentStore.mjs';
+import { SprintStore } from './sprintStore.mjs';
 import { tournamentPdf } from './tournamentPdf.mjs';
 import { defaultDataDirectory } from './database.mjs';
 import { resolve } from 'node:path';
@@ -15,6 +16,7 @@ import { AnalyticsStore } from './analyticsStore.mjs';
 const game = new GameStore();
 await game.ensureCalendar();
 const tournaments = new TournamentStore(game.db);
+const sprint = new SprintStore(game.db);
 const judgeKeyPath = resolve(defaultDataDirectory, 'judge-key.txt');
 if (!process.env.JUDGE_KEY && !existsSync(judgeKeyPath)) writeFileSync(judgeKeyPath, randomBytes(18).toString('base64url'), { mode: 0o600 });
 const judgeKey = (process.env.JUDGE_KEY || readFileSync(judgeKeyPath, 'utf8')).trim();
@@ -44,7 +46,8 @@ async function body(req) {
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   if (req.method === 'GET' && url.pathname === '/healthz') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end('{"ok":true}'); return; }
-  if (!url.pathname.startsWith('/api/solving/') && !url.pathname.startsWith('/api/tournaments/') && !url.pathname.startsWith('/api/analytics/')) return website(req, res);
+  if (!url.pathname.startsWith('/api/solving/') && !url.pathname.startsWith('/api/tournaments/')
+    && !url.pathname.startsWith('/api/sprint/') && !url.pathname.startsWith('/api/analytics/')) return website(req, res);
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
   try {
@@ -60,7 +63,33 @@ const server = createServer(async (req, res) => {
       } else { res.statusCode = 404; result = { error: 'Not found.' }; }
       res.end(JSON.stringify(result)); return;
     }
-    if (url.pathname.startsWith('/api/tournaments/')) {
+    if (url.pathname.startsWith('/api/sprint/')) {
+      const action = url.pathname.slice('/api/sprint/'.length);
+      if (action.startsWith('judge/') && !isJudge(req)) {
+        res.statusCode = 401; res.end(JSON.stringify({ error: 'Judge access required.' })); return;
+      }
+      if (req.method === 'GET' && action === 'round') result = sprint.round(url.searchParams.get('date') || undefined, url.searchParams.get('sessionId'));
+      else if (req.method === 'GET' && action === 'calendar') result = sprint.calendar(url.searchParams.get('name') || '');
+      else if (req.method === 'GET' && action === 'session') result = sprint.restore(url.searchParams.get('name'), url.searchParams.get('date'));
+      else if (req.method === 'GET' && action === 'judge/catalog') result = sprint.judgeCatalog();
+      else if (req.method === 'GET' && action === 'judge/round') result = sprint.judgeRound(url.searchParams.get('date'));
+      else if (req.method === 'POST') {
+        const data = await body(req);
+        if (action === 'start') {
+          result = sprint.start(data.name, data.date);
+          recordAnalytics(req, { section: 'sprint', action: 'start' });
+        } else if (action === 'submit') {
+          result = sprint.submit(data.sessionId, data.answers, data.problemSeconds);
+          recordAnalytics(req, { section: 'sprint', action: 'submit' });
+        } else if (action === 'judge/login') result = { authenticated: true };
+        else if (action === 'judge/generate') result = sprint.generate(data.date);
+        else if (action === 'judge/regenerate') result = sprint.regenerate(data);
+        else if (action === 'judge/delete-session') result = sprint.deleteSession(data.id);
+        else if (action === 'judge/delete-player') result = sprint.deletePlayer(data.playerId);
+      }
+      if (!result) { res.statusCode = 404; result = { error: 'Not found.' }; }
+      res.end(JSON.stringify(result)); return;
+    } else if (url.pathname.startsWith('/api/tournaments/')) {
       const action = url.pathname.slice('/api/tournaments/'.length);
       const judge = isJudge(req);
       const privateAction = ['generate', 'settings', 'result', 'delete-result', 'delete', 'replace', 'judge/login'].includes(action);

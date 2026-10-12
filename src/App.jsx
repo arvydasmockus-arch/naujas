@@ -3,13 +3,14 @@ import Navbar from './Navbar';
 import News from './News';
 import SolvingPlatform from './SolvingPlatform';
 import TournamentPlatform from './TournamentPlatform';
+import SprintPlatform from './SprintPlatform';
 import { trackPageView } from './analyticsApi';
 import './App.css';
 
 function App() {
   const [activePage, setActivePage] = useState(() => {
     const page = new URLSearchParams(window.location.search).get('page');
-    return ['solving', 'training', 'tournaments'].includes(page) ? page : 'solving';
+    return ['solving', 'sprint', 'training', 'tournaments'].includes(page) ? page : 'solving';
   });
   const [language, setLanguage] = useState(() => {
     try { return JSON.parse(localStorage.getItem('ml-solving-preferences-v2'))?.language === 'lt' ? 'lt' : 'en'; }
@@ -17,6 +18,13 @@ function App() {
   });
 
   useEffect(() => { trackPageView(activePage); }, [activePage]);
+
+  function handleNavigate(page) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', page);
+    window.history.replaceState(null, '', url);
+    setActivePage(page);
+  }
 
   function handleLanguageChange(nextLanguage) {
     setLanguage(nextLanguage);
@@ -28,9 +36,10 @@ function App() {
 
   return (
     <>
-      <Navbar activePage={activePage} onNavigate={setActivePage} language={language} onLanguageChange={handleLanguageChange} />
+      <Navbar activePage={activePage} onNavigate={handleNavigate} language={language} onLanguageChange={handleLanguageChange} />
       {(activePage === 'home' || activePage === 'news') && <News />}
       {activePage === 'solving' && <SolvingPlatform language={language} />}
+      {activePage === 'sprint' && <SprintPlatform language={language} />}
       {activePage === 'training' && <TournamentPlatform language={language} />}
       {activePage === 'tournaments' && <News url="https://solving.wfcc.ch/wsc/2026-2027/info.html" title={language === 'lt' ? 'Pasaulio sprendimo taurės turnyrai' : 'World Solving Cup tournaments'} />}
     </>

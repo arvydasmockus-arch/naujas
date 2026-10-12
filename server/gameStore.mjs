@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { Worker } from 'node:worker_threads';
 import { Chess } from 'chess.js';
 import { openDatabase, getMetadata } from './database.mjs';
-import { trainingDifficulty } from './puzzleTools.mjs';
+import { trainingDifficulty, hasPuzzleDefect } from './puzzleTools.mjs';
 
 export function utcDay(now = new Date()) { return now.toISOString().slice(0, 10); }
 export function calendarDays(today = utcDay()) {
@@ -25,9 +25,10 @@ function verifyInWorker(puzzle) {
 }
 
 export class GameStore {
-  constructor(path, clock = () => Date.now()) {
+  constructor(path, clock = () => Date.now(), verify = verifyInWorker) {
     this.db = openDatabase(path);
     this.clock = clock;
+    this.verify = verify;
     this.queue = Promise.resolve();
   }
   today() { return utcDay(new Date(this.clock())); }
@@ -49,26 +50,32 @@ export class GameStore {
     const chosen = [];
     const hashes = new Set();
     while (chosen.length < 6) {
-      const rows = this.db.prepare(`SELECT id,puzzle,position_hash,verified FROM puzzles p
+      const rows = this.db.prepare(`SELECT id,raw,puzzle,position_hash,verified,verification_version FROM puzzles p
         WHERE eligible=1 AND verified>=0 AND position_hash IS NOT NULL
-        AND NOT EXISTS(SELECT 1 FROM puzzle_training_difficulty d WHERE d.puzzle_id=p.id AND d.hard=0)
+        AND length(replace(replace(replace(replace(replace(replace(replace(replace(replace(
+          substr(json_extract(puzzle,'$.fen'),1,instr(json_extract(puzzle,'$.fen'),' ')-1),
+          '/',''),'1',''),'2',''),'3',''),'4',''),'5',''),'6',''),'7',''),'8',''))>=9
         AND NOT EXISTS(SELECT 1 FROM daily_puzzles d WHERE d.position_hash=p.position_hash)
-        ORDER BY verified DESC, RANDOM() LIMIT 24`).all();
+        ORDER BY RANDOM() LIMIT 24`).all();
       if (!rows.length) throw new Error('No unused verified puzzles available. Continue the puzzle import.');
       let added = false;
       for (const row of rows) {
         if (hashes.has(row.position_hash)) continue;
         const puzzle = JSON.parse(row.puzzle);
+        if (hasPuzzleDefect(row.raw ? JSON.parse(row.raw) : puzzle)) {
+          this.db.prepare('UPDATE puzzles SET verified=-1,verification_version=1 WHERE id=?').run(row.id);
+          continue;
+        }
         const difficulty = trainingDifficulty(puzzle);
         this.db.prepare(`INSERT INTO puzzle_training_difficulty(puzzle_id,hard,pieces,alternative_moves) VALUES(?,?,?,?)
           ON CONFLICT(puzzle_id) DO UPDATE SET hard=excluded.hard,pieces=excluded.pieces,alternative_moves=excluded.alternative_moves`)
           .run(row.id, Number(difficulty.hard), difficulty.pieces, difficulty.alternativeMoves);
         if (!difficulty.hard) continue;
-        let valid = row.verified === 1;
+        let valid = row.verified === 1 && row.verification_version === 1;
         if (!valid) {
-          try { valid = await verifyInWorker(puzzle); }
+          try { valid = await this.verify(puzzle); }
           catch { valid = false; }
-          this.db.prepare('UPDATE puzzles SET verified=? WHERE id=?').run(valid ? 1 : -1, row.id);
+          this.db.prepare('UPDATE puzzles SET verified=?,verification_version=1 WHERE id=?').run(valid ? 1 : -1, row.id);
         }
         if (!valid) continue;
         chosen.push(row); hashes.add(row.position_hash); added = true;

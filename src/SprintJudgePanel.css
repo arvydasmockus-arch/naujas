@@ -1,0 +1,12 @@
+.sprint-judge__generate { display: flex; align-items: end; flex-wrap: wrap; gap: 14px; }
+.sprint-judge__generate h2, .sprint-judge__generate > p { flex-basis: 100%; margin: 0; }
+.sprint-judge__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.sprint-judge__actions h2 { margin-right: auto; }
+.sprint-judge__problems { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.sprint-judge__problems .chess-board-wrap { max-width: 100%; }
+.sprint-judge pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 250px; overflow-y: auto; font: 12px/1.6 Consolas, monospace; }
+.sprint-judge__table { overflow-x: auto; }
+.sprint-judge table { width: 100%; border-collapse: collapse; }
+.sprint-judge th, .sprint-judge td { padding: 9px; border-bottom: 1px solid #dce5d9; text-align: left; }
+.tournament-page button.sprint-judge__delete { background: #fff3f1; color: #a2322b; border-color: #b8443d; }
+@media (max-width: 900px) { .sprint-judge__problems { grid-template-columns: 1fr; } }

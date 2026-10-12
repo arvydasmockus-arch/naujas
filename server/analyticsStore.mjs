@@ -1,6 +1,6 @@
 import { createHmac, randomUUID } from 'node:crypto';
 
-const sections = new Set(['news', 'solving', 'training', 'tournaments']);
+const sections = new Set(['news', 'solving', 'sprint', 'training', 'tournaments']);
 const actions = new Set(['page_view', 'start', 'answer', 'submit']);
 
 export class AnalyticsStore {

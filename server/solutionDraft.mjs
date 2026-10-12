@@ -11,7 +11,7 @@ function nullTurn(fen) { const fields = fen.split(' '); fields[1] = fields[1] ==
 export function parseSolution(puzzle) {
   const help = puzzle.type === 'h#n';
   const original = (puzzle.solution ?? '').replace(/\{[^}]*\}/gs, '');
-  const pattern = /(?:(\d+)\.(\.\.)?\s*)?([KQRBSNP]?)([a-h][1-8])([-*x])([a-h][1-8])(?:=([QRBSN]))?\s*([+#?!]*)|(?:(\d+)\.(\.\.)?\s*)?([O0]-[O0](?:-[O0])?)\s*([+#?!]*)/g;
+  const pattern = /(?:(\d+)\.(\.\.)?\s*)?([KQRBSNP]?)([a-h][1-8])([-*x])([a-h][1-8])(?:=([QRBSN]))?\s*([+#?!]*(?:\s+[+#?!]+)*)|(?:(\d+)\.(\.\.)?\s*)?([O0]-[O0](?:-[O0])?)\s*([+#?!]*(?:\s+[+#?!]+)*)/g;
   const phases = []; const warnings = new Set();
   let positions = new Map(), phase, previousPly = -1, previousEnd = 0;
   for (const match of original.matchAll(pattern)) {

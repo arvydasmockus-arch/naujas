@@ -231,11 +231,15 @@ function ChessBoard({ fen, disabled, onMove, language = 'en', compact = false, d
       </div>
       {caption}
       {dragPreview && <img className="chess-board__drag-preview" src={dragPreview.url} alt="" style={{ left: dragPreview.x, top: dragPreview.y }} />}
-      {promotion && <div className="chess-board__promotion" role="group" aria-label={t.promote}>
-        <p>{t.promote}</p>
-        {['q', 'r', 'b', 'n'].map((type) => <button key={type} type="button" disabled={disabled}
-          onClick={() => submitMove(promotion.from, promotion.to, type)}>{names[type]}</button>)}
-        <button type="button" onClick={() => setPromotion(null)}>{t.cancel}</button>
+      {promotion && <div className="chess-board__promotion" role="group" aria-label={t.promote}
+        style={{ left: `${(promotion.to.charCodeAt(0) - 97) * 12.5}%`, top: promotion.to[1] === '8' ? '0%' : '50%' }}>
+        {['q', 'r', 'b', 'n'].map((type) => <button key={type} type="button" className="chess-board__promotion-choice"
+          aria-label={names[type]} title={names[type]} disabled={disabled}
+          onClick={() => submitMove(promotion.from, promotion.to, type)}>
+          <img src={pieceImages[`${chess.get(promotion.from)?.color ?? 'w'}${type.toUpperCase()}`]} alt="" />
+        </button>)}
+        <button type="button" className="chess-board__promotion-cancel" aria-label={t.cancel} title={t.cancel}
+          onClick={() => setPromotion(null)}>×</button>
       </div>}
       {!compact && <p className="chess-board__message" role="status">{message || t.boardHint}</p>}
     </div>

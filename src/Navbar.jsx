@@ -7,6 +7,7 @@ function Navbar({ activePage, onNavigate, language = 'lt', onLanguageChange }) {
     { label: english ? 'ML Academy' : 'ML mokykla', page: 'news' },
     { label: 'WSC', page: 'tournaments' },
     { label: english ? 'Solve' : 'Spręsti', page: 'solving' },
+    { label: '3 × #2', page: 'sprint' },
     { label: english ? 'Training & competitions' : 'Treniruotės ir varžybos', page: 'training' },
   ];
 

@@ -7,6 +7,7 @@ import './TournamentPlatform.css';
 import academyLogo from './assets/ml-academy-logo.jpg';
 import ScoredSolution from './ScoredSolution';
 import JudgeAnalytics from './JudgeAnalytics';
+import SprintJudgePanel from './SprintJudgePanel';
 
 const emptyResult = () => ({ name: '', country: 'LTU', category: '', rating: '', title: '', scores: Array(6).fill(''), minutes: 120, notes: '' });
 function stored(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
@@ -18,6 +19,7 @@ function remainingTime(milliseconds) {
 function TournamentPlatform({ language = 'en' }) {
   const t = tournamentTranslations[language];
   const [judge, setJudge] = useState(false);
+  const [judgeMode, setJudgeMode] = useState('tournaments');
   const [accessKey, setAccessKey] = useState('');
   const [catalog, setCatalog] = useState(null);
   const [selected, setSelected] = useState(() => new URLSearchParams(window.location.search).get('set'));
@@ -193,6 +195,13 @@ function TournamentPlatform({ language = 'en' }) {
     </div>
     {error && <p className="tournament-page__error" role="alert">{error}</p>}
     {judge && <JudgeAnalytics language={language} accessKey={accessKey} />}
+    {judge && <label className="tournament-selector">{language === 'lt' ? 'Ką tvarkyti' : 'Manage'}
+      <select value={judgeMode} onChange={(event) => setJudgeMode(event.target.value)}>
+        <option value="tournaments">{language === 'lt' ? 'Treniruotės ir varžybos' : 'Training and competitions'}</option>
+        <option value="sprint">3 × #2 · 20 min</option>
+      </select>
+    </label>}
+    {judge && judgeMode === 'sprint' ? <SprintJudgePanel accessKey={accessKey} language={language} /> : <>
     {judge && <form className="tournament-panel tournament-generate" onSubmit={generate}>
       <label>{t.tournamentTitle}<input value={generateTitle} onChange={(e) => setGenerateTitle(e.target.value)} maxLength={140} placeholder="ML Academy" /></label>
       <label>{t.date}<input type="date" value={generateDate} onChange={(e) => setGenerateDate(e.target.value)} required /></label>
@@ -279,6 +288,7 @@ function TournamentPlatform({ language = 'en' }) {
       </article>)}</div>
       {!catalog?.tournaments.length && <p>{t.noEvents}</p>}
     </section>
+    </>}
   </main>;
 }
 export default TournamentPlatform;

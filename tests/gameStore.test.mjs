@@ -8,7 +8,7 @@ import { GameStore, calendarDays, normalizePlayer } from '../server/gameStore.mj
 
 test('shared series, independent players, wrong-move counts and timing averages', async () => {
   let now = Date.parse('2026-10-09T10:00:00Z');
-  const game = new GameStore(':memory:', () => now);
+  const game = new GameStore(':memory:', () => now, async () => true);
   try {
     const first = await game.series('2026-10-09', 'Alice');
     const second = await game.series('2026-10-09', 'Bob');
@@ -46,7 +46,7 @@ test('shared series, independent players, wrong-move counts and timing averages'
 
 test('reopening preserves time; repeated answers and visits do not duplicate statistics', async () => {
   let now = Date.parse('2026-10-09T12:00:00Z');
-  const game = new GameStore(':memory:', () => now);
+  const game = new GameStore(':memory:', () => now, async () => true);
   try {
     const start = await game.start('2026-10-09', 'Tester', 0, 'visit-one');
     now += 5000;
@@ -65,7 +65,7 @@ test('reopening preserves time; repeated answers and visits do not duplicate sta
 
 test('30-day calendar rotates automatically, pins diagrams and never repeats a position', async () => {
   let now = Date.parse('2026-10-09T23:59:00Z');
-  const game = new GameStore(':memory:', () => now);
+  const game = new GameStore(':memory:', () => now, async () => true);
   try {
     assert.equal(calendarDays(game.today()).length, 30);
     const previous = await game.series('2026-09-10', 'Tester');
@@ -86,12 +86,12 @@ test('30-day calendar rotates automatically, pins diagrams and never repeats a p
 test('SQLite retains results and diagrams across server restarts', async () => {
   const directory = mkdtempSync(join(tmpdir(), 'ml-store-test-'));
   const path = join(directory, 'game.sqlite');
-  let game = new GameStore(path, () => Date.parse('2026-10-09T10:00:00Z'));
+  let game = new GameStore(path, () => Date.parse('2026-10-09T10:00:00Z'), async () => true);
   try {
     await game.start('2026-10-09', 'Tester', 0, 'one');
     const answer = await game.answer('2026-10-09', 'Tester', 0, null, 0);
     game.close();
-    game = new GameStore(path, () => Date.parse('2026-10-09T10:10:00Z'));
+    game = new GameStore(path, () => Date.parse('2026-10-09T10:10:00Z'), async () => true);
     const restored = await game.series('2026-10-09', 'Tester');
     assert.deepEqual(restored.results, answer.results);
     assert.deepEqual(restored.puzzles, answer.puzzles);
@@ -106,7 +106,7 @@ test('trusted names share identity across casing and reject empty or control cha
 
 test('all-time solving leaderboard and clickable player history aggregate daily #2 results', async () => {
   let now = Date.parse('2026-10-09T10:00:00Z');
-  const game = new GameStore(':memory:', () => now);
+  const game = new GameStore(':memory:', () => now, async () => true);
   try {
     await game.series('2026-10-09', 'Alice');
     const firstPuzzles = game.puzzles('2026-10-09');

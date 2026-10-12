@@ -31,7 +31,22 @@ export function openDatabase(path = defaultDatabasePath, seed = true) {
       player_id TEXT NOT NULL REFERENCES players(id), date TEXT NOT NULL REFERENCES daily(date), ordinal INTEGER NOT NULL,
       started_at INTEGER NOT NULL, answered_at INTEGER, seconds INTEGER, move TEXT, san TEXT, correct INTEGER,
       reopens INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(player_id,date,ordinal)
-    );`);
+    );
+    CREATE TABLE IF NOT EXISTS sprint_days (date TEXT PRIMARY KEY, created_at INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS sprint_puzzles (
+      date TEXT NOT NULL REFERENCES sprint_days(date), ordinal INTEGER NOT NULL, puzzle_id TEXT NOT NULL,
+      puzzle TEXT NOT NULL, position_hash TEXT NOT NULL UNIQUE, pieces INTEGER NOT NULL,
+      alternative_moves INTEGER NOT NULL, PRIMARY KEY(date,ordinal)
+    );
+    CREATE TABLE IF NOT EXISTS sprint_sessions (
+      id TEXT PRIMARY KEY, date TEXT NOT NULL REFERENCES sprint_days(date), player_id TEXT NOT NULL REFERENCES players(id),
+      name TEXT NOT NULL, started_at INTEGER NOT NULL, submitted_at INTEGER, answers TEXT, scores TEXT,
+      points INTEGER, elapsed_seconds INTEGER, UNIQUE(date,player_id)
+    );
+    CREATE INDEX IF NOT EXISTS sprint_sessions_date ON sprint_sessions(date,submitted_at);
+    CREATE INDEX IF NOT EXISTS sprint_sessions_player ON sprint_sessions(player_id,submitted_at);`);
+  const puzzleColumns = new Set(db.prepare('PRAGMA table_info(puzzles)').all().map((column) => column.name));
+  if (!puzzleColumns.has('verification_version')) db.exec('ALTER TABLE puzzles ADD COLUMN verification_version INTEGER NOT NULL DEFAULT 0');
   if (seed) {
     const puzzles = JSON.parse(readFileSync(new URL('../src/solvingPuzzles.json', import.meta.url), 'utf8'));
     const insert = db.prepare('INSERT OR IGNORE INTO puzzles(id,puzzle,eligible,verified,position_hash) VALUES(?,?,1,1,?)');
