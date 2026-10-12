@@ -1,0 +1,41 @@
+name: Kasdienis uzdaviniu importas
+
+on:
+  schedule:
+    - cron: '17 0,12 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: automatic-puzzle-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CLOUDFLARE_API_BASE: https://ml-academy-api.arvydasmockus.workers.dev
+      IMPORT_JUDGE_KEY: ${{ secrets.IMPORT_JUDGE_KEY }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Patikrinti dienos limita
+        id: budget
+        run: node scripts/automatic-puzzle-import.mjs --status
+      - name: Atsisiusti uzdaviniu baze
+        if: steps.budget.outputs.ready == 'true'
+        run: gh release download puzzle-import-source-20261013 --repo "$GITHUB_REPOSITORY" --pattern 'manifest.json' --pattern 'puzzles.ndjson.gz' --dir data/automatic-import
+      - name: Importuoti trukstamus uzdavinius
+        if: steps.budget.outputs.ready == 'true'
+        id: sync
+        run: node scripts/automatic-puzzle-import.mjs
+      - name: Isjungti uzbaigta importa
+        if: steps.sync.outputs.complete == 'true'
+        run: gh workflow disable daily-puzzle-import.yml --repo "$GITHUB_REPOSITORY"

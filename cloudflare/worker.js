@@ -236,6 +236,13 @@ async function importData(request, env) {
   if (!isJudge(request, env)) return json({ error: 'Unauthorized.' }, 401);
   if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
   const data = await requestData(request);
+  const importBudgetKey = `automatic_puzzle_import:${utcDay()}`;
+  const importWriteLimit = 95000;
+  if (data.automaticImportStatus) {
+    const saved = await env.DB.prepare('SELECT value FROM metadata WHERE key=?').bind(importBudgetKey).first();
+    const written = Number(saved?.value) || 0;
+    return json({ day: utcDay(), limit: importWriteLimit, written, remaining: Math.max(0, importWriteLimit - written) });
+  }
   if (data.listExisting) {
     const table = data.listExisting === 'puzzles' ? 'puzzles' : data.listExisting === 'tournament_pool' ? 'tournament_pool' : null;
     const limit = Number(data.limit), offset = Number(data.offset ?? 0);
@@ -252,6 +259,8 @@ async function importData(request, env) {
   const sprintCandidates = Array.isArray(data.sprintCandidates) ? data.sprintCandidates : [];
   const verifiedUpdates = Array.isArray(data.verifiedUpdates) ? data.verifiedUpdates : [];
   const sprintRounds = Array.isArray(data.sprintRounds) ? data.sprintRounds : [];
+  if (data.automatic && (tournamentPool.length || sprintCandidates.length || verifiedUpdates.length || sprintRounds.length || data.refreshLibraryStatus))
+    return json({ error: 'Automatic import accepts puzzle rows only.' }, 400);
   if (puzzles.length > 100 || tournamentPool.length > 100 || sprintCandidates.length > 100 || verifiedUpdates.length > 100 || sprintRounds.length > 10
     || (!puzzles.length && !tournamentPool.length && !sprintCandidates.length && !verifiedUpdates.length && !sprintRounds.length && !data.refreshLibraryStatus))
     return json({ error: 'Invalid import batch.' }, 400);
@@ -298,9 +307,23 @@ async function importData(request, env) {
         position_hash=excluded.position_hash,checked_at=excluded.checked_at`)
       .bind(row.id, row.type, row.raw, row.puzzle, row.position_hash, row.checked_at));
   }
+  // Reserve conservatively before inserting. A failed request keeps its reservation,
+  // so retries or interrupted jobs cannot exceed the daily import allowance.
+  const reservedWrites = data.automatic ? puzzles.length * 4 + 4 : 0;
+  if (reservedWrites) {
+    const reservation = await env.DB.prepare(`INSERT INTO metadata(key,value) VALUES(?,CAST(? AS TEXT))
+      ON CONFLICT(key) DO UPDATE SET value=CAST(CAST(metadata.value AS INTEGER)+? AS TEXT)
+      WHERE CAST(metadata.value AS INTEGER)+?<=? RETURNING value`)
+      .bind(importBudgetKey, reservedWrites, reservedWrites, reservedWrites, importWriteLimit).first();
+    if (!reservation) return json({ paused: true, reason: 'Daily import allowance reached.', receivedPuzzles: 0, rowsWritten: 0 });
+  }
   const results = statements.length ? await env.DB.batch(statements) : [];
   const changes = results.reduce((sum, result) => sum + (result.meta?.changes ?? 0), 0);
   const rowsWritten = results.reduce((sum, result) => sum + (result.meta?.rows_written ?? 0), 0);
+  if (reservedWrites && reservedWrites > rowsWritten + 4) {
+    await env.DB.prepare('UPDATE metadata SET value=CAST(CAST(value AS INTEGER)-? AS TEXT) WHERE key=?')
+      .bind(reservedWrites - rowsWritten - 4, importBudgetKey).run();
+  }
   if (data.refreshLibraryStatus) {
     const stats = await env.DB.prepare(`SELECT COUNT(*) AS imported, SUM(eligible = 1) AS eligible,
       SUM(verified = 1) AS verified FROM puzzles WHERE raw IS NOT NULL`).first();

@@ -73,3 +73,36 @@ test('Cloudflare imports checked candidates and schedules future rounds without 
     assert.equal((await request('/api/sprint/round?date=' + date)).status, 400);
   } finally { db.close(); }
 });
+
+test('automatic import accounts for retries, rejects defects in batches and stops at its daily allowance', async () => {
+  const { db, request } = setup();
+  try {
+    const key = 'automatic_puzzle_import:' + new Date().toISOString().slice(0, 10);
+    assert.equal((await request('/api/admin/import', { automaticImportStatus: true }, false)).status, 401);
+    assert.equal((await (await request('/api/admin/import', { automaticImportStatus: true })).json()).remaining, 95000);
+    const row = { id: 'auto-1', raw: '{}', puzzle: null, eligible: 0, verified: 0 };
+    assert.equal((await request('/api/admin/import', { automatic: true, puzzles: [row] })).status, 200);
+    assert.equal(Number(db.prepare('SELECT value FROM metadata WHERE key=?').get(key).value), 5);
+    await request('/api/admin/import', { automatic: true, puzzles: [row] });
+    assert.equal(db.prepare('SELECT count(*) AS n FROM puzzles').get().n, 1);
+    assert.equal(Number(db.prepare('SELECT value FROM metadata WHERE key=?').get(key).value), 9);
+    assert.equal((await request('/api/admin/import', { automatic: true, puzzles: [{ ...row, raw: 123 }] })).status, 400);
+    assert.equal(Number(db.prepare('SELECT value FROM metadata WHERE key=?').get(key).value), 9);
+    db.prepare('UPDATE metadata SET value=? WHERE key=?').run('94996', key);
+    const paused = await (await request('/api/admin/import', { automatic: true, puzzles: [{ ...row, id: 'auto-2' }] })).json();
+    assert.equal(paused.paused, true);
+    assert.equal(db.prepare('SELECT count(*) AS n FROM puzzles').get().n, 1);
+  } finally { db.close(); }
+});
+
+test('failed automatic batches retain a reservation and a new UTC day gets its own allowance', async () => {
+  const { db, request } = setup();
+  try {
+    db.prepare('INSERT INTO metadata(key,value) VALUES(?,?)').run('automatic_puzzle_import:2000-01-01', '95000');
+    assert.equal((await (await request('/api/admin/import', { automaticImportStatus: true })).json()).written, 0);
+    db.exec("CREATE TRIGGER reject_import BEFORE INSERT ON puzzles BEGIN SELECT RAISE(ABORT,'test interruption'); END;");
+    await assert.rejects(request('/api/admin/import', { automatic: true, puzzles: [{ id: 'failed', raw: '{}', puzzle: null }] }));
+    assert.equal((await (await request('/api/admin/import', { automaticImportStatus: true })).json()).written, 8);
+    assert.equal(db.prepare('SELECT count(*) AS n FROM puzzles').get().n, 0);
+  } finally { db.close(); }
+});
