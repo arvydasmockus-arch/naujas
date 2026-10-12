@@ -159,7 +159,7 @@ function SolvingPlatform({ language = 'en' }) {
       const data = await submitSolvingAnswer({ date: activeDate, name: player, ordinal: submittedOrdinal, move,
         elapsedMs: Math.max(0, Date.now() - clockOffset - series.startedAt) });
       const result = data.results[submittedOrdinal];
-      setFeedback({ ...result, puzzle: currentPuzzle });
+      setFeedback(data.finished ? null : { ...result, puzzle: currentPuzzle });
       setSeries(data); setClockOffset(Date.now() - data.serverNow);
       getSolvingCatalog(player).then(setCatalog).catch(() => {});
     } catch (problem) { showError(problem); }
