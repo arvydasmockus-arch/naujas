@@ -39,7 +39,7 @@
 .sprint-answer-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
 .sprint-mark { display: block; margin-top: 8px; color: #a43f37; font-size: 13px; }
 .sprint-mark--correct { color: #087a3b; }
-.sprint-results-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 22px; }
+.sprint-results-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 22px; }
 .sprint-results-grid h2 { margin: 0 0 12px; }
 .sprint-panel--winners { grid-column: 1 / -1; }
 .sprint-table-wrap { overflow-x: auto; border: 1px solid #d8e2d2; border-radius: 8px; }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getSolvingLeaderboard, getSolvingPlayerHistory } from './solvingApi';
+import { getSprintLeaderboard, getSprintPlayerHistory } from './sprintApi';
 import './SolvingHallOfFame.css';
 
 const labels = {
@@ -34,8 +35,17 @@ function dateLabel(value, language) {
     { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-function SolvingHallOfFame({ language = 'en' }) {
-  const t = labels[language];
+function SolvingHallOfFame({ language = 'en', mode = 'solving' }) {
+  const sprint = mode === 'sprint';
+  const problemCount = sprint ? 3 : 6;
+  const titleId = sprint ? 'sprint-hall-title' : 'solving-hall-title';
+  const t = { ...labels[language], ...(sprint ? {
+    title: language === 'lt' ? 'Visų dienų 3×#2 lentelė' : 'All-time 3×#2 leaderboard',
+    subtitle: language === 'lt' ? 'Sukaupti baigtų turnyrų rezultatai. Paspauskite žaidėjo vardą, kad pamatytumėte jo dienų istoriją.'
+      : 'Combined results from completed rounds. Select a player to see their day-by-day record.',
+  } : {}) };
+  const getLeaderboard = sprint ? getSprintLeaderboard : getSolvingLeaderboard;
+  const getHistory = sprint ? getSprintPlayerHistory : getSolvingPlayerHistory;
   const [rows, setRows] = useState([]);
   const [sort, setSort] = useState('success');
   const [selected, setSelected] = useState(null);
@@ -44,20 +54,20 @@ function SolvingHallOfFame({ language = 'en' }) {
   const [historyError, setHistoryError] = useState('');
   useEffect(() => {
     const controller = new AbortController();
-    const load = (signal) => getSolvingLeaderboard(signal).then((data) => { setRows(data.rows); setError(''); })
+    const load = (signal) => getLeaderboard(signal).then((data) => { setRows(data.rows); setError(''); })
       .catch((problem) => { if (problem.name !== 'AbortError') setError(problem.message || t.loadError); });
     load(controller.signal);
     const timer = setInterval(() => load(), 20000);
     return () => { controller.abort(); clearInterval(timer); };
-  }, [t.loadError]);
+  }, [t.loadError, getLeaderboard]);
 
   useEffect(() => {
     if (!selected) return undefined;
     const controller = new AbortController();
-    getSolvingPlayerHistory(selected.name, controller.signal).then(setHistory)
+    getHistory(selected.name, controller.signal).then(setHistory)
       .catch((problem) => { if (problem.name !== 'AbortError') setHistoryError(problem.message || t.noHistory); });
     return () => controller.abort();
-  }, [selected, t.noHistory]);
+  }, [selected, t.noHistory, getHistory]);
 
   const ranked = useMemo(() => {
     const comparators = {
@@ -74,8 +84,8 @@ function SolvingHallOfFame({ language = 'en' }) {
     else { setSelected({ id: row.id, name: row.name }); setHistory(null); setHistoryError(''); }
   }
 
-  return <section className="solving-panel solving-hall" aria-labelledby="solving-hall-title">
-    <div className="solving-hall__heading"><div><h2 id="solving-hall-title">{t.title}</h2><p>{t.subtitle}</p></div>
+  return <section className={`${sprint ? 'sprint-panel' : 'solving-panel'} solving-hall`} aria-labelledby={titleId}>
+    <div className="solving-hall__heading"><div><h2 id={titleId}>{t.title}</h2><p>{t.subtitle}</p></div>
       <label>{t.sort}<select value={sort} onChange={(event) => setSort(event.target.value)}>
         <option value="success">{t.rate}</option><option value="solved">{t.solved}</option>
         <option value="errors">{t.errorsSort}</option><option value="speed">{t.speed}</option>
@@ -101,17 +111,17 @@ function SolvingHallOfFame({ language = 'en' }) {
       {history && <>
         <h3>{t.daily}</h3>
         <div className="solving-hall__scroll solving-hall__history" tabIndex={0} role="region" aria-label={t.daily}>
-          <table><thead><tr><th rowSpan={2}>{t.date}</th>{Array.from({ length: 6 }, (_, index) => <th key={index} colSpan={2}>{index + 1}.</th>)}<th colSpan={3}>{t.total}</th></tr>
-            <tr>{Array.from({ length: 6 }, (_, index) => [<th key={`key-${index}`}>{t.key}</th>, <th key={`sec-${index}`}>{t.seconds}</th>])}<th>{t.points}</th><th>{t.totalTime}</th><th>%</th></tr></thead>
+          <table><thead><tr><th rowSpan={2}>{t.date}</th>{Array.from({ length: problemCount }, (_, index) => <th key={index} colSpan={2}>{index + 1}.</th>)}<th colSpan={3}>{t.total}</th></tr>
+            <tr>{Array.from({ length: problemCount }, (_, index) => [<th key={`key-${index}`}>{t.key}</th>, <th key={`sec-${index}`}>{t.seconds}</th>])}<th>{t.points}</th><th>{t.totalTime}</th><th>%</th></tr></thead>
             <tbody>{history.days.map((day) => <tr key={day.date}><th scope="row">{dateLabel(day.date, language)}</th>
               {day.results.map((result, index) => [
-                <td key={`key-${index}`} className={result ? result.correct ? 'solving-hall__correct' : 'solving-hall__wrong' : ''}
-                  title={result ? result.correct ? t.correct : t.wrong : ''}>{result ? result.correct ? '✓' : '✗' : '·'}</td>,
+                <td key={`key-${index}`} className={result && !result.skipped ? result.correct ? 'solving-hall__correct' : 'solving-hall__wrong' : ''}
+                  title={result ? result.skipped ? language === 'lt' ? 'Neatsakyta' : 'No answer' : result.correct ? t.correct : t.wrong : ''}>{result ? result.correct ? '✓' : result.skipped ? '·' : '✗' : '·'}</td>,
                 <td key={`sec-${index}`}>{result ? `${result.reopened ? '*' : ''}${result.seconds}` : '·'}</td>,
               ])}
-              <td>{day.points}/6</td><td>{duration(day.totalSeconds)}</td>
-              <td>{(day.points * 100 / 6).toFixed(0)}%</td></tr>)}
-              {!history.days.length && <tr><td colSpan="16">{t.noHistory}</td></tr>}</tbody>
+              <td>{day.points}/{problemCount}</td><td>{duration(day.totalSeconds)}</td>
+              <td>{(day.points * 100 / problemCount).toFixed(0)}%</td></tr>)}
+              {!history.days.length && <tr><td colSpan={problemCount * 2 + 4}>{t.noHistory}</td></tr>}</tbody>
           </table>
         </div>
       </>}

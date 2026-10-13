@@ -1,4 +1,5 @@
 .solving-hall { margin: 0 auto 20px; max-width: 1280px; }
+.sprint-page > .solving-hall { margin-top: 20px; }
 .solving-hall__heading, .solving-hall__profile-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
 .solving-hall__heading h2, .solving-hall__profile-heading h3 { margin: 0 0 5px; }
 .solving-hall__heading p, .solving-hall__profile-heading p { margin: 0; color: #71806e; font-size: 12px; }
@@ -11,6 +12,8 @@
 .solving-hall thead th { position: sticky; top: 0; z-index: 1; background: #f1f6ee; color: #405440; }
 .solving-hall__player { padding: 0; border: 0; background: transparent; color: #087a3b; font: inherit; text-decoration: underline; cursor: pointer; }
 .solving-hall__player:hover { color: #045a2a; }
+.sprint-page .solving-hall button.solving-hall__player { min-height: 0; padding: 0; border: 0; border-radius: 0; background: transparent; color: #087a3b; font: inherit; text-decoration: underline; }
+.sprint-page .solving-hall button.solving-hall__player:hover { color: #045a2a; }
 .solving-hall__selected { background: #f0f8ec; }
 .solving-hall__profile { margin-top: 22px; padding-top: 18px; border-top: 1px solid #dce5d9; }
 .solving-hall__profile-heading { align-items: center; }
