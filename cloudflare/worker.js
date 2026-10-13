@@ -763,7 +763,7 @@ async function sprintApi(request, url, env) {
       const query = db.prepare('SELECT player_id AS playerId,name,answers,scores,problem_seconds AS problemSeconds,elapsed_seconds AS elapsedSeconds FROM sprint_sessions WHERE submitted_at IS NOT NULL'
         + (date ? ' AND date=?' : ''));
       const rows = await (date ? query.bind(date) : query).all();
-      return json({ rows: sprintLeaderboard(rows.results ?? []) });
+      return json({ rows: sprintLeaderboard(rows.results ?? [], Boolean(date)) });
     } catch (error) { return json({ error: error.message }, 400); }
   }
   if (request.method === 'GET' && action === 'player') {

@@ -5,6 +5,23 @@ import { sprintStatistics, sprintLeaderboard, sprintPlayerHistory } from '../ser
 
 const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
+test('daily statistics count success out of three and rank points before actual elapsed time', () => {
+  const make = (name, answers, scores, seconds) => ({ playerId: name, name,
+    answers: JSON.stringify(answers), scores: JSON.stringify(scores), elapsedSeconds: seconds });
+  const rows = sprintLeaderboard([
+    make('Alice', ['e4', '', ''], [1, 0, 0], 100),
+    make('Bob', ['e4', 'Nf3', ''], [1, 0, 0], 80),
+    make('Carol', ['e4', 'e4', 'Nf3'], [1, 1, 0], 400),
+    make('David', ['e4', 'Nf3', 'Nf3'], [1, 0, 0], 80),
+    make('Eve', ['', '', ''], [0, 0, 0], 5),
+  ], true);
+  assert.deepEqual(rows.map(row => row.name), ['Carol', 'Bob', 'David', 'Alice', 'Eve']);
+  assert.equal(rows[0].success, 66.67);
+  assert.equal(rows.find(row => row.name === 'Alice').success, 33.33);
+  assert.equal(rows.find(row => row.name === 'Bob').success, 33.33);
+  assert.equal(rows.find(row => row.name === 'Eve').success, 0);
+});
+
 test('a 4:51 sprint stays 4:51 even when its cumulative answer timestamps add up to 10:45', () => {
   const session = { playerId: 'pavlov', name: 'Pavlov Danila', date: '2026-10-13',
     elapsedSeconds: 291, problemSeconds: '[131,228,286]', answers: '["Bh3","Rg4","Bh8"]', scores: '[1,1,1]' };

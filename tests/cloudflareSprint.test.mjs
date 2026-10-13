@@ -82,6 +82,7 @@ test('public Cloudflare sprint statistics expose completed results and three-pro
     const day = await (await request('/api/sprint/leaderboard?date=2026-10-11', undefined, false)).json();
     assert.equal(day.rows.length, 2);
     assert.equal(day.rows[0].name, 'Alice');
+    assert.equal(day.rows[0].success, 33.33);
     assert.equal(day.rows[1].name, 'Bob');
     assert.equal(day.rows[1].problems, 1);
     assert.equal(day.rows[1].totalSeconds, 30);

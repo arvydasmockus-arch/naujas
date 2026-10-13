@@ -17,7 +17,7 @@ function answeredResults(session) {
   } : null);
 }
 
-export function sprintLeaderboard(rows) {
+export function sprintLeaderboard(rows, daily = false) {
   const players = new Map();
   for (const session of rows) {
     const row = players.get(session.playerId) ?? { id: session.playerId, name: session.name,
@@ -33,8 +33,11 @@ export function sprintLeaderboard(rows) {
   }
   return [...players.values()].map((row) => ({ ...row,
     averageSeconds: row.problems ? Number((row.totalSeconds / row.problems).toFixed(2)) : 0,
-    success: row.problems ? Number((100 * row.correct / row.problems).toFixed(2)) : 0,
-  })).sort((a, b) => b.success - a.success || b.correct - a.correct || a.wrongMoves - b.wrongMoves || a.name.localeCompare(b.name));
+    success: daily ? Number((100 * row.correct / (row.testsPlayed * 3)).toFixed(2))
+      : row.problems ? Number((100 * row.correct / row.problems).toFixed(2)) : 0,
+  })).sort(daily
+    ? (a, b) => b.correct - a.correct || a.totalSeconds - b.totalSeconds || a.name.localeCompare(b.name)
+    : (a, b) => b.success - a.success || b.correct - a.correct || a.wrongMoves - b.wrongMoves || a.name.localeCompare(b.name));
 }
 
 export function sprintPlayerHistory(rows) {

@@ -76,6 +76,7 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving', dates = [] }) {
   }, [selected, t.noHistory, getHistory]);
 
   const ranked = useMemo(() => {
+    if (sprint && statisticsDate) return [...rows].sort((a, b) => b.correct - a.correct || a.totalSeconds - b.totalSeconds || a.name.localeCompare(b.name));
     const comparators = {
       success: (a, b) => b.success - a.success || b.problems - a.problems || b.correct - a.correct,
       solved: (a, b) => b.correct - a.correct || b.success - a.success || a.errors - b.errors,
@@ -83,7 +84,7 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving', dates = [] }) {
       speed: (a, b) => (a.problems === 0) - (b.problems === 0) || a.averageSeconds - b.averageSeconds || b.problems - a.problems || b.success - a.success,
     };
     return [...rows].sort(comparators[sort]);
-  }, [rows, sort]);
+  }, [rows, sort, sprint, statisticsDate]);
 
   function togglePlayer(row) {
     if (selected?.id === row.id) setSelected(null);
@@ -98,10 +99,10 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving', dates = [] }) {
 
   return <section className={`${sprint ? 'sprint-panel' : 'solving-panel'} solving-hall`} aria-labelledby={titleId}>
     <div className="solving-hall__heading"><div><h2 id={titleId}>{t.title}</h2><p>{t.subtitle}</p></div>
-      <label>{t.sort}<select value={sort} onChange={(event) => setSort(event.target.value)}>
+      {sprint && statisticsDate ? <p>{language === 'lt' ? 'Taškai ↓ · Laikas ↑' : 'Points ↓ · Time ↑'}</p> : <label>{t.sort}<select value={sort} onChange={(event) => setSort(event.target.value)}>
         <option value="success">{t.rate}</option><option value="solved">{t.solved}</option>
         <option value="errors">{t.errorsSort}</option><option value="speed">{t.speed}</option>
-      </select></label>
+      </select></label>}
     </div>
     {sprint && <div className="solving-hall__date-filter">
       <SprintCalendar dates={dates} selectedDate={statisticsDate} language={language} allowAnyDate
@@ -118,7 +119,7 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving', dates = [] }) {
         <th title={sprint ? language === 'lt' ? 'Tikro turnyrų laikrodžio laiko suma.' : 'Sum of actual tournament clock time.' : undefined}>{t.totalTime}</th><th>{t.success}</th></tr></thead>
         <tbody>{ranked.map((row, index) => <tr key={row.id} className={selected?.id === row.id ? 'solving-hall__selected' : ''}>
           <td>{index + 1}.</td><th scope="row"><button type="button" className="solving-hall__player" onClick={() => togglePlayer(row)} aria-expanded={selected?.id === row.id}>{row.name}</button></th>
-          <td>{number(row.testsPlayed, language)}</td><td>{number(row.problems, language)}</td><td>{number(row.correct, language)}</td><td>{number(row.wrongMoves, language)}</td>
+          <td>{number(row.testsPlayed, language)}</td><td>{number(row.problems, language)}</td><td>{sprint && statisticsDate ? `${row.correct}/3` : number(row.correct, language)}</td><td>{number(row.wrongMoves, language)}</td>
           <td>{Number(row.averageSeconds || 0).toFixed(2)}</td><td>{duration(row.totalSeconds)}</td><td><strong>{Number(row.success || 0).toFixed(2)}%</strong></td>
         </tr>)}
         {!ranked.length && <tr><td colSpan="9">{loading ? language === 'lt' ? 'Įkeliama…' : 'Loading…'

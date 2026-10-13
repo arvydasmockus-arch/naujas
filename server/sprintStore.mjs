@@ -198,7 +198,7 @@ export class SprintStore {
     validateSprintStatisticsDate(date);
     const query = this.db.prepare('SELECT player_id AS playerId,name,answers,scores,problem_seconds AS problemSeconds,elapsed_seconds AS elapsedSeconds FROM sprint_sessions WHERE submitted_at IS NOT NULL'
       + (date ? ' AND date=?' : ''));
-    return sprintLeaderboard(date ? query.all(date) : query.all());
+    return sprintLeaderboard(date ? query.all(date) : query.all(), Boolean(date));
   }
 
   playerHistory(name) {

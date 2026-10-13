@@ -114,7 +114,7 @@ test('sprint statistics count answers and use the shared tournament clock withou
     assert.equal(previousRows[0].problems, 2);
     assert.equal(previousRows[0].correct, 1);
     assert.equal(previousRows[0].totalSeconds, 120);
-    assert.equal(previousRows[0].success, 50);
+    assert.equal(previousRows[0].success, 33.33);
     const todayRows = store.statisticsLeaderboard('2026-10-12');
     assert.equal(todayRows.length, 2);
     assert.equal(todayRows[0].correct, 2);
