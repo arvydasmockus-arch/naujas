@@ -90,6 +90,7 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving', dates = [] }) {
   }
 
   function chooseStatisticsDate(date) {
+    if (date === statisticsDate) return;
     setStatisticsDate(date); setRows([]); setLoading(true); setError('');
     setSelected(null); setHistory(null); setHistoryError('');
   }
