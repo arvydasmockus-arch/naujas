@@ -45,6 +45,7 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving', dates = [] }) {
     title: statisticsDate ? `3×#2 · ${dateLabel(statisticsDate, language)}` : language === 'lt' ? 'Visų dienų 3×#2 lentelė' : 'All-time 3×#2 leaderboard',
     subtitle: language === 'lt' ? 'Sukaupti baigtų turnyrų rezultatai. Paspauskite žaidėjo vardą, kad pamatytumėte jo dienų istoriją.'
       : 'Combined results from completed rounds. Select a player to see their day-by-day record.',
+    seconds: language === 'lt' ? 'Sek. nuo starto' : 'Sec from start',
   } : {}) };
   const getLeaderboard = sprint ? getSprintLeaderboard : getSolvingLeaderboard;
   const getHistory = sprint ? getSprintPlayerHistory : getSolvingPlayerHistory;
@@ -112,7 +113,9 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving', dates = [] }) {
     </div>}
     {error && <p className="solving-hall__error" role="alert">{error}</p>}
     <div className="solving-hall__scroll" tabIndex={0} role="region" aria-label={t.title}>
-      <table><thead><tr><th>{t.place}</th><th>{t.player}</th><th>{t.testsPlayed}</th><th>{t.problems}</th><th>{t.correct}</th><th>{t.wrongMoves}</th><th>{t.average}</th><th>{t.totalTime}</th><th>{t.success}</th></tr></thead>
+      <table><thead><tr><th>{t.place}</th><th>{t.player}</th><th>{t.testsPlayed}</th><th>{t.problems}</th><th>{t.correct}</th><th>{t.wrongMoves}</th>
+        <th title={sprint ? language === 'lt' ? 'Tikras turnyrų laikas padalytas iš atsakytų uždavinių skaičiaus.' : 'Actual tournament time divided by answered problems.' : undefined}>{t.average}</th>
+        <th title={sprint ? language === 'lt' ? 'Tikro turnyrų laikrodžio laiko suma.' : 'Sum of actual tournament clock time.' : undefined}>{t.totalTime}</th><th>{t.success}</th></tr></thead>
         <tbody>{ranked.map((row, index) => <tr key={row.id} className={selected?.id === row.id ? 'solving-hall__selected' : ''}>
           <td>{index + 1}.</td><th scope="row"><button type="button" className="solving-hall__player" onClick={() => togglePlayer(row)} aria-expanded={selected?.id === row.id}>{row.name}</button></th>
           <td>{number(row.testsPlayed, language)}</td><td>{number(row.problems, language)}</td><td>{number(row.correct, language)}</td><td>{number(row.wrongMoves, language)}</td>

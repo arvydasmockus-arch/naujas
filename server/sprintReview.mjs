@@ -26,7 +26,9 @@ export function sprintLeaderboard(rows) {
     row.testsPlayed++; row.problems += results.length;
     row.correct += results.filter((result) => result.correct).length;
     row.wrongMoves += results.filter((result) => !result.correct).length;
-    row.totalSeconds += results.reduce((sum, result) => sum + result.seconds, 0);
+    // All three answers share one clock. Answer timestamps are cumulative,
+    // so adding them would count the same tournament time repeatedly.
+    row.totalSeconds += Math.max(0, Number(session.elapsedSeconds) || 0);
     players.set(session.playerId, row);
   }
   return [...players.values()].map((row) => ({ ...row,
@@ -39,7 +41,7 @@ export function sprintPlayerHistory(rows) {
   return { days: rows.map((session) => {
     const results = answeredResults(session);
     return { date: session.date, problems: results.filter(Boolean).length, points: results.filter((result) => result?.correct).length,
-      totalSeconds: results.reduce((sum, result) => sum + (result?.seconds ?? 0), 0), results,
+      totalSeconds: Math.max(0, Number(session.elapsedSeconds) || 0), results,
     };
   }).sort((a, b) => b.date.localeCompare(a.date)) };
 }

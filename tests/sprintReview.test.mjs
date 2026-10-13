@@ -1,9 +1,24 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { shortSolution, compactSolution } from '../server/solutionNotation.mjs';
-import { sprintStatistics } from '../server/sprintReview.mjs';
+import { sprintStatistics, sprintLeaderboard, sprintPlayerHistory } from '../server/sprintReview.mjs';
 
 const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
+test('a 4:51 sprint stays 4:51 even when its cumulative answer timestamps add up to 10:45', () => {
+  const session = { playerId: 'pavlov', name: 'Pavlov Danila', date: '2026-10-13',
+    elapsedSeconds: 291, problemSeconds: '[131,228,286]', answers: '["Bh3","Rg4","Bh8"]', scores: '[1,1,1]' };
+  const row = sprintLeaderboard([session])[0];
+  assert.equal(row.totalSeconds, 291);
+  assert.equal(row.averageSeconds, 97);
+  assert.equal(row.correct, 3);
+  assert.equal(row.success, 100);
+  const day = sprintPlayerHistory([session]).days[0];
+  assert.equal(day.totalSeconds, 291);
+  assert.deepEqual(day.results.map(result => result.seconds), [131, 228, 286]);
+  const second = { ...session, date: '2026-10-12', elapsedSeconds: 100, problemSeconds: '[10,40,95]' };
+  assert.equal(sprintLeaderboard([session, second])[0].totalSeconds, 391);
+});
 
 test('compact reviews show only the key and tries with their marked refutations', () => {
   const solution = '1...a7-a6\n2.e2-e4\n1.e2-e4! threat: 2.d2-d4\n1...a7-a6\n2.d2-d4\n'

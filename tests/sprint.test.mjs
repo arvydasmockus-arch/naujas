@@ -78,7 +78,7 @@ test('judge deletes one complete round, keeps other dates and prevents automatic
   } finally { db.close(); }
 });
 
-test('all-time sprint statistics match solving counts and use only answered problem times', () => {
+test('sprint statistics count answers and use the shared tournament clock without summing cumulative timestamps', () => {
   const { db, store, advance } = setup();
   try {
     addJudgeCandidates(db);
@@ -91,11 +91,11 @@ test('all-time sprint statistics match solving counts and use only answered prob
     const rows = store.statisticsLeaderboard();
     assert.equal(rows.length, 1);
     assert.deepEqual({ ...rows[0], id: undefined }, { id: undefined, name: 'Alice', testsPlayed: 2,
-      problems: 5, correct: 3, wrongMoves: 2, totalSeconds: 520, averageSeconds: 104, success: 60 });
+      problems: 5, correct: 3, wrongMoves: 2, totalSeconds: 300, averageSeconds: 60, success: 60 });
     const history = store.playerHistory('  ALICE  ');
     assert.deepEqual(history.days.map((day) => day.date), ['2026-10-12', '2026-10-11']);
     assert.equal(history.days[0].points, 2);
-    assert.equal(history.days[0].totalSeconds, 280);
+    assert.equal(history.days[0].totalSeconds, 180);
     assert.deepEqual(history.days[0].results.map((result) => result.seconds), [30, 100, 150]);
     assert.equal(history.days[1].results[2], null);
     assert.deepEqual(store.playerHistory('Bob').days, []);
@@ -104,7 +104,7 @@ test('all-time sprint statistics match solving counts and use only answered prob
     const blank = store.statisticsLeaderboard().find((row) => row.name === 'Bob');
     assert.equal(blank.testsPlayed, 1);
     assert.equal(blank.problems, 0);
-    assert.equal(blank.totalSeconds, 0);
+    assert.equal(blank.totalSeconds, 180);
     assert.equal(blank.averageSeconds, 0);
     assert.equal(blank.success, 0);
     assert.deepEqual(store.playerHistory('Bob').days[0].results, [null, null, null]);
@@ -113,12 +113,12 @@ test('all-time sprint statistics match solving counts and use only answered prob
     assert.equal(previousRows[0].testsPlayed, 1);
     assert.equal(previousRows[0].problems, 2);
     assert.equal(previousRows[0].correct, 1);
-    assert.equal(previousRows[0].totalSeconds, 240);
+    assert.equal(previousRows[0].totalSeconds, 120);
     assert.equal(previousRows[0].success, 50);
     const todayRows = store.statisticsLeaderboard('2026-10-12');
     assert.equal(todayRows.length, 2);
     assert.equal(todayRows[0].correct, 2);
-    assert.equal(todayRows[0].totalSeconds, 280);
+    assert.equal(todayRows[0].totalSeconds, 180);
     assert.equal(todayRows[0].success, 66.67);
     assert.deepEqual(store.statisticsLeaderboard('2026-10-10'), []);
     assert.throws(() => store.statisticsLeaderboard('2026-02-30'), /Invalid statistics date/);
