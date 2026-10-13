@@ -78,6 +78,39 @@ test('judge deletes one complete round, keeps other dates and prevents automatic
   } finally { db.close(); }
 });
 
+test('all-time sprint statistics match solving counts and use only answered problem times', () => {
+  const { db, store, advance } = setup();
+  try {
+    addJudgeCandidates(db);
+    store.generate('2026-10-11');
+    const previous = store.start('Alice', '2026-10-11');
+    advance(120000); store.submit(previous.id, ['e4', 'Nf3', '']);
+    const current = store.start('Alice');
+    const bob = store.start('Bob');
+    advance(180000); store.submit(current.id, ['e4', 'e4', 'Nf3'], [30, 100, 150]);
+    const rows = store.statisticsLeaderboard();
+    assert.equal(rows.length, 1);
+    assert.deepEqual({ ...rows[0], id: undefined }, { id: undefined, name: 'Alice', testsPlayed: 2,
+      problems: 5, correct: 3, wrongMoves: 2, totalSeconds: 520, averageSeconds: 104, success: 60 });
+    const history = store.playerHistory('  ALICE  ');
+    assert.deepEqual(history.days.map((day) => day.date), ['2026-10-12', '2026-10-11']);
+    assert.equal(history.days[0].points, 2);
+    assert.equal(history.days[0].totalSeconds, 280);
+    assert.deepEqual(history.days[0].results.map((result) => result.seconds), [30, 100, 150]);
+    assert.equal(history.days[1].results[2], null);
+    assert.deepEqual(store.playerHistory('Bob').days, []);
+    assert.deepEqual(store.playerHistory('Unknown').days, []);
+    store.submit(bob.id, ['', '', '']);
+    const blank = store.statisticsLeaderboard().find((row) => row.name === 'Bob');
+    assert.equal(blank.testsPlayed, 1);
+    assert.equal(blank.problems, 0);
+    assert.equal(blank.totalSeconds, 0);
+    assert.equal(blank.averageSeconds, 0);
+    assert.equal(blank.success, 0);
+    assert.deepEqual(store.playerHistory('Bob').days[0].results, [null, null, null]);
+  } finally { db.close(); }
+});
+
 test('judge schedules future rounds privately and does not overwrite existing dates', () => {
   const { db, store } = setup();
   try {
