@@ -3,7 +3,6 @@ import { Chess } from 'chess.js';
 import ChessBoard from './ChessBoard';
 import SprintProblemReview from './SprintProblemReview';
 import SprintCalendar from './SprintCalendar';
-import SolvingHallOfFame from './SolvingHallOfFame';
 import { sprintRequest } from './sprintApi';
 import { sprintTranslations } from './sprintTranslations';
 import './SprintPlatform.css';
@@ -270,9 +269,9 @@ function SprintPlatform({ language = 'en' }) {
     </>}
     {round && <div className="sprint-results-grid">
       <section className="sprint-panel"><h2>{t.daily}</h2>{tableRows(round.dailyResults, t, 'daily')}</section>
+      <section className="sprint-panel"><h2>{t.overall}</h2>{tableRows(round.overallResults, t, 'overall')}</section>
       <section className="sprint-panel sprint-panel--winners"><h2>{t.winners}</h2>{tableRows(round.dailyWinners, t, 'winners')}</section>
     </div>}
-    <SolvingHallOfFame language={language} mode="sprint" />
   </main>;
 }
 

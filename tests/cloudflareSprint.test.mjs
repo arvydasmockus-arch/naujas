@@ -7,7 +7,6 @@ import { SprintStore } from '../server/sprintStore.mjs';
 import { parseEntry } from '../server/puzzleTools.mjs';
 import { parseTournamentEntry } from '../server/tournamentTools.mjs';
 import { localSprintDate } from '../server/sprintSelection.mjs';
-import { normalizePlayer } from '../server/gameStore.mjs';
 
 // PDF binary assets are unrelated to these API tests and require Wrangler's loader.
 const url = new URL('../cloudflare/worker.js', import.meta.url);
@@ -50,31 +49,6 @@ test('Cloudflare judge endpoints reject unauthenticated reads and mutations', as
       const response = await request('/api/sprint/judge/' + action, ['catalog', 'round'].includes(action) ? undefined : {}, false);
       assert.equal(response.status, 401);
     }
-  } finally { db.close(); }
-});
-
-test('public Cloudflare sprint statistics expose completed results and three-problem player history', async () => {
-  const { db, request } = setup();
-  try {
-    const player = normalizePlayer('Alice');
-    db.prepare('INSERT INTO players(id,name) VALUES(?,?)').run(player.id, player.name);
-    for (const date of ['2026-10-11', '2026-10-12']) {
-      db.prepare('INSERT INTO sprint_days(date,created_at) VALUES(?,?)').run(date, 1000);
-      db.prepare('INSERT INTO sprint_sessions(id,date,player_id,name,started_at,submitted_at,answers,scores,problem_seconds,points,elapsed_seconds) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
-        .run(date, date, player.id, player.name, 1000, date.endsWith('11') ? 2000 : null,
-          '["e4","Nf3",""]', '[1,0,0]', '[30,50,90]', 1, 90);
-    }
-    const rows = await (await request('/api/sprint/leaderboard', undefined, false)).json();
-    assert.equal(rows.rows[0].testsPlayed, 1);
-    assert.equal(rows.rows[0].problems, 2);
-    assert.equal(rows.rows[0].wrongMoves, 1);
-    assert.equal(rows.rows[0].averageSeconds, 40);
-    assert.equal(rows.rows[0].success, 50);
-    const history = await (await request('/api/sprint/player?name=ALICE', undefined, false)).json();
-    assert.equal(history.days.length, 1);
-    assert.equal(history.days[0].results.length, 3);
-    assert.equal(history.days[0].results[2], null);
-    assert.equal(history.days[0].totalSeconds, 80);
   } finally { db.close(); }
 });
 
