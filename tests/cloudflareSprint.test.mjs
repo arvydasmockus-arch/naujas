@@ -75,6 +75,18 @@ test('public Cloudflare sprint statistics expose completed results and three-pro
     assert.equal(history.days[0].results.length, 3);
     assert.equal(history.days[0].results[2], null);
     assert.equal(history.days[0].totalSeconds, 80);
+    const other = normalizePlayer('Bob');
+    db.prepare('INSERT INTO players(id,name) VALUES(?,?)').run(other.id, other.name);
+    db.prepare('INSERT INTO sprint_sessions(id,date,player_id,name,started_at,submitted_at,answers,scores,problem_seconds,points,elapsed_seconds) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
+      .run('bob-result', '2026-10-11', other.id, other.name, 1000, 2000, '["Nf3","",""]', '[0,0,0]', '[20,30,30]', 0, 30);
+    const day = await (await request('/api/sprint/leaderboard?date=2026-10-11', undefined, false)).json();
+    assert.equal(day.rows.length, 2);
+    assert.equal(day.rows[0].name, 'Alice');
+    assert.equal(day.rows[1].name, 'Bob');
+    assert.equal(day.rows[1].problems, 1);
+    assert.equal(day.rows[1].totalSeconds, 20);
+    assert.deepEqual((await (await request('/api/sprint/leaderboard?date=2026-10-12', undefined, false)).json()).rows, []);
+    assert.equal((await request('/api/sprint/leaderboard?date=2026-02-30', undefined, false)).status, 400);
   } finally { db.close(); }
 });
 

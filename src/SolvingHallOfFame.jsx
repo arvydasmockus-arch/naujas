@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getSolvingLeaderboard, getSolvingPlayerHistory } from './solvingApi';
 import { getSprintLeaderboard, getSprintPlayerHistory } from './sprintApi';
+import SprintCalendar from './SprintCalendar';
 import './SolvingHallOfFame.css';
 
 const labels = {
@@ -35,12 +36,13 @@ function dateLabel(value, language) {
     { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-function SolvingHallOfFame({ language = 'en', mode = 'solving' }) {
+function SolvingHallOfFame({ language = 'en', mode = 'solving', dates = [] }) {
   const sprint = mode === 'sprint';
   const problemCount = sprint ? 3 : 6;
   const titleId = sprint ? 'sprint-hall-title' : 'solving-hall-title';
+  const [statisticsDate, setStatisticsDate] = useState(() => sprint ? new URLSearchParams(window.location.search).get('sprintDate') || '' : '');
   const t = { ...labels[language], ...(sprint ? {
-    title: language === 'lt' ? 'Visų dienų 3×#2 lentelė' : 'All-time 3×#2 leaderboard',
+    title: statisticsDate ? `3×#2 · ${dateLabel(statisticsDate, language)}` : language === 'lt' ? 'Visų dienų 3×#2 lentelė' : 'All-time 3×#2 leaderboard',
     subtitle: language === 'lt' ? 'Sukaupti baigtų turnyrų rezultatai. Paspauskite žaidėjo vardą, kad pamatytumėte jo dienų istoriją.'
       : 'Combined results from completed rounds. Select a player to see their day-by-day record.',
   } : {}) };
@@ -52,14 +54,17 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving' }) {
   const [history, setHistory] = useState(null);
   const [error, setError] = useState('');
   const [historyError, setHistoryError] = useState('');
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     const controller = new AbortController();
-    const load = (signal) => getLeaderboard(signal).then((data) => { setRows(data.rows); setError(''); })
-      .catch((problem) => { if (problem.name !== 'AbortError') setError(problem.message || t.loadError); });
-    load(controller.signal);
+    let current = true;
+    const load = () => getLeaderboard(controller.signal, sprint ? statisticsDate : '').then((data) => {
+      if (current) { setRows(data.rows); setError(''); setLoading(false); }
+    }).catch((problem) => { if (current && problem.name !== 'AbortError') { setRows([]); setError(problem.message || t.loadError); setLoading(false); } });
+    load();
     const timer = setInterval(() => load(), 20000);
-    return () => { controller.abort(); clearInterval(timer); };
-  }, [t.loadError, getLeaderboard]);
+    return () => { current = false; controller.abort(); clearInterval(timer); };
+  }, [t.loadError, getLeaderboard, statisticsDate, sprint]);
 
   useEffect(() => {
     if (!selected) return undefined;
@@ -84,6 +89,11 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving' }) {
     else { setSelected({ id: row.id, name: row.name }); setHistory(null); setHistoryError(''); }
   }
 
+  function chooseStatisticsDate(date) {
+    setStatisticsDate(date); setRows([]); setLoading(true); setError('');
+    setSelected(null); setHistory(null); setHistoryError('');
+  }
+
   return <section className={`${sprint ? 'sprint-panel' : 'solving-panel'} solving-hall`} aria-labelledby={titleId}>
     <div className="solving-hall__heading"><div><h2 id={titleId}>{t.title}</h2><p>{t.subtitle}</p></div>
       <label>{t.sort}<select value={sort} onChange={(event) => setSort(event.target.value)}>
@@ -91,6 +101,14 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving' }) {
         <option value="errors">{t.errorsSort}</option><option value="speed">{t.speed}</option>
       </select></label>
     </div>
+    {sprint && <div className="solving-hall__date-filter">
+      <SprintCalendar dates={dates} selectedDate={statisticsDate} language={language} allowAnyDate
+        label={language === 'lt' ? 'Statistikos data' : 'Statistics date'}
+        selectionLabel={language === 'lt' ? 'Pasirinkti datą' : 'Choose date'} onSelect={chooseStatisticsDate} />
+      <button type="button" disabled={!statisticsDate} onClick={() => chooseStatisticsDate('')}>{language === 'lt' ? 'Visos dienos' : 'All days'}</button>
+      <p>{statisticsDate ? language === 'lt' ? 'Visų šios dienos žaidėjų rezultatai.' : 'Results for all players on this date.'
+        : language === 'lt' ? 'Visų dienų žaidėjų rezultatai.' : 'Player results across all dates.'}</p>
+    </div>}
     {error && <p className="solving-hall__error" role="alert">{error}</p>}
     <div className="solving-hall__scroll" tabIndex={0} role="region" aria-label={t.title}>
       <table><thead><tr><th>{t.place}</th><th>{t.player}</th><th>{t.testsPlayed}</th><th>{t.problems}</th><th>{t.correct}</th><th>{t.wrongMoves}</th><th>{t.average}</th><th>{t.totalTime}</th><th>{t.success}</th></tr></thead>
@@ -99,7 +117,8 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving' }) {
           <td>{number(row.testsPlayed, language)}</td><td>{number(row.problems, language)}</td><td>{number(row.correct, language)}</td><td>{number(row.wrongMoves, language)}</td>
           <td>{Number(row.averageSeconds || 0).toFixed(2)}</td><td>{duration(row.totalSeconds)}</td><td><strong>{Number(row.success || 0).toFixed(2)}%</strong></td>
         </tr>)}
-        {!ranked.length && <tr><td colSpan="9">{t.noPlayers}</td></tr>}</tbody>
+        {!ranked.length && <tr><td colSpan="9">{loading ? language === 'lt' ? 'Įkeliama…' : 'Loading…'
+          : sprint && statisticsDate ? language === 'lt' ? 'Šią dieną pateiktų rezultatų nėra.' : 'No submitted results for this date.' : t.noPlayers}</td></tr>}</tbody>
       </table>
     </div>
 

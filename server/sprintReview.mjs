@@ -4,6 +4,12 @@ function parse(value) {
   try { return value ? JSON.parse(value) : []; } catch { return []; }
 }
 
+export function validateSprintStatisticsDate(date = '') {
+  if (date && (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(date + 'T12:00:00Z'))
+    || new Date(date + 'T12:00:00Z').toISOString().slice(0, 10) !== date)) throw new Error('Invalid statistics date.');
+  return date;
+}
+
 function answeredResults(session) {
   const answers = parse(session.answers), scores = parse(session.scores), seconds = parse(session.problemSeconds);
   return Array.from({ length: 3 }, (_, index) => answers[index]?.trim() ? {

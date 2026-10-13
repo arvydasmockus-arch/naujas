@@ -13,5 +13,5 @@ export async function sprintRequest(action, data, key = '', signal) {
   return result;
 }
 
-export const getSprintLeaderboard = (signal) => sprintRequest('leaderboard', undefined, '', signal);
+export const getSprintLeaderboard = (signal, date = '') => sprintRequest(date ? `leaderboard?${new URLSearchParams({ date })}` : 'leaderboard', undefined, '', signal);
 export const getSprintPlayerHistory = (name, signal) => sprintRequest(`player?${new URLSearchParams({ name })}`, undefined, '', signal);

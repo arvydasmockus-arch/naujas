@@ -70,7 +70,7 @@ const server = createServer(async (req, res) => {
       }
       if (req.method === 'GET' && action === 'round') result = sprint.round(url.searchParams.get('date') || undefined, url.searchParams.get('sessionId'));
       else if (req.method === 'GET' && action === 'calendar') result = sprint.calendar(url.searchParams.get('name') || '');
-      else if (req.method === 'GET' && action === 'leaderboard') result = { rows: sprint.statisticsLeaderboard() };
+      else if (req.method === 'GET' && action === 'leaderboard') result = { rows: sprint.statisticsLeaderboard(url.searchParams.get('date') || '') };
       else if (req.method === 'GET' && action === 'player') result = sprint.playerHistory(url.searchParams.get('name') || '');
       else if (req.method === 'GET' && action === 'session') result = sprint.restore(url.searchParams.get('name'), url.searchParams.get('date'));
       else if (req.method === 'GET' && action === 'judge/catalog') result = sprint.judgeCatalog();

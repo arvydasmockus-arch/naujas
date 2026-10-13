@@ -108,6 +108,20 @@ test('all-time sprint statistics match solving counts and use only answered prob
     assert.equal(blank.averageSeconds, 0);
     assert.equal(blank.success, 0);
     assert.deepEqual(store.playerHistory('Bob').days[0].results, [null, null, null]);
+    const previousRows = store.statisticsLeaderboard('2026-10-11');
+    assert.equal(previousRows.length, 1);
+    assert.equal(previousRows[0].testsPlayed, 1);
+    assert.equal(previousRows[0].problems, 2);
+    assert.equal(previousRows[0].correct, 1);
+    assert.equal(previousRows[0].totalSeconds, 240);
+    assert.equal(previousRows[0].success, 50);
+    const todayRows = store.statisticsLeaderboard('2026-10-12');
+    assert.equal(todayRows.length, 2);
+    assert.equal(todayRows[0].correct, 2);
+    assert.equal(todayRows[0].totalSeconds, 280);
+    assert.equal(todayRows[0].success, 66.67);
+    assert.deepEqual(store.statisticsLeaderboard('2026-10-10'), []);
+    assert.throws(() => store.statisticsLeaderboard('2026-02-30'), /Invalid statistics date/);
   } finally { db.close(); }
 });
 

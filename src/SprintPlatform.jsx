@@ -272,7 +272,7 @@ function SprintPlatform({ language = 'en' }) {
       <section className="sprint-panel"><h2>{t.daily}</h2>{tableRows(round.dailyResults, t, 'daily')}</section>
       <section className="sprint-panel sprint-panel--winners"><h2>{t.winners}</h2>{tableRows(round.dailyWinners, t, 'winners')}</section>
     </div>}
-    <SolvingHallOfFame language={language} mode="sprint" />
+    <SolvingHallOfFame language={language} mode="sprint" dates={round?.dates ?? []} />
   </main>;
 }
 

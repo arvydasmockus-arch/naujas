@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Chess } from 'chess.js';
 import { compactSolution } from './solutionNotation.mjs';
-import { sprintStatistics, sprintLeaderboard, sprintPlayerHistory } from './sprintReview.mjs';
+import { sprintStatistics, sprintLeaderboard, sprintPlayerHistory, validateSprintStatisticsDate } from './sprintReview.mjs';
 import { normalizePlayer } from './gameStore.mjs';
 import { localSprintDate, sampleSprintRows, selectSprintPuzzles, verifySprintPuzzle } from './sprintSelection.mjs';
 export { countWrongKeyTries, localSprintDate, sampleSprintRows, selectSprintPuzzles, sprintDifficulty } from './sprintSelection.mjs';
@@ -194,8 +194,11 @@ export class SprintStore {
       + 'AVG(elapsed_seconds) AS averageSeconds FROM sprint_sessions WHERE submitted_at IS NOT NULL GROUP BY player_id ORDER BY points DESC').all());
   }
 
-  statisticsLeaderboard() {
-    return sprintLeaderboard(this.db.prepare('SELECT player_id AS playerId,name,answers,scores,problem_seconds AS problemSeconds,elapsed_seconds AS elapsedSeconds FROM sprint_sessions WHERE submitted_at IS NOT NULL').all());
+  statisticsLeaderboard(date = '') {
+    validateSprintStatisticsDate(date);
+    const query = this.db.prepare('SELECT player_id AS playerId,name,answers,scores,problem_seconds AS problemSeconds,elapsed_seconds AS elapsedSeconds FROM sprint_sessions WHERE submitted_at IS NOT NULL'
+      + (date ? ' AND date=?' : ''));
+    return sprintLeaderboard(date ? query.all(date) : query.all());
   }
 
   playerHistory(name) {

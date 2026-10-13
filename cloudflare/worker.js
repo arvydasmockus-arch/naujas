@@ -1,7 +1,7 @@
 import { latestSaturday, oldEnough, parseTournamentEntry, rankResults, tournamentTypes } from '../server/tournamentTools.mjs';
 import { solutionDraft } from '../server/solutionDraft.mjs';
 import { compactSolution } from '../server/solutionNotation.mjs';
-import { sprintStatistics, sprintLeaderboard, sprintPlayerHistory } from '../server/sprintReview.mjs';
+import { sprintStatistics, sprintLeaderboard, sprintPlayerHistory, validateSprintStatisticsDate } from '../server/sprintReview.mjs';
 import { Chess } from 'chess.js';
 import { tournamentPdf } from '../server/tournamentPdf.mjs';
 import { pdfAssets } from './pdfAssets.js';
@@ -758,8 +758,13 @@ async function sprintApi(request, url, env) {
   const action = url.pathname.slice('/api/sprint/'.length);
   if (action.startsWith('judge/')) return sprintJudgeApi(request, url, env);
   if (request.method === 'GET' && action === 'leaderboard') {
-    const rows = await db.prepare('SELECT player_id AS playerId,name,answers,scores,problem_seconds AS problemSeconds,elapsed_seconds AS elapsedSeconds FROM sprint_sessions WHERE submitted_at IS NOT NULL').all();
-    return json({ rows: sprintLeaderboard(rows.results ?? []) });
+    try {
+      const date = validateSprintStatisticsDate(url.searchParams.get('date') || '');
+      const query = db.prepare('SELECT player_id AS playerId,name,answers,scores,problem_seconds AS problemSeconds,elapsed_seconds AS elapsedSeconds FROM sprint_sessions WHERE submitted_at IS NOT NULL'
+        + (date ? ' AND date=?' : ''));
+      const rows = await (date ? query.bind(date) : query).all();
+      return json({ rows: sprintLeaderboard(rows.results ?? []) });
+    } catch (error) { return json({ error: error.message }, 400); }
   }
   if (request.method === 'GET' && action === 'player') {
     try {
