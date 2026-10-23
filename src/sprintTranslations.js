@@ -1,6 +1,7 @@
 import { russianLabels } from './russianTranslations.js';
 export const sprintTranslations = {
   en: {
+    missingRound: 'The round for this date is not available yet. Choose an earlier date in the calendar.',
     title: '3 × #2 · 20-minute tournament', subtitle: '#2 training competition simulation.',
 
     name: 'Player name', start: 'Start the 20-minute clock', remaining: 'Time remaining', submit: 'Finish and submit answers',
@@ -11,6 +12,7 @@ export const sprintTranslations = {
     error: 'The tournament could not be loaded.', invalidMove: 'Enter a legal first move, such as Qa5.', switchPlayer: 'Switch player', undoMove: 'Undo move',
   },
   lt: {
+    missingRound: 'Šios dienos rinkinys dar neparuoštas. Kalendoriuje pasirinkite ankstesnę dieną.',
     title: '3 × #2 · 20 minučių turnyras', subtitle: '#2 treniruo\u010di\u0173 var\u017eyb\u0173 simuliacija.',
 
     name: 'Žaidėjo vardas', start: 'Pradėti 20 minučių laiką', remaining: 'Liko laiko', submit: 'Baigti ir pateikti atsakymus',

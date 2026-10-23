@@ -116,12 +116,12 @@ function SprintPlatform({ language = 'en', accountUser = null, accountsEnabled =
       try {
         const data = await sprintRequest(roundAction);
         if (!current) return;
-        setRound(data);
-      } catch (problem) { if (current) setError(problem.message || t.error); }
+        setRound(data); setError('');
+      } catch (problem) { if (current) setError(problem.message === 'Tournament not found.' ? t.missingRound : problem.message || t.error); }
     }
     load();
     return () => { current = false; };
-  }, [t.error, roundAction]);
+  }, [t.error, t.missingRound, roundAction]);
 
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 250); return () => clearInterval(timer); }, []);
 
@@ -208,23 +208,23 @@ function SprintPlatform({ language = 'en', accountUser = null, accountsEnabled =
   return <main className="sprint-page" lang={language}>
     <header className="sprint-header"><div><span>ML Academy</span><h1>{t.title}</h1><p>{t.subtitle}</p></div></header>
     {error && <div className="sprint-error" role="alert">{localizedError(error, language)}</div>}
-    {round && <SprintCalendar dates={round.dates ?? calendar?.dates ?? [round.date]}
+    <SprintCalendar dates={calendar?.dates ?? round?.dates ?? []}
       completedDates={calendar?.name === calendarName ? calendar.completedDates : []}
-      selectedDate={round.date} playerName={calendarName} language={language}
+      selectedDate={selectedDate} playerName={calendarName} language={language}
       disabled={busy || Boolean(session && !submitted)} onSelect={(date) => {
-        if (date === round.date) return;
+        if (date === selectedDate) return;
         setSelectedDate(date); setRound(null); setSession(null); setPlayer('');
         setAnswers(emptyAnswers()); setProblemSeconds([null, null, null]);
         setBoardAnswers(emptyAnswers()); setBoardVersions([0, 0, 0]); setError('');
         autoSubmitted.current = null;
       }}>
-    {!session && <div className="sprint-start-panel">
+    {round && !session && <div className="sprint-start-panel">
       <form onSubmit={start}>{accountsEnabled ? <p>{accountUser ? accountUser.username : interfaceText(language, 'Norėdami spręsti, prisijunkite.', 'Log in to start solving.')}</p> : <label>{t.name}<input autoComplete="off" value={draftName} minLength={2} maxLength={40} required
         onChange={(event) => setDraftName(event.target.value)} /></label>}
         <button type="submit" disabled={busy || draftName.trim().length < 2 || (accountsEnabled && !accountUser)}>{busy ? '…' : t.start}</button></form>
       <p>{t.submitHint}</p>
     </div>}
-    </SprintCalendar>}
+    </SprintCalendar>
     {!round && !error && <section className="sprint-panel">{t.error}</section>}
     {round && session && <>
       <section className="sprint-session-bar" aria-live="polite">
