@@ -17,6 +17,7 @@
 }
 
 .navbar__identity { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.navbar__community { display: flex; align-items: center; gap: 4px; }
 .navbar__brand {
   display: flex;
   align-items: center;
@@ -92,6 +93,15 @@
   .navbar__link { font-size: 18px; }
 }
 
+@media (min-width: 581px) and (max-width: 900px) {
+  .navbar__identity { display: contents; }
+  .navbar__brand { grid-column: 1; grid-row: 1; }
+  .navbar__community { grid-column: 1; grid-row: 2; flex-direction: column; align-items: stretch; justify-self: start; align-self: start; gap: 6px; }
+  .navbar__links { grid-column: 2; grid-row: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; width: 100%; min-width: 0; margin-left: 0; padding-left: 18px; box-sizing: border-box; }
+  .navbar__links .navbar__link:last-child { grid-column: 1 / -1; }
+  .navbar__link { padding: 10px 8px; font-size: 16px; }
+}
+
 @media (min-width: 581px) and (max-width: 760px) {
   .navbar__container { padding-inline: 14px; gap: 10px; }
   .navbar__identity { gap: 8px; }
@@ -109,11 +119,12 @@
   .navbar__brand { grid-column: 1; grid-row: 1; gap: 0; }
   .navbar__brand-name { display: none; }
   .navbar__brand-logo { width: 64px; height: 42px; }
-  .navbar__wsc { grid-column: 1; grid-row: 2; align-self: start; }
+  .navbar__community { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; align-items: stretch; gap: 6px; align-self: start; }
   .navbar__actions { gap: 6px; }
   .navbar__language { min-width: 32px; padding: 8px; font-size: 13px; }
   .navbar__actions .account-controls__button { padding: 8px; font-size: 13px; }
   .navbar__actions .account-controls__username { max-width: 90px; font-size: 13px; }
   .navbar__links { grid-column: 2; grid-row: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; width: 100%; min-width: 0; margin-left: 0; padding-left: 18px; box-sizing: border-box; }
   .navbar__link { padding: 10px 6px; font-size: 16px; }
+  .navbar__links .navbar__link:last-child { grid-column: 1 / -1; }
 }
