@@ -122,6 +122,23 @@ export async function accountApi(request, env, judge = false) {
     if (action === 'config' && request.method === 'GET') return reply({ enabled: accountsEnabled(env), registrationReady: emailReady(env) && Boolean(env.AUTH_SECRET?.length >= 32) });
     if (action.startsWith('judge/')) {
       if (!judge) fail('Reikalinga teisėjo prieiga.', 401);
+      if (action === 'judge/delete' && request.method === 'POST') {
+        const body = await request.text();
+        if (body.length > 4096) fail('Per didelė užklausa.');
+        let data;
+        try { data = JSON.parse(body); } catch { fail('Netinkama užklausa.'); }
+        if (!data || typeof data.id !== 'string' || !data.id || data.id.length > 100 || data.confirmed !== true) fail('Patvirtinkite vartotojo ištrynimą.');
+        const user = await env.DB.prepare('SELECT id,username,email FROM accounts WHERE id=?').bind(data.id).first();
+        if (!user) fail('Vartotojas nerastas.', 404);
+        if (data.email !== user.email || data.username !== user.username) fail('Vartotojo duomenys pasikeitė. Atnaujinkite lentelę.', 409);
+        // Remove account-only data atomically. Game results retain their original player ID.
+        await env.DB.batch([
+          env.DB.prepare('DELETE FROM account_activity WHERE account_id=?').bind(user.id),
+          env.DB.prepare('DELETE FROM account_sessions WHERE account_id=?').bind(user.id),
+          env.DB.prepare('DELETE FROM accounts WHERE id=?').bind(user.id),
+        ]);
+        return reply({ deleted: true });
+      }
       if (request.method !== 'GET') fail('Not found.', 404);
       if (action === 'judge/users') {
         const page = Math.max(0, Math.min(10000, Math.floor(Number(url.searchParams.get('page')) || 0)));

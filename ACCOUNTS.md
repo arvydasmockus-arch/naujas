@@ -32,6 +32,7 @@ Vietinis `npm run dev` automatiškai sukuria lenteles ir leidžia peržiūrėti 
 - Atsijungti ir prisijungti vartotojo vardu arba paštu ir slaptažodžiu. Naujo kodo nereikia.
 - „Matplus“, „3 × #2“ ir „Atviri turnyrai“ automatiškai naudoja paskyros vardą. Svetimo vardo perdavimą ir svetimos sesijos pateikimą atmeta serveris.
 - Teisėjo darbo vietoje tikrinti lentelę „Registruoti vartotojai“, pašto būseną, registracijos ir prisijungimo laikus. Paspaudus vardą matoma istorija. Viešuose rezultatuose paštas nerodomas.
+- Mygtukas „Ištrinti vartotoją“ po patvirtinimo pašalina paskyrą, jos sesijas ir prisijungimų istoriją. Žaidimo rezultatai lieka su ankstesniu žaidėjo ID; nauja registracija jų nepaveldi. Paštą ir vartotojo vardą galima registruoti iš naujo.
 - Perkrovus skirtuką prisijungimas lieka. Sesija galioja iki 7 dienų; naršyklės sesijos saugykla išvaloma atsijungus. Uždarius skirtuką gali reikėti prisijungti iš naujo.
 
 ## Duomenys ir ribos

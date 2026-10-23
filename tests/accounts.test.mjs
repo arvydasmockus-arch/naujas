@@ -154,6 +154,44 @@ test('activity and login timestamps are visible only through judge history and i
   } finally { app.db.close(); }
 });
 
+test('only the judge can delete accounts; confirmation is required and existing results survive', async () => {
+  const app = setup();
+  try {
+    const login = await app.verified();
+    const user = await currentAccount(app.request('/api/accounts/me', undefined, login.token), app.env);
+    await recordAccountActivity(app.env, user, 'sprint', 'start');
+    app.db.prepare('INSERT INTO sprint_days(date,created_at) VALUES(?,?)').run('2026-10-01', 1);
+    app.db.prepare('INSERT INTO sprint_sessions(id,date,player_id,name,started_at,submitted_at,points) VALUES(?,?,?,?,?,?,?)')
+      .run('retained-result', '2026-10-01', user.playerId, user.username, 1, 2, 3);
+    const payload = { id: user.id, username: user.username, email: user.email, confirmed: true };
+    assert.equal((await app.call('judge/delete', payload, login.token)).status, 401);
+    assert.equal((await app.call('judge/delete', { ...payload, confirmed: false }, undefined, true)).status, 400);
+    assert.equal((await app.call('judge/delete', { ...payload, email: 'stale@example.test' }, undefined, true)).status, 409);
+    assert.equal((await app.call('judge/delete', undefined, undefined, true)).status, 404);
+    assert.equal((await app.call('judge/delete', payload, undefined, true)).status, 200);
+    assert.equal(app.db.prepare('SELECT COUNT(*) AS n FROM accounts').get().n, 0);
+    assert.equal(app.db.prepare('SELECT COUNT(*) AS n FROM account_sessions').get().n, 0);
+    assert.equal(app.db.prepare('SELECT COUNT(*) AS n FROM account_activity').get().n, 0);
+    assert.equal(await currentAccount(app.request('/api/accounts/me', undefined, login.token), app.env), null);
+    assert.equal(app.db.prepare('SELECT points FROM sprint_sessions WHERE id=?').get('retained-result').points, 3);
+    const replacement = await app.verified('Test Player', 'correct@example.test');
+    assert.notEqual(replacement.user.playerId, user.playerId, 'A new registration must not inherit old results');
+    assert.equal((await app.call('judge/delete', payload, undefined, true)).status, 404);
+  } finally { app.db.close(); }
+});
+
+test('deleting an unverified registration frees its email and username and invalidates its code', async () => {
+  const app = setup();
+  try {
+    const signup = await app.register();
+    const user = app.db.prepare('SELECT id,username,email FROM accounts').get();
+    const code = app.mail.at(-1).code;
+    assert.equal((await app.call('judge/delete', { ...user, confirmed: true }, undefined, true)).status, 200);
+    assert.equal((await app.call('verify', { challengeId: signup.data.challengeId, code })).status, 400);
+    assert.equal((await app.register()).status, 201);
+  } finally { app.db.close(); }
+});
+
 test('four-character passwords support verified registration and subsequent login', async () => {
   const app = setup();
   try {

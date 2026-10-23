@@ -15,6 +15,23 @@ function JudgeAccounts({ accessKey, language = 'lt' }) {
   const [history, setHistory] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState('');
+  async function deleteUser(user) {
+    const warning = language === 'ru'
+      ? `Удалить пользователя «${user.username}» (${user.email})? Учётная запись и история входов будут удалены, активные сеансы закрыты. Результаты игр сохранятся. Это действие нельзя отменить.`
+      : text(`Ištrinti vartotoją „${user.username}“ (${user.email})? Paskyra ir prisijungimų istorija bus pašalintos, aktyvūs prisijungimai nutraukti. Žaidimo rezultatai liks. Veiksmo atšaukti negalima.`,
+        `Delete user “${user.username}” (${user.email})? The account and login history will be removed and active logins revoked. Game results will remain. This cannot be undone.`);
+    if (busy || !window.confirm(warning)) return;
+    setBusy(true); setError(''); setStatus('');
+    try {
+      await accountRequest('judge/delete', { id: user.id, username: user.username, email: user.email, confirmed: true }, accessKey);
+      if (selected?.id === user.id) { setSelected(null); setHistory(null); }
+      setStatus(text('Vartotojas ištrintas. Galima registruotis iš naujo teisingu paštu.', 'User deleted. You can register again with the correct email.'));
+      if (page > 0 && data?.users.length === 1) { setData(null); setPage(page - 1); }
+      else setData(await accountRequest(`judge/users?page=${page}`, undefined, accessKey));
+    } catch (problem) { setError(problem.message); }
+    finally { setBusy(false); }
+  }
   const load = useCallback(async () => {
     setBusy(true); setError('');
     try { setData(await accountRequest(`judge/users?page=${page}`, undefined, accessKey)); }
@@ -38,9 +55,10 @@ function JudgeAccounts({ accessKey, language = 'lt' }) {
     <div className="judge-accounts__heading"><h2>{text('Registruoti vartotojai', 'Registered users')}</h2><button type="button" disabled={busy} onClick={load}>{text('Atnaujinti', 'Refresh')}</button></div>
     <p>{text('Laikai Lietuvos laiku. Aktyvumas fiksuojamas atliekant veiksmus; naršyklės uždarymo laikas nežinomas.', 'Times are shown in Lithuanian time. Activity is recorded on actions; browser closing time is unknown.')}</p>
     {error && <p role="alert">{localizedError(error, language)}</p>}
-    <div className="judge-accounts__scroll"><table><thead><tr><th>{text('Vartotojo vardas', 'Username')}</th><th>{text('El. paštas', 'Email')}</th><th>{text('Registracija', 'Registration')}</th><th>{text('Paštas', 'Email')}</th><th>{text('Paskutinis prisijungimas', 'Last login')}</th><th>{text('Paskutinis aktyvumas', 'Last activity')}</th></tr></thead>
+    {status && <p role="status">{status}</p>}
+    <div className="judge-accounts__scroll"><table><thead><tr><th>{text('Vartotojo vardas', 'Username')}</th><th>{text('El. paštas', 'Email')}</th><th>{text('Registracija', 'Registration')}</th><th>{text('Paštas', 'Email')}</th><th>{text('Paskutinis prisijungimas', 'Last login')}</th><th>{text('Paskutinis aktyvumas', 'Last activity')}</th><th>{text('Veiksmas', 'Action')}</th></tr></thead>
       <tbody>{data?.users.map((user) => <tr key={user.id}><td><button type="button" onClick={() => { setHistory(null); setSelected(user); }}>{user.username}</button></td><td>{user.email}</td><td>{time(user.created_at)}</td>
-        <td>{user.verified_at ? text('Patvirtintas', 'Verified') : text('Nepatvirtintas', 'Unverified')}</td><td>{time(user.last_login_at)}</td><td>{time(user.last_seen_at)}</td></tr>)}</tbody></table></div>
+        <td>{user.verified_at ? text('Patvirtintas', 'Verified') : text('Nepatvirtintas', 'Unverified')}</td><td>{time(user.last_login_at)}</td><td>{time(user.last_seen_at)}</td><td><button type="button" className="judge-accounts__delete" disabled={busy} onClick={() => deleteUser(user)}>{text('Ištrinti vartotoją', 'Delete user')}</button></td></tr>)}</tbody></table></div>
     {data && !data.users.length && <p>{text('Vartotojų dar nėra.', 'No users yet.')}</p>}
     <div className="judge-accounts__heading"><button type="button" disabled={page === 0 || busy} onClick={() => { setData(null); setPage(page - 1); }}>{text('Ankstesni', 'Previous')}</button><span>{page + 1} {text('puslapis', 'page')}</span>
       <button type="button" disabled={!data?.hasMore || busy} onClick={() => { setData(null); setPage(page + 1); }}>{text('Kiti', 'Next')}</button></div>

@@ -49,6 +49,11 @@ const entries = [
 ];
 
 const russian = Object.fromEntries([...entries,
+  ['Delete user', 'Удалить пользователя'],
+  ['User deleted. You can register again with the correct email.', 'Пользователь удалён. Можно зарегистрироваться заново с правильной почтой.'],
+  ['Patvirtinkite vartotojo ištrynimą.', 'Подтвердите удаление пользователя.'],
+  ['Vartotojas nerastas.', 'Пользователь не найден.'],
+  ['Vartotojo duomenys pasikeitė. Atnaujinkite lentelę.', 'Данные пользователя изменились. Обновите таблицу.'],
   ['Please attach the downloaded answers .txt file containing all six solutions.', 'Прикрепите скачанный файл .txt со всеми шестью решениями.'],
   ['Generating', 'Создание'], ['Created', 'Создано'], ['Existing rounds were preserved.', 'Существующие наборы сохранены.'], ['Round regenerated.', 'Турнир создан заново.'], ['Round deleted.', 'Турнир удалён.'],
   ['Generate 3×#2 rounds', 'Создать турниры 3×#2'], ['First date', 'Первая дата'], ['Number of days', 'Количество дней'], ['Generate', 'Создать'], ['One round per day. Future rounds become available to players on their scheduled date.', 'По одному турниру на день. Будущие турниры откроются в назначенную дату.'], ['Round to manage', 'Управление турниром'], ['No rounds yet', 'Турниров пока нет'], ['Scheduled', 'Запланировано'], ['Regenerate 3 problems', 'Заново создать 3 задачи'], ['Delete round', 'Удалить турнир'], ['Solution and tries', 'Решение и ложные следы'], ['Players for this date', 'Игроки за эту дату'], ['Status', 'Статус'], ['Started', 'Начато'], ['Delete result', 'Удалить результат'], ['No players yet.', 'Игроков пока нет.'], ['All 3×#2 players', 'Все игроки 3×#2'], ['Remove from 3×#2', 'Удалить из 3×#2'],
@@ -65,6 +70,11 @@ export function russianLabels(value) {
 }
 export const languageLocale = (language) => ({ lt: 'lt-LT', en: 'en-GB', ru: 'ru-RU' }[language] || 'en-GB');
 export function localizedError(message, language) {
+  if (language === 'en') return ({
+    'Patvirtinkite vartotojo ištrynimą.': 'Confirm deleting the user.',
+    'Vartotojas nerastas.': 'User not found.',
+    'Vartotojo duomenys pasikeitė. Atnaujinkite lentelę.': 'User details have changed. Refresh the table.',
+  })[message] || message;
   if (language !== 'ru') return message;
   if (/daily row read limit|D1_ERROR/.test(message)) return 'База данных временно недоступна: исчерпан дневной лимит. Попробуйте позже.';
   if (/Failed to fetch|NetworkError|Load failed/.test(message)) return 'Сервер недоступен. Попробуйте позже.';
