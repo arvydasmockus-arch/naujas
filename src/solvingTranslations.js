@@ -1,11 +1,12 @@
 import { russianLabels } from './russianTranslations.js';
 export const solvingTranslations = {
   en: {
+    chooseDateLabel: 'Choose date',
     claimedMoves: 'Submitted moves', claimed: 'Claimed', claims: 'Claims', averageSeconds: 'Avg. sec',
     title: 'Daily solving', subtitle: 'Six composed problems. White to play and mate in two.',
     badge: 'ML Academy · Solving room', player: 'Player name', useName: 'Use name', changePlayer: 'Switch player',
     nameHint: 'Names are trusted. No password required.', language: 'Language', dates: 'Daily tests',
-    dateHint: 'The latest 30 days are open for solving.', today: 'Today', problems: '6 problems', started: 'In progress',
+    dateHint: 'All saved sets are in the calendar. The latest 30 days are open for solving; older sets are available for review.', today: 'Today', problems: '6 problems', started: 'In progress',
     points: 'points', players: 'players', library: 'Problem library', imported: 'imported', playable: 'classical #2 candidates',
     ready: 'Ready to solve?', chooseDate: 'Enter your name and choose a date. Start the timer yourself when you are ready.',
     startToday: 'Open today’s test', startWhenReady: 'The clock has not started. The first diagram will appear when you press start.', startTimer: 'Start timer and show first diagram', firstMove: 'Submit only White’s first move.', oneAttempt: 'One submitted move per problem.',
@@ -32,11 +33,12 @@ export const solvingTranslations = {
     importRunning: 'Importing the full problem library…',
   },
   lt: {
+    chooseDateLabel: 'Pasirinkti datą',
     claimedMoves: 'Pateikti ėjimai', claimed: 'Ėjimas', claims: 'Kiekis', averageSeconds: 'Vid. sek.',
     title: 'Dienos uždaviniai', subtitle: 'Šeši kompoziciniai uždaviniai. Baltieji pradeda ir skelbia matą dviem ėjimais.',
     badge: 'ML mokykla · Sprendimo platforma', player: 'Žaidėjo vardas', useName: 'Naudoti vardą', changePlayer: 'Keisti žaidėją',
     nameHint: 'Žaidžiame pasitikėdami. Slaptažodžio nereikia.', language: 'Kalba', dates: 'Dienos serijos',
-    dateHint: 'Spręsti galima paskutinių 30 dienų serijas.', today: 'Šiandien', problems: '6 uždaviniai', started: 'Pradėta',
+    dateHint: 'Kalendoriuje visi išsaugoti rinkiniai. Spręsti galima paskutinių 30 dienų rinkinius, senesnius – peržiūrėti.', today: 'Šiandien', problems: '6 uždaviniai', started: 'Pradėta',
     points: 'taškai', players: 'žaidėjai', library: 'Uždavinių rinkinys', imported: 'įkelta', playable: 'klasikinių #2 kandidatų',
     ready: 'Pasiruošę spręsti?', chooseDate: 'Įveskite vardą ir pasirinkite dieną. Laiką paleisite patys, kai būsite pasiruošę.',
     startToday: 'Atidaryti šiandienos seriją', startWhenReady: 'Laikas dar neskaičiuojamas. Pirma diagrama pasirodys paspaudus pradžios mygtuką.', startTimer: 'Paleisti laiką ir rodyti pirmą diagramą', firstMove: 'Pateikite tik pirmąjį baltųjų ėjimą.', oneAttempt: 'Vienas pateiktas ėjimas vienam uždaviniui.',

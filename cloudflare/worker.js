@@ -439,13 +439,13 @@ async function solvingApi(request, url, env) {
   if (request.method === 'GET' && url.pathname === '/api/solving/catalog') {
     const name = url.searchParams.get('name');
     const player = name ? await getPlayer(db, name) : null;
-    const dates = calendarDays(today);
-    const placeholders = dates.map(() => '?').join(', ');
+    const savedDays = await db.prepare('SELECT date FROM daily WHERE date<=? ORDER BY date DESC').bind(today).all();
+    const dates = (savedDays.results ?? []).map((row) => row.date);
     const [answerRows, playerRows] = await Promise.all([
       player ? db.prepare(`SELECT date, COUNT(*) AS answered, SUM(correct) AS points FROM attempts
-        WHERE player_id = ? AND answered_at IS NOT NULL AND date IN (${placeholders}) GROUP BY date`).bind(player.id, ...dates).all() : { results: [] },
+        WHERE player_id = ? AND answered_at IS NOT NULL AND date<=? GROUP BY date`).bind(player.id, today).all() : { results: [] },
       db.prepare(`SELECT date, COUNT(DISTINCT player_id) AS players FROM attempts
-        WHERE date IN (${placeholders}) GROUP BY date`).bind(...dates).all(),
+        WHERE date<=? GROUP BY date`).bind(today).all(),
     ]);
     const answersByDate = new Map((answerRows.results ?? []).map((row) => [row.date, row]));
     const playersByDate = new Map((playerRows.results ?? []).map((row) => [row.date, row.players]));

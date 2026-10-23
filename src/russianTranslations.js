@@ -49,6 +49,7 @@ const entries = [
 ];
 
 const russian = Object.fromEntries([...entries,
+  ['All saved sets are in the calendar. The latest 30 days are open for solving; older sets are available for review.', 'В календаре все сохранённые наборы. Последние 30 дней доступны для решения, более ранние — для просмотра.'],
   ['The round for this date is not available yet. Choose an earlier date in the calendar.', 'Набор на эту дату ещё не готов. Выберите предыдущую дату в календаре.'],
   ['Delete user', 'Удалить пользователя'],
   ['User deleted. You can register again with the correct email.', 'Пользователь удалён. Можно зарегистрироваться заново с правильной почтой.'],

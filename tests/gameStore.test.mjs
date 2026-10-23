@@ -74,6 +74,7 @@ test('30-day calendar rotates automatically, pins diagrams and never repeats a p
     now += 120000;
     const next = await game.series('2026-10-10', 'Tester');
     assert.equal(game.catalog('Tester').days[0].date, '2026-10-10');
+    assert.ok(game.catalog('Tester').days.some((day) => day.date === previous.date), 'Saved dates remain in the archive after the solving window closes');
     assert.equal(game.available(previous.date), false);
     await assert.rejects(() => game.answer(previous.date, 'Tester', 0, null), /closed/);
     assert.equal((await game.series(previous.date, 'Tester')).canReview, true);

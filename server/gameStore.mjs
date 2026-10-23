@@ -105,7 +105,8 @@ export class GameStore {
   }
   catalog(name) {
     const player = name ? this.player(name) : null;
-    const days = calendarDays(this.today()).map((date) => {
+    const dates = this.db.prepare('SELECT date FROM daily WHERE date<=? ORDER BY date DESC').all(this.today()).map((row) => row.date);
+    const days = dates.map((date) => {
       const answers = player ? this.db.prepare('SELECT correct FROM attempts WHERE date=? AND player_id=? AND answered_at IS NOT NULL').all(date, player.id) : [];
       return { date, answered: answers.length, points: answers.filter((row) => row.correct).length,
         players: this.db.prepare('SELECT COUNT(DISTINCT player_id) AS n FROM attempts WHERE date=?').get(date).n };

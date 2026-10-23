@@ -4,6 +4,7 @@ import ChessBoard from './ChessBoard';
 import SolvingResults from './SolvingResults';
 import ProblemReview from './ProblemReview';
 import SolvingHallOfFame from './SolvingHallOfFame';
+import SprintCalendar from './SprintCalendar';
 import { solvingTranslations } from './solvingTranslations';
 import { getSolvingCatalog, getSolvingSeries, startSolvingProblem, submitSolvingAnswer } from './solvingApi';
 import './SolvingPlatform.css';
@@ -46,6 +47,7 @@ function SolvingPlatform({ language = 'en', accountUser = null, accountsEnabled 
     : Math.max(0, now - clockOffset - series.startedAt);
   const available = series?.available;
   const days = catalog?.days ?? [];
+  const activeDay = days.find((day) => day.date === activeDate);
   const compactSession = Boolean(series && available && (!series.finished || feedback));
   const canChangeDate = !feedback || Boolean(series?.finished);
   const pieceCounts = puzzle ? {
@@ -127,7 +129,7 @@ function SolvingPlatform({ language = 'en', accountUser = null, accountsEnabled 
   }, [activeDate, player, showError]);
 
   function chooseDate(date) {
-    if (!player || busy || !canChangeDate || date === activeDate) return;
+    if (busy || !canChangeDate || date === activeDate) return;
     ++selection.current;
     startRequest.current = null;
     setSeries(null); setFeedback(null); setPendingMove(null); setKeyDraft(''); setError(''); setActiveDate(date);
@@ -231,30 +233,24 @@ function SolvingPlatform({ language = 'en', accountUser = null, accountsEnabled 
         {player && <strong className="solving-player-bar__active">{player}</strong>}
       </form>}
       {error && <div className="solving-page__warning" role="alert">{localizedError(error, language)}<button type="button" onClick={() => window.location.reload()}>{t.refresh}</button></div>}
-      <div className="solving-page__layout">
-        <aside className="solving-panel solving-dates" aria-label={t.dates}>
-          <h2>{t.dates}</h2><p>{t.dateHint} · UTC</p>
-          <div className="solving-dates__list">
-            {days.map((day) => <button key={day.date} type="button" className={[
-              day.date === activeDate ? 'solving-dates__active' : '',
-              day.answered === 6 ? 'solving-dates__completed' : day.answered > 0 ? 'solving-dates__partial' : '',
-            ].filter(Boolean).join(' ')}
-              aria-pressed={day.date === activeDate} disabled={!player || busy || !canChangeDate} onClick={() => chooseDate(day.date)}>
-              <span>{day.date}{day.date === catalog.today ? ` · ${t.today}` : ''}</span>
-              <small>{day.answered === 6 ? `${day.points}/6 ${t.points}` : day.answered ? `${t.started} · ${day.answered}/6` : t.problems} · {day.players} {t.players}</small>
-            </button>)}
-          </div>
-          {catalog?.library && <div className="solving-library"><strong>{t.library}</strong>
+      <div className="solving-calendar">
+        <SprintCalendar dates={days.map((day) => day.date)} completedDates={days.filter((day) => day.answered === 6).map((day) => day.date)}
+          selectedDate={activeDate} playerName={player} language={language} label={t.dates} selectionLabel={t.chooseDateLabel}
+          disabled={busy || !canChangeDate} onSelect={chooseDate} />
+        <p>{t.dateHint}</p>
+        {activeDay && <p>{activeDay.answered === 6 ? `${activeDay.points}/6 ${t.points}` : activeDay.answered ? `${t.started} · ${activeDay.answered}/6` : t.problems} · {activeDay.players} {t.players}</p>}
+          {catalog?.library && <details className="solving-library"><summary>{t.library}</summary>
             <p>{catalog.library.eligible.toLocaleString(language)} {t.playable}</p>
             <p>{catalog.library.imported.toLocaleString(language)} / {catalog.library.expected.toLocaleString(language)} {t.imported}</p>
             {catalog.library.importStatus.running && <small>{t.importRunning}</small>}
-          </div>}
-        </aside>
+          </details>}
+      </div>
+      <div className="solving-page__layout">
         <div className="solving-page__content">
           {!series && <section className="solving-panel solving-intro">
             <span className="solving-intro__symbol" aria-hidden="true">#2</span>
             <h2>{activeDate && player ? t.loading : t.ready}</h2><p>{accountsEnabled && !accountUser ? (interfaceText(language, 'Norėdami spręsti, prisijunkite.', 'Log in to start solving.')) : player ? t.chooseDate : t.selectName}</p>
-            <button type="button" className="solving-button" disabled={!player || !catalog || busy} onClick={() => chooseDate(catalog.today)}>{t.startToday}</button>
+            <button type="button" className="solving-button" disabled={!player || !catalog || busy || !days.some((day) => day.date === catalog.today)} onClick={() => chooseDate(catalog.today)}>{t.startToday}</button>
             <ul><li>{t.firstMove}</li><li>{t.oneAttempt}</li><li>{t.nextManual}</li><li>{t.timerRule}</li></ul>
           </section>}
           {series && <>

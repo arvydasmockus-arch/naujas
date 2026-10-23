@@ -11,17 +11,17 @@
 .sprint-calendar__popup { position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; box-sizing: border-box; width: 100%; padding: 12px; border: 1px solid #cbd8c8; border-radius: 10px; background: #fff; box-shadow: 0 8px 28px #203d2426; }
 .sprint-calendar__navigation { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
 .sprint-calendar__navigation select { min-width: 0; flex: 1; padding: 8px 4px; border: 0; background: #fff; color: #354d3c; font: inherit; font-size: 12px; }
-.sprint-page .sprint-calendar .sprint-calendar__navigation button { min-height: 32px; padding: 4px 10px; border-color: #cbd8c8; background: #f4f9f1; color: #40513f; font-size: 20px; }
+:is(.sprint-page, .solving-page) .sprint-calendar .sprint-calendar__navigation button { min-height: 32px; padding: 4px 10px; border-color: #cbd8c8; background: #f4f9f1; color: #40513f; font-size: 20px; }
 .sprint-calendar__days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
 .sprint-calendar__weekday { padding: 4px 0; text-align: center; color: #71806d; font-size: 11px; }
-.sprint-page .sprint-calendar button.sprint-calendar__day { position: relative; min-height: 36px; padding: 4px 0; border-color: #cbd8c8; background: #fff; color: #40513f; font-size: 12px; }
-.sprint-page .sprint-calendar button.sprint-calendar__day:disabled { opacity: 1; cursor: default; }
-.sprint-page .sprint-calendar button.sprint-calendar__day--available { border-color: #9bc9a7; background: #e0f2e5; color: #176a36; }
-.sprint-page .sprint-calendar button.sprint-calendar__day--available:hover:enabled { border-color: #55a773; background: #cfe9d7; }
-.sprint-page .sprint-calendar button.sprint-calendar__day--completed { border-color: #176a36; background: #176a36; color: #fff; }
-.sprint-page .sprint-calendar button.sprint-calendar__day--completed:hover:enabled { background: #12552b; }
+:is(.sprint-page, .solving-page) .sprint-calendar button.sprint-calendar__day { position: relative; min-height: 36px; padding: 4px 0; border-color: #cbd8c8; background: #fff; color: #40513f; font-size: 12px; }
+:is(.sprint-page, .solving-page) .sprint-calendar button.sprint-calendar__day:disabled { opacity: 1; cursor: default; }
+:is(.sprint-page, .solving-page) .sprint-calendar button.sprint-calendar__day--available { border-color: #9bc9a7; background: #e0f2e5; color: #176a36; }
+:is(.sprint-page, .solving-page) .sprint-calendar button.sprint-calendar__day--available:hover:enabled { border-color: #55a773; background: #cfe9d7; }
+:is(.sprint-page, .solving-page) .sprint-calendar button.sprint-calendar__day--completed { border-color: #176a36; background: #176a36; color: #fff; }
+:is(.sprint-page, .solving-page) .sprint-calendar button.sprint-calendar__day--completed:hover:enabled { background: #12552b; }
 .sprint-calendar__day span { position: absolute; right: 2px; bottom: 1px; font-size: 9px; }
-.sprint-page .sprint-calendar button.sprint-calendar__day--selected { box-shadow: 0 0 0 2px #087a3b; }
+:is(.sprint-page, .solving-page) .sprint-calendar button.sprint-calendar__day--selected { box-shadow: 0 0 0 2px #087a3b; }
 @media (max-width: 500px) { .sprint-calendar__picker { width: min(100%, 330px); flex-basis: 100%; } }
 
 .sprint-calendar--combined { display: grid; grid-template-columns: minmax(210px, 330px) minmax(0, 1fr); gap: 8px 24px; align-items: center; }

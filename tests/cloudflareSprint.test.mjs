@@ -211,6 +211,19 @@ test('midnight and 08:00 retry follow Vilnius daylight saving and skip other UTC
 });
 
 
+test('Matplus catalog includes every saved date and excludes future or uncreated rounds', async () => {
+  const { db, request } = setup();
+  try {
+    const today = localSprintDate();
+    const old = new Date(Date.parse(today + 'T12:00:00Z') - 100 * 86400000).toISOString().slice(0, 10);
+    const future = new Date(Date.parse(today + 'T12:00:00Z') + 86400000).toISOString().slice(0, 10);
+    for (const date of [old, today, future]) db.prepare('INSERT INTO daily(date,created_at) VALUES(?,?)').run(date, 1);
+    const response = await request('/api/solving/catalog');
+    assert.equal(response.status, 200);
+    assert.deepEqual((await response.json()).days.map((day) => day.date), [today, old]);
+  } finally { db.close(); }
+});
+
 test('pending verification queue is acknowledged without D1 queries', async () => {
   let acknowledged = false;
   await worker.queue({ ackAll() { acknowledged = true; } }, {

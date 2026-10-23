@@ -12,7 +12,11 @@
 .solving-player-bar input { padding: 9px 12px; border-radius: 7px; border: 1px solid #d3dfcf; background: #fff; color: #2d3d31; font: inherit; width: 200px; box-sizing: border-box; }
 .solving-player-bar > span { font-size: 12px; color: #788575; }
 .solving-player-bar__active { color: #087a3b; margin-left: auto; font-size: 13px; }
-.solving-page__layout { display: grid; grid-template-columns: 218px minmax(0, 1fr); gap: 22px; max-width: 1280px; margin: auto; align-items: start; }
+.solving-page__layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; max-width: 1280px; margin: auto; align-items: start; }
+.solving-calendar { max-width: 1280px; margin: 0 auto 22px; }
+.solving-calendar > p { margin: 8px 0; font-size: 12px; }
+.solving-calendar .solving-library { margin-top: 10px; }
+.solving-calendar .solving-library summary { cursor: pointer; }
 .solving-page__content { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 .solving-panel { background: #fff; border: 1px solid #dce5d9; border-radius: 12px; padding: 22px; min-width: 0; box-shadow: 0 2px 6px #214a2706; }
 .solving-button { padding: 10px 15px; border: 1px solid #087a3b; border-radius: 7px; background: #087a3b; color: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
