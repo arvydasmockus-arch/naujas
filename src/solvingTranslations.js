@@ -1,3 +1,4 @@
+import { russianLabels } from './russianTranslations.js';
 export const solvingTranslations = {
   en: {
     claimedMoves: 'Submitted moves', claimed: 'Claimed', claims: 'Claims', averageSeconds: 'Avg. sec',
@@ -62,3 +63,5 @@ export const solvingTranslations = {
     importRunning: 'Įkeliamas visas uždavinių rinkinys…',
   },
 };
+
+solvingTranslations.ru = russianLabels(solvingTranslations.en);

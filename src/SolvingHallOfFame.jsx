@@ -1,3 +1,4 @@
+import { localizedError, interfaceText, languageLocale, russianLabels } from './russianTranslations.js';
 import { useEffect, useMemo, useState } from 'react';
 import { getSolvingLeaderboard, getSolvingPlayerHistory } from './solvingApi';
 import { getSprintLeaderboard, getSprintPlayerHistory } from './sprintApi';
@@ -25,14 +26,16 @@ const labels = {
   },
 };
 
-const number = (value, language) => Number(value || 0).toLocaleString(language === 'lt' ? 'lt-LT' : 'en-GB');
+labels.ru = russianLabels(labels.en);
+
+const number = (value, language) => Number(value || 0).toLocaleString(languageLocale(language));
 function duration(value) {
   const seconds = Math.max(0, Number(value) || 0);
   const hours = Math.floor(seconds / 3600);
   return `${String(hours).padStart(2, '0')}:${String(Math.floor(seconds / 60) % 60).padStart(2, '0')}:${String(Math.floor(seconds) % 60).padStart(2, '0')}`;
 }
 function dateLabel(value, language) {
-  return new Date(`${value}T12:00:00Z`).toLocaleDateString(language === 'lt' ? 'lt-LT' : 'en-GB',
+  return new Date(`${value}T12:00:00Z`).toLocaleDateString(languageLocale(language),
     { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' });
 }
 
@@ -42,10 +45,9 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving', dates = [] }) {
   const titleId = sprint ? 'sprint-hall-title' : 'solving-hall-title';
   const [statisticsDate, setStatisticsDate] = useState(() => sprint ? new URLSearchParams(window.location.search).get('sprintDate') || '' : '');
   const t = { ...labels[language], ...(sprint ? {
-    title: statisticsDate ? `3×#2 · ${dateLabel(statisticsDate, language)}` : language === 'lt' ? 'Visų dienų 3×#2 lentelė' : 'All-time 3×#2 leaderboard',
-    subtitle: language === 'lt' ? 'Sukaupti baigtų turnyrų rezultatai. Paspauskite žaidėjo vardą, kad pamatytumėte jo dienų istoriją.'
-      : 'Combined results from completed rounds. Select a player to see their day-by-day record.',
-    seconds: language === 'lt' ? 'Sek. nuo starto' : 'Sec from start',
+    title: statisticsDate ? `3×#2 · ${dateLabel(statisticsDate, language)}` : interfaceText(language, 'Visų dienų 3×#2 lentelė', 'All-time 3×#2 leaderboard'),
+    subtitle: interfaceText(language, 'Sukaupti baigtų turnyrų rezultatai. Paspauskite žaidėjo vardą, kad pamatytumėte jo dienų istoriją.', 'Combined results from completed rounds. Select a player to see their day-by-day record.'),
+    seconds: interfaceText(language, 'Sek. nuo starto', 'Sec from start'),
   } : {}) };
   const getLeaderboard = sprint ? getSprintLeaderboard : getSolvingLeaderboard;
   const getHistory = sprint ? getSprintPlayerHistory : getSolvingPlayerHistory;
@@ -63,8 +65,7 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving', dates = [] }) {
       if (current) { setRows(data.rows); setError(''); setLoading(false); }
     }).catch((problem) => { if (current && problem.name !== 'AbortError') { setRows([]); setError(problem.message || t.loadError); setLoading(false); } });
     load();
-    const timer = setInterval(() => load(), 20000);
-    return () => { current = false; controller.abort(); clearInterval(timer); };
+    return () => { current = false; controller.abort(); };
   }, [t.loadError, getLeaderboard, statisticsDate, sprint]);
 
   useEffect(() => {
@@ -99,39 +100,39 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving', dates = [] }) {
 
   return <section className={`${sprint ? 'sprint-panel' : 'solving-panel'} solving-hall`} aria-labelledby={titleId}>
     <div className="solving-hall__heading"><div><h2 id={titleId}>{t.title}</h2><p>{t.subtitle}</p></div>
-      {sprint && statisticsDate ? <p>{language === 'lt' ? 'Taškai ↓ · Laikas ↑' : 'Points ↓ · Time ↑'}</p> : <label>{t.sort}<select value={sort} onChange={(event) => setSort(event.target.value)}>
+      {sprint && statisticsDate ? <p>{interfaceText(language, 'Taškai ↓ · Laikas ↑', 'Points ↓ · Time ↑')}</p> : <label>{t.sort}<select value={sort} onChange={(event) => setSort(event.target.value)}>
         <option value="success">{t.rate}</option><option value="solved">{t.solved}</option>
         <option value="errors">{t.errorsSort}</option><option value="speed">{t.speed}</option>
       </select></label>}
     </div>
     {sprint && <div className="solving-hall__date-filter">
       <SprintCalendar dates={dates} selectedDate={statisticsDate} language={language} allowAnyDate
-        label={language === 'lt' ? 'Statistikos data' : 'Statistics date'}
-        selectionLabel={language === 'lt' ? 'Pasirinkti datą' : 'Choose date'} onSelect={chooseStatisticsDate} />
-      <button type="button" disabled={!statisticsDate} onClick={() => chooseStatisticsDate('')}>{language === 'lt' ? 'Visos dienos' : 'All days'}</button>
-      <p>{statisticsDate ? language === 'lt' ? 'Visų šios dienos žaidėjų rezultatai.' : 'Results for all players on this date.'
-        : language === 'lt' ? 'Visų dienų žaidėjų rezultatai.' : 'Player results across all dates.'}</p>
+        label={interfaceText(language, 'Statistikos data', 'Statistics date')}
+        selectionLabel={interfaceText(language, 'Pasirinkti datą', 'Choose date')} onSelect={chooseStatisticsDate} />
+      <button type="button" disabled={!statisticsDate} onClick={() => chooseStatisticsDate('')}>{interfaceText(language, 'Visos dienos', 'All days')}</button>
+      <p>{statisticsDate ? interfaceText(language, 'Visų šios dienos žaidėjų rezultatai.', 'Results for all players on this date.')
+        : interfaceText(language, 'Visų dienų žaidėjų rezultatai.', 'Player results across all dates.')}</p>
     </div>}
-    {error && <p className="solving-hall__error" role="alert">{error}</p>}
+    {error && <p className="solving-hall__error" role="alert">{localizedError(error, language)}</p>}
     <div className="solving-hall__scroll" tabIndex={0} role="region" aria-label={t.title}>
       <table><thead><tr><th>{t.place}</th><th>{t.player}</th><th>{t.testsPlayed}</th><th>{t.problems}</th><th>{t.correct}</th><th>{t.wrongMoves}</th>
-        <th title={sprint ? language === 'lt' ? 'Tikras turnyrų laikas padalytas iš atsakytų uždavinių skaičiaus.' : 'Actual tournament time divided by answered problems.' : undefined}>{t.average}</th>
-        <th title={sprint ? language === 'lt' ? 'Tikro turnyrų laikrodžio laiko suma.' : 'Sum of actual tournament clock time.' : undefined}>{t.totalTime}</th><th>{t.success}</th></tr></thead>
+        <th title={sprint ? interfaceText(language, 'Tikras turnyrų laikas padalytas iš atsakytų uždavinių skaičiaus.', 'Actual tournament time divided by answered problems.') : undefined}>{t.average}</th>
+        <th title={sprint ? interfaceText(language, 'Tikro turnyrų laikrodžio laiko suma.', 'Sum of actual tournament clock time.') : undefined}>{t.totalTime}</th><th>{t.success}</th></tr></thead>
         <tbody>{ranked.map((row, index) => <tr key={row.id} className={selected?.id === row.id ? 'solving-hall__selected' : ''}>
           <td>{index + 1}.</td><th scope="row"><button type="button" className="solving-hall__player" onClick={() => togglePlayer(row)} aria-expanded={selected?.id === row.id}>{row.name}</button></th>
           <td>{number(row.testsPlayed, language)}</td><td>{number(row.problems, language)}</td><td>{sprint && statisticsDate ? `${row.correct}/3` : number(row.correct, language)}</td><td>{number(row.wrongMoves, language)}</td>
           <td>{Number(row.averageSeconds || 0).toFixed(2)}</td><td>{duration(row.totalSeconds)}</td><td><strong>{Number(row.success || 0).toFixed(2)}%</strong></td>
         </tr>)}
-        {!ranked.length && <tr><td colSpan="9">{loading ? language === 'lt' ? 'Įkeliama…' : 'Loading…'
-          : sprint && statisticsDate ? language === 'lt' ? 'Šią dieną pateiktų rezultatų nėra.' : 'No submitted results for this date.' : t.noPlayers}</td></tr>}</tbody>
+        {!ranked.length && <tr><td colSpan="9">{loading ? interfaceText(language, 'Įkeliama…', 'Loading…')
+          : sprint && statisticsDate ? interfaceText(language, 'Šią dieną pateiktų rezultatų nėra.', 'No submitted results for this date.') : t.noPlayers}</td></tr>}</tbody>
       </table>
     </div>
 
     {selected && <section className="solving-hall__profile" aria-live="polite">
       <div className="solving-hall__profile-heading"><div><h3>{selected.name}</h3><p>{t.allDays}</p></div>
         <button type="button" className="solving-button solving-button--secondary" onClick={() => { setSelected(null); setHistory(null); }}>{t.close}</button></div>
-      {!history && !historyError && <p>{language === 'lt' ? 'Įkeliama…' : 'Loading…'}</p>}
-      {historyError && <p className="solving-hall__error" role="alert">{historyError}</p>}
+      {!history && !historyError && <p>{interfaceText(language, 'Įkeliama…', 'Loading…')}</p>}
+      {historyError && <p className="solving-hall__error" role="alert">{localizedError(historyError, language)}</p>}
       {history && <>
         <h3>{t.daily}</h3>
         <div className="solving-hall__scroll solving-hall__history" tabIndex={0} role="region" aria-label={t.daily}>
@@ -140,7 +141,7 @@ function SolvingHallOfFame({ language = 'en', mode = 'solving', dates = [] }) {
             <tbody>{history.days.map((day) => <tr key={day.date}><th scope="row">{dateLabel(day.date, language)}</th>
               {day.results.map((result, index) => [
                 <td key={`key-${index}`} className={result && !result.skipped ? result.correct ? 'solving-hall__correct' : 'solving-hall__wrong' : ''}
-                  title={result ? result.skipped ? language === 'lt' ? 'Neatsakyta' : 'No answer' : result.correct ? t.correct : t.wrong : ''}>{result ? result.correct ? '✓' : result.skipped ? '·' : '✗' : '·'}</td>,
+                  title={result ? result.skipped ? interfaceText(language, 'Neatsakyta', 'No answer') : result.correct ? t.correct : t.wrong : ''}>{result ? result.correct ? '✓' : result.skipped ? '·' : '✗' : '·'}</td>,
                 <td key={`sec-${index}`}>{result ? `${result.reopened ? '*' : ''}${result.seconds}` : '·'}</td>,
               ])}
               <td>{day.points}/{problemCount}</td><td>{duration(day.totalSeconds)}</td>

@@ -5,6 +5,7 @@
   "compatibility_date": "2026-10-09",
   "compatibility_flags": ["nodejs_compat"],
   "define": { "__filename": "\"/bundle/worker.js\"" },
+  "vars": { "ACCOUNTS_ENABLED": "true" },
   "observability": { "enabled": true },
   "d1_databases": [
     {
@@ -18,5 +19,5 @@
     "producers": [{ "binding": "PUZZLE_VERIFY_QUEUE", "queue": "ml-academy-verify" }],
     "consumers": [{ "queue": "ml-academy-verify", "max_batch_size": 1, "max_retries": 3 }]
   },
-  "triggers": { "crons": ["0 * * * *"] }
+  "triggers": { "crons": ["0 21,22 * * *", "0 5,6 * * *"] }
 }

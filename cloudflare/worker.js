@@ -1,3 +1,4 @@
+import { accountApi, accountsEnabled, authorizeGameRequest, recordAccountActivity } from '../server/accountAuth.mjs';
 import { latestSaturday, oldEnough, parseTournamentEntry, rankResults, tournamentTypes } from '../server/tournamentTools.mjs';
 import { solutionDraft } from '../server/solutionDraft.mjs';
 import { compactSolution } from '../server/solutionNotation.mjs';
@@ -6,7 +7,7 @@ import { Chess } from 'chess.js';
 import { tournamentPdf } from '../server/tournamentPdf.mjs';
 import { pdfAssets } from './pdfAssets.js';
 import PDFDocumentBrowser from '../node_modules/pdfkit/js/pdfkit.browser.js';
-import { trainingDifficulty, verifyPuzzle, hasPuzzleDefect } from '../server/puzzleTools.mjs';
+import { trainingDifficulty } from '../server/puzzleTools.mjs';
 import { localSprintDate } from '../server/sprintSelection.mjs';
 
 const DEFAULT_TITLE = 'Solving tournament of Martynas Limontas';
@@ -25,7 +26,7 @@ function json(data, status = 200, headers = {}) {
 
 function cors(request) {
   const origin = request.headers.get('Origin');
-  const headers = new Headers({ 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Vary': 'Origin' });
+  const headers = new Headers({ 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Player-Session', 'Vary': 'Origin' });
   if (origin && ALLOWED_ORIGINS.has(origin)) headers.set('Access-Control-Allow-Origin', origin);
   return headers;
 }
@@ -77,12 +78,14 @@ async function getEvent(db, id, judge = false) {
     durationMinutes: 120, puzzles, results, ...(judge ? { submissions } : {}), serverNow: Date.now() };
 }
 
-async function playerIdentity(name) {
+async function playerIdentity(name, db) {
   if (typeof name !== 'string') throw new Error('Enter a player name.');
   const clean = name.normalize('NFKC').trim().replace(/\s+/g, ' ');
   // Player names cannot contain control characters.
   // eslint-disable-next-line no-control-regex
   if (clean.length < 2 || clean.length > 40 || /[\u0000-\u001f\u007f]/.test(clean)) throw new Error('Player names must contain 2–40 characters.');
+  const account = await db.prepare('SELECT id,username FROM accounts WHERE username_key=? AND verified_at IS NOT NULL').bind(clean.toLocaleLowerCase('en-US')).first();
+  if (account) return { id: `account:${account.id}`, name: account.username };
   const bytes = new TextEncoder().encode(clean.toLocaleLowerCase('en-US'));
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   const id = [...new Uint8Array(digest)].map((part) => part.toString(16).padStart(2, '0')).join('');
@@ -134,12 +137,12 @@ async function generateTournament(db, data) {
 }
 
 function utcDay(time = Date.now()) { return new Date(time).toISOString().slice(0, 10); }
-function calendarDays(today = utcDay()) {
+function calendarDays(today = localSprintDate()) {
   return Array.from({ length: 30 }, (_, index) => new Date(Date.parse(`${today}T12:00:00Z`) - index * 86400000).toISOString().slice(0, 10));
 }
 
 async function getPlayer(db, name) {
-  const player = await playerIdentity(name);
+  const player = await playerIdentity(name, db);
   await db.prepare('INSERT OR IGNORE INTO players(id, name) VALUES(?, ?)').bind(player.id, player.name).run();
   return db.prepare('SELECT id, name FROM players WHERE id = ?').bind(player.id).first();
 }
@@ -179,56 +182,6 @@ async function ensureDaily(db, date) {
   catch (error) {
     const count = await db.prepare('SELECT COUNT(*) AS n FROM daily_puzzles WHERE date = ?').bind(date).first();
     if (count.n !== 6) throw error;
-  }
-}
-
-async function enqueuePuzzleVerification(db, queue, target = 180) {
-  const reserve = await db.prepare(`SELECT COUNT(DISTINCT p.position_hash) AS n FROM puzzles p
-    WHERE p.eligible = 1 AND p.verified = 1 AND p.verification_version = 1 AND p.position_hash IS NOT NULL
-    AND length(replace(replace(replace(replace(replace(replace(replace(replace(replace(
-      substr(json_extract(p.puzzle,'$.fen'),1,instr(json_extract(p.puzzle,'$.fen'),' ')-1),
-      '/',''),'1',''),'2',''),'3',''),'4',''),'5',''),'6',''),'7',''),'8',''))>=9
-    AND NOT EXISTS (SELECT 1 FROM daily_puzzles d WHERE d.position_hash = p.position_hash)`).first();
-  const needed = target - reserve.n;
-  if (needed <= 0) return 0;
-  const rows = await db.prepare(`SELECT p.id FROM puzzles p WHERE p.eligible = 1 AND p.verified >= 0 AND p.verification_version = 0
-    AND p.position_hash IS NOT NULL AND NOT EXISTS (SELECT 1 FROM daily_puzzles d WHERE d.position_hash = p.position_hash)
-    AND length(replace(replace(replace(replace(replace(replace(replace(replace(replace(
-      substr(json_extract(p.puzzle,'$.fen'),1,instr(json_extract(p.puzzle,'$.fen'),' ')-1),
-      '/',''),'1',''),'2',''),'3',''),'4',''),'5',''),'6',''),'7',''),'8',''))>=9
-    AND NOT EXISTS (SELECT 1 FROM puzzle_verification_queue q WHERE q.puzzle_id = p.id)
-    ORDER BY RANDOM() LIMIT ?`).bind(Math.min(needed, 100)).all();
-  const candidates = rows.results ?? [];
-  if (!candidates.length) return 0;
-  const claims = await db.batch(candidates.map((row) => db.prepare('INSERT OR IGNORE INTO puzzle_verification_queue(puzzle_id, enqueued_at) VALUES(?, ?)')
-    .bind(row.id, Date.now())));
-  const claimed = candidates.filter((_, index) => claims[index]?.meta?.changes > 0);
-  if (!claimed.length) return 0;
-  try {
-    await queue.sendBatch(claimed.map((row) => ({ body: { puzzleId: row.id } })));
-    return claimed.length;
-  } catch (error) {
-    await db.batch(claimed.map((row) => db.prepare('DELETE FROM puzzle_verification_queue WHERE puzzle_id = ?').bind(row.id)));
-    throw error;
-  }
-}
-
-async function verifyPuzzleMessages(batch, db) {
-  for (const message of batch.messages) {
-    const id = message.body?.puzzleId;
-    try {
-      if (typeof id !== 'string') throw new Error('Invalid verification message.');
-      const row = await db.prepare('SELECT raw,puzzle,verified,verification_version FROM puzzles WHERE id = ?').bind(id).first();
-      if (row && row.verified >= 0 && row.verification_version === 0) {
-        let valid = false;
-        try { valid = !hasPuzzleDefect(row.raw ? JSON.parse(row.raw) : JSON.parse(row.puzzle)) && verifyPuzzle(JSON.parse(row.puzzle)); } catch { valid = false; }
-        await db.prepare('UPDATE puzzles SET verified = ?,verification_version = 1 WHERE id = ? AND verification_version = 0').bind(valid ? 1 : -1, id).run();
-      }
-      await db.prepare('DELETE FROM puzzle_verification_queue WHERE puzzle_id = ?').bind(id).run();
-      message.ack();
-    } catch {
-      message.retry();
-    }
   }
 }
 
@@ -280,7 +233,7 @@ async function importData(request, env) {
   }
   for (const row of sprintCandidates) {
     if (typeof row.id !== 'string' || typeof row.puzzle !== 'string' || typeof row.position_hash !== 'string'
-      || !Number.isInteger(row.pieces) || !Number.isInteger(row.wrong_key_tries) || typeof row.publication_date !== 'string')
+      || !Number.isInteger(row.pieces) || row.pieces < 15 || !Number.isInteger(row.wrong_key_tries) || typeof row.publication_date !== 'string')
       return json({ error: 'Invalid sprint candidate.' }, 400);
     statements.push(env.DB.prepare('INSERT OR IGNORE INTO sprint_candidates(id,puzzle,position_hash,pieces,wrong_key_tries,publication_date) VALUES(?,?,?,?,?,?)')
       .bind(row.id, row.puzzle, row.position_hash, row.pieces, row.wrong_key_tries, row.publication_date));
@@ -405,7 +358,7 @@ async function overallLeaderboard(db) {
 }
 
 async function playerHistory(db, name) {
-  const player = await playerIdentity(name);
+  const player = await playerIdentity(name, db);
   const exists = await db.prepare('SELECT id, name FROM players WHERE id = ?').bind(player.id).first();
   if (!exists) return null;
   const rows = await db.prepare(`SELECT date, ordinal, seconds, correct, reopens FROM attempts
@@ -423,6 +376,7 @@ const analyticsSections = new Set(['news', 'solving', 'sprint', 'training', 'tou
 const analyticsActions = new Set(['page_view', 'start', 'answer', 'submit']);
 async function recordAnalytics(request, env, { section, action = 'page_view', mode = '' }) {
   if (!analyticsSections.has(section) || !analyticsActions.has(action)) return;
+  if (env.ACCOUNT) await recordAccountActivity(env, env.ACCOUNT, section, action);
   const timestamp = Date.now(); const iso = new Date(timestamp).toISOString();
   const month = iso.slice(0, 7); const day = iso.slice(0, 10);
   const secret = env.JUDGE_KEY || 'ml-academy-analytics';
@@ -456,7 +410,6 @@ async function analyticsSummary(db, days = 90) {
 }
 
 async function solvingSeries(db, date, name) {
-  if (calendarDays().includes(date)) await ensureDaily(db, date);
   const puzzles = await puzzlesForDay(db, date);
   if (puzzles.length !== 6) throw new Error('Series not found.');
   const player = await getPlayer(db, name);
@@ -475,7 +428,7 @@ async function solvingSeries(db, date, name) {
 
 async function solvingApi(request, url, env) {
   const db = env.DB;
-  const today = utcDay();
+  const today = localSprintDate();
   if (request.method === 'GET' && url.pathname === '/api/solving/leaderboard')
     return json({ rows: await overallLeaderboard(db) });
   if (request.method === 'GET' && url.pathname === '/api/solving/player') {
@@ -500,7 +453,7 @@ async function solvingApi(request, url, env) {
     const expected = await db.prepare("SELECT value FROM metadata WHERE key = 'import_expected'").first();
     const status = await db.prepare("SELECT value FROM metadata WHERE key = 'import_status'").first();
     const importStatus = status ? JSON.parse(status.value) : {};
-    return json({ days, today, timezone: 'UTC', library: {
+    return json({ days, today, timezone: 'Europe/Vilnius', library: {
       total: importStatus.imported ?? 0, imported: importStatus.imported ?? 0,
       eligible: importStatus.eligible ?? 0, verified: importStatus.verified ?? 0,
       expected: expected ? JSON.parse(expected.value) : 217629, importStatus,
@@ -517,7 +470,6 @@ async function solvingApi(request, url, env) {
     if (url.pathname === '/api/solving/start') {
       const { date, name, ordinal, visit = crypto.randomUUID() } = data;
       if (!calendarDays().includes(date)) throw new Error('This series is closed.');
-      await ensureDaily(db, date);
       const player = await getPlayer(db, name);
       const done = await db.prepare('SELECT COUNT(*) AS n FROM attempts WHERE date = ? AND player_id = ? AND answered_at IS NOT NULL').bind(date, player.id).first();
       if (!Number.isInteger(ordinal) || ordinal !== done.n || ordinal >= 6) throw new Error('Refresh the series before continuing.');
@@ -563,14 +515,25 @@ async function solvingApi(request, url, env) {
 async function pickSprintPuzzles(db, date) {
   const cutoff = new Date(date + 'T12:00:00Z');
   cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 5);
-  const rows = await db.prepare('SELECT c.puzzle FROM sprint_candidates c WHERE publication_date<=? '
-    + 'AND NOT EXISTS(SELECT 1 FROM sprint_puzzles s WHERE s.puzzle_id=c.id OR s.position_hash=c.position_hash) '
-    + 'AND NOT EXISTS(SELECT 1 FROM sprint_retired_positions s WHERE s.puzzle_id=c.id OR s.position_hash=c.position_hash) '
-    + 'AND NOT EXISTS(SELECT 1 FROM daily_puzzles d WHERE d.puzzle_id=c.id) '
-    + "AND NOT EXISTS(SELECT 1 FROM tournament_problems t WHERE json_extract(t.puzzle,'$.id')=c.id) "
-    + 'ORDER BY min(pieces,20) DESC,(wrong_key_tries>=5) DESC,wrong_key_tries DESC,pieces DESC,id LIMIT 3')
+  // Build exclusion lists once, rather than scanning history for every candidate.
+  const rows = await db.prepare(`WITH used_ids AS MATERIALIZED (
+      SELECT puzzle_id AS id FROM sprint_puzzles WHERE puzzle_id IS NOT NULL
+      UNION SELECT puzzle_id FROM sprint_retired_positions WHERE puzzle_id IS NOT NULL
+      UNION SELECT puzzle_id FROM daily_puzzles WHERE puzzle_id IS NOT NULL
+      UNION SELECT json_extract(puzzle,'$.id') FROM tournament_problems WHERE json_extract(puzzle,'$.id') IS NOT NULL
+    ), used_positions AS MATERIALIZED (
+      SELECT position_hash FROM sprint_puzzles WHERE position_hash IS NOT NULL
+      UNION SELECT position_hash FROM sprint_retired_positions WHERE position_hash IS NOT NULL
+    )
+    SELECT c.puzzle FROM sprint_candidates c WHERE pieces>=15 AND publication_date<=?
+      AND c.id NOT IN (SELECT id FROM used_ids)
+      AND c.position_hash NOT IN (SELECT position_hash FROM used_positions)
+    ORDER BY RANDOM() LIMIT 3`)
     .bind(cutoff.toISOString().slice(0,10)).all();
-  const puzzles = (rows.results ?? []).map((row) => JSON.parse(row.puzzle));
+  const puzzles = (rows.results ?? []).map((row) => {
+    const puzzle = JSON.parse(row.puzzle);
+    return { ...puzzle, ...trainingDifficulty(puzzle) };
+  });
   if (puzzles.length !== 3) throw new Error('The checked 3x#2 reserve needs replenishing. Import more checked candidates.');
   return puzzles;
 }
@@ -629,11 +592,9 @@ function rankSprintRows(rows) {
 }
 
 async function sprintRound(db, date, sessionId) {
-  await ensureSprintDay(db);
   date ??= (await db.prepare('SELECT date FROM sprint_days WHERE date<=? ORDER BY date DESC LIMIT 1').bind(localSprintDate()).first())?.date ?? localSprintDate();
   if (date > localSprintDate()) throw new Error('This tournament is not available yet.');
   if (date !== localSprintDate() && !await db.prepare('SELECT date FROM sprint_days WHERE date=?').bind(date).first()) throw new Error('Tournament not found.');
-  await ensureSprintDay(db, date);
   if (!await db.prepare('SELECT date FROM sprint_days WHERE date=?').bind(date).first()) throw new Error('Tournament not found.');
   const requested = sessionId && await db.prepare('SELECT submitted_at FROM sprint_sessions WHERE id=? AND date=?').bind(sessionId, date).first();
   const completed = requested && requested.submitted_at !== null;
@@ -768,7 +729,7 @@ async function sprintApi(request, url, env) {
   }
   if (request.method === 'GET' && action === 'player') {
     try {
-      const player = await playerIdentity(url.searchParams.get('name') || '');
+      const player = await playerIdentity(url.searchParams.get('name') || '', db);
       const rows = await db.prepare('SELECT date,answers,scores,problem_seconds AS problemSeconds,elapsed_seconds AS elapsedSeconds FROM sprint_sessions WHERE player_id=? AND submitted_at IS NOT NULL ORDER BY date DESC').bind(player.id).all();
       return json(sprintPlayerHistory(rows.results ?? []));
     } catch (error) { return json({ error: error.message }, 400); }
@@ -776,7 +737,7 @@ async function sprintApi(request, url, env) {
   if (request.method === 'GET' && action === 'session') {
     try {
       const date = url.searchParams.get('date');
-      const player = await playerIdentity(url.searchParams.get('name'));
+      const player = await playerIdentity(url.searchParams.get('name'), db);
       const session = await db.prepare('SELECT * FROM sprint_sessions WHERE date=? AND player_id=?').bind(date, player.id).first();
       if (!session) return json({ session: null });
       const puzzles = await sprintPuzzles(db, date);
@@ -787,9 +748,8 @@ async function sprintApi(request, url, env) {
   }
   if (request.method === 'GET' && action === 'calendar') {
     try {
-      await ensureSprintDay(db);
       const name = url.searchParams.get('name') || '';
-      const player = name ? await playerIdentity(name) : null;
+      const player = name ? await playerIdentity(name, db) : null;
       const dates = await db.prepare('SELECT date FROM sprint_days WHERE date<=? ORDER BY date DESC').bind(localSprintDate()).all();
       const completed = player ? await db.prepare('SELECT date FROM sprint_sessions WHERE player_id=? AND submitted_at IS NOT NULL AND date<=? ORDER BY date DESC')
         .bind(player.id, localSprintDate()).all() : { results: [] };
@@ -808,7 +768,6 @@ async function sprintApi(request, url, env) {
       const date = data.date || localSprintDate();
       if (date > localSprintDate()) throw new Error('This tournament is not available yet.');
       if (date !== localSprintDate() && !await db.prepare('SELECT date FROM sprint_days WHERE date=?').bind(date).first()) throw new Error('Tournament not found.');
-      await ensureSprintDay(db, date);
       if (!await db.prepare('SELECT date FROM sprint_days WHERE date=?').bind(date).first()) throw new Error('Tournament not found.');
       const player = await getPlayer(db, data.name);
       await db.prepare('INSERT OR IGNORE INTO sprint_sessions(id,date,player_id,name,started_at) VALUES(?,?,?,?,?)')
@@ -863,7 +822,7 @@ async function tournamentApi(request, url, env) {
     const tournaments = await Promise.all((rows.results ?? []).map(namedEvent));
     let pool;
     if (judge) pool = (await db.prepare('SELECT type, COUNT(*) AS count FROM tournament_pool GROUP BY type').all()).results ?? [];
-    return json({ tournaments, ...(judge ? { pool } : {}), timezone: 'Europe/Vilnius', weeklyHour: 10, serverNow: Date.now() });
+    return json({ tournaments, ...(judge ? { pool } : {}), timezone: 'UTC', weeklyHour: 10, serverNow: Date.now() });
   }
   if (request.method === 'GET' && action === 'event') {
     try { return json(await getEvent(db, url.searchParams.get('id'), judge)); }
@@ -890,7 +849,7 @@ async function tournamentApi(request, url, env) {
     if (action === 'generate') return json(await generateTournament(db, data));
     if (action === 'start') {
       await getEvent(db, data.id);
-      const player = await playerIdentity(data.name);
+      const player = await playerIdentity(data.name, db);
       await db.prepare('INSERT OR IGNORE INTO tournament_sessions(id, tournament_id, player_id, name, started_at) VALUES(?, ?, ?, ?, ?)')
         .bind(crypto.randomUUID(), data.id, player.id, player.name, Date.now()).run();
       const session = await db.prepare('SELECT * FROM tournament_sessions WHERE tournament_id = ? AND player_id = ?').bind(data.id, player.id).first();
@@ -912,7 +871,7 @@ async function tournamentApi(request, url, env) {
     }
     if (action === 'result') {
       await getEvent(db, data.tournamentId, true);
-      const player = await playerIdentity(data.result?.name);
+      const player = await playerIdentity(data.result?.name, db);
       const result = data.result;
       if (!Array.isArray(result.scores) || result.scores.length !== 6 || result.scores.some((score) => score !== null && (!Number.isFinite(score) || score < 0 || score > 5))) throw new Error('Each score must be between 0 and 5.');
       if (!Number.isFinite(result.minutes) || result.minutes < 0 || result.minutes > 120) throw new Error('Time must be between 0 and 120 minutes.');
@@ -992,8 +951,21 @@ export default {
   async fetch(request, env) {
     const headers = cors(request);
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
-    const url = new URL(request.url);
+    let url = new URL(request.url);
     if (request.method === 'GET' && url.pathname === '/healthz') return json({ ok: true, service: 'ml-academy-api' }, 200, headers);
+    if (url.pathname.startsWith('/api/accounts/')) {
+      const response = await accountApi(request, env, isJudge(request, env));
+      for (const [key, value] of headers) response.headers.set(key, value);
+      return response;
+    }
+    if (accountsEnabled(env) && /^\/api\/(solving|sprint|tournaments|analytics)\//.test(url.pathname)) {
+      try {
+        const authorized = await authorizeGameRequest(request, env);
+        request = authorized.request;
+        env = { ...env, ACCOUNT: authorized.user };
+        url = new URL(request.url);
+      } catch (error) { return json({ error: error.status ? error.message : 'Paskyrų serveris nepasiekiamas.' }, error.status || 503, headers); }
+    }
     if (url.pathname === '/api/admin/import') {
       const response = await importData(request, env);
       for (const [key, value] of headers) response.headers.set(key, value);
@@ -1031,21 +1003,18 @@ export default {
     }
     return json({ error: 'Not found.' }, 404, headers);
   },
-  async scheduled(_controller, env) {
-    const date = utcDay();
-    await enqueuePuzzleVerification(env.DB, env.PUZZLE_VERIFY_QUEUE);
-    try { await ensureDaily(env.DB, date); } catch (error) { console.log('Daily generation is waiting for verified puzzles:', error.message); }
-    try { await ensureSprintDay(env.DB); } catch (error) { console.log('Sprint generation is waiting for eligible puzzles:', error.message); }
-    const localHour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Vilnius', hour: '2-digit', hourCycle: 'h23' }).format(new Date()));
-    if (new Date().getUTCDay() === 6 && localHour === 10) {
-      const saturday = latestSaturday();
-      const cancelled = await env.DB.prepare('SELECT value FROM metadata WHERE key = ?').bind(`weekly_cancelled:${saturday}`).first();
-      const exists = cancelled || await env.DB.prepare(`SELECT id FROM tournaments WHERE (date = ? AND weekly = 1)
-        OR (date >= ? AND mode = 'training') LIMIT 1`).bind(saturday, saturday).first();
-      if (!exists) await generateTournament(env.DB, { date: saturday, weekly: true, mode: 'training' });
+  async scheduled(controller, env) {
+    const timestamp = controller.scheduledTime ?? Date.now();
+    const localHour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Vilnius', hour: '2-digit', hourCycle: 'h23' }).format(timestamp));
+    // UTC candidates cover Vilnius summer/winter time; retry missing sets at 08:00.
+    if (localHour === 0 || localHour === 8) {
+      const date = localSprintDate(timestamp);
+      try { await ensureDaily(env.DB, date); } catch (error) { console.log('Daily generation is waiting for verified puzzles:', error.message); }
+      try { await ensureSprintDay(env.DB, date); } catch (error) { console.log('Sprint generation is waiting for eligible puzzles:', error.message); }
     }
   },
-  async queue(batch, env) {
-    await verifyPuzzleMessages(batch, env.DB);
+  async queue(batch) {
+    // Discard pending verification work without querying D1.
+    batch.ackAll();
   },
 };

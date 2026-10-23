@@ -1,3 +1,4 @@
+import { russianLabels } from './russianTranslations.js';
 export const sprintTranslations = {
   en: {
     title: '3 × #2 · 20-minute tournament', subtitle: '#2 training competition simulation.',
@@ -20,3 +21,5 @@ export const sprintTranslations = {
     error: 'Nepavyko įkelti turnyro.', invalidMove: 'Įrašykite legalų pirmąjį ėjimą, pavyzdžiui, Qa5.', switchPlayer: 'Keisti žaidėją', undoMove: 'Atšaukti ėjimą',
   },
 };
+
+sprintTranslations.ru = russianLabels(sprintTranslations.en);

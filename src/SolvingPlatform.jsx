@@ -1,3 +1,4 @@
+import { localizedError, interfaceText, languageLocale } from './russianTranslations.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ChessBoard from './ChessBoard';
 import SolvingResults from './SolvingResults';
@@ -12,13 +13,13 @@ function preferences() {
   try { return JSON.parse(localStorage.getItem(PREFERENCES)) || {}; } catch { return {}; }
 }
 function dateLabel(date, language) {
-  return new Date(`${date}T12:00:00Z`).toLocaleDateString(language === 'lt' ? 'lt-LT' : 'en-GB',
+  return new Date(`${date}T12:00:00Z`).toLocaleDateString(languageLocale(language),
     { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function SolvingPlatform({ language = 'en' }) {
+function SolvingPlatform({ language = 'en', accountUser = null, accountsEnabled = false }) {
   const t = solvingTranslations[language];
-  const [player, setPlayer] = useState('');
+  const [player, setPlayer] = useState(accountUser?.username || '');
   const [draftName, setDraftName] = useState('');
   const [catalog, setCatalog] = useState(null);
   const [activeDate, setActiveDate] = useState(() => preferences().date || null);
@@ -80,8 +81,7 @@ function SolvingPlatform({ language = 'en' }) {
       });
     }
     refresh();
-    const timer = setInterval(refresh, 15000);
-    return () => { controller.abort(); clearInterval(timer); };
+    return () => controller.abort();
   }, [player, showError]);
 
   useEffect(() => {
@@ -125,11 +125,6 @@ function SolvingPlatform({ language = 'en' }) {
       setSeries((current) => current ? { ...current, leaderboard: data.leaderboard, statistics: data.statistics } : data);
     } catch (problem) { showError(problem); }
   }, [activeDate, player, showError]);
-
-  useEffect(() => {
-    const timer = setInterval(refreshResults, 10000);
-    return () => clearInterval(timer);
-  }, [refreshResults]);
 
   function chooseDate(date) {
     if (!player || busy || !canChangeDate || date === activeDate) return;
@@ -227,15 +222,15 @@ function SolvingPlatform({ language = 'en' }) {
       <header className="solving-page__header">
         <div><span className="solving-page__eyebrow">{t.badge}</span><h1>{t.title}</h1><p>{t.subtitle}</p></div>
       </header>
-      <form className="solving-player-bar" onSubmit={useName}>
+      {!accountsEnabled && <form className="solving-player-bar" onSubmit={useName}>
         <label htmlFor="solver-name">{t.player}</label>
         <input id="solver-name" value={draftName} maxLength={40} minLength={2} required disabled={busy || Boolean(feedback)}
           placeholder={t.player} onChange={(event) => setDraftName(event.target.value)} />
         <button type="submit" className="solving-button" disabled={busy || Boolean(feedback) || draftName.trim().length < 2}>{player ? t.changePlayer : t.useName}</button>
         <span>{t.nameHint}</span>
         {player && <strong className="solving-player-bar__active">{player}</strong>}
-      </form>
-      {error && <div className="solving-page__warning" role="alert">{error}<button type="button" onClick={() => window.location.reload()}>{t.refresh}</button></div>}
+      </form>}
+      {error && <div className="solving-page__warning" role="alert">{localizedError(error, language)}<button type="button" onClick={() => window.location.reload()}>{t.refresh}</button></div>}
       <div className="solving-page__layout">
         <aside className="solving-panel solving-dates" aria-label={t.dates}>
           <h2>{t.dates}</h2><p>{t.dateHint} · UTC</p>
@@ -258,7 +253,7 @@ function SolvingPlatform({ language = 'en' }) {
         <div className="solving-page__content">
           {!series && <section className="solving-panel solving-intro">
             <span className="solving-intro__symbol" aria-hidden="true">#2</span>
-            <h2>{activeDate && player ? t.loading : t.ready}</h2><p>{player ? t.chooseDate : t.selectName}</p>
+            <h2>{activeDate && player ? t.loading : t.ready}</h2><p>{accountsEnabled && !accountUser ? (interfaceText(language, 'Norėdami spręsti, prisijunkite.', 'Log in to start solving.')) : player ? t.chooseDate : t.selectName}</p>
             <button type="button" className="solving-button" disabled={!player || !catalog || busy} onClick={() => chooseDate(catalog.today)}>{t.startToday}</button>
             <ul><li>{t.firstMove}</li><li>{t.oneAttempt}</li><li>{t.nextManual}</li><li>{t.timerRule}</li></ul>
           </section>}

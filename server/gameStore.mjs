@@ -8,10 +8,12 @@ export function utcDay(now = new Date()) { return now.toISOString().slice(0, 10)
 export function calendarDays(today = utcDay()) {
   return Array.from({ length: 30 }, (_, index) => new Date(Date.parse(`${today}T12:00:00Z`) - index * 86400000).toISOString().slice(0, 10));
 }
-export function normalizePlayer(name) {
+export function normalizePlayer(name, db = null) {
   if (typeof name !== 'string') throw new Error('Enter a player name.');
   const clean = name.normalize('NFKC').trim().replace(/\s+/g, ' ');
   if (clean.length < 2 || clean.length > 40 || /[\u0000-\u001f\u007f]/.test(clean)) throw new Error('Player names must contain 2–40 characters.');
+  const account = db?.prepare('SELECT id,username FROM accounts WHERE username_key=? AND verified_at IS NOT NULL').get(clean.toLocaleLowerCase('en-US'));
+  if (account) return { id: `account:${account.id}`, name: account.username };
   return { id: createHash('sha256').update(clean.toLocaleLowerCase('en-US')).digest('hex'), name: clean };
 }
 function verifyInWorker(puzzle) {
@@ -34,7 +36,7 @@ export class GameStore {
   today() { return utcDay(new Date(this.clock())); }
   available(date) { return calendarDays(this.today()).includes(date); }
   player(name) {
-    const player = normalizePlayer(name);
+    const player = normalizePlayer(name, this.db);
     this.db.prepare('INSERT OR IGNORE INTO players(id,name) VALUES(?,?)').run(player.id, player.name);
     return this.db.prepare('SELECT id,name FROM players WHERE id=?').get(player.id);
   }
@@ -124,7 +126,7 @@ export class GameStore {
       GROUP BY p.id ORDER BY success DESC,correct DESC,wrongMoves ASC,averageSeconds ASC,p.name COLLATE NOCASE`).all();
   }
   playerHistory(name) {
-    const player = normalizePlayer(name);
+    const player = normalizePlayer(name, this.db);
     const history = this.db.prepare(`SELECT date,ordinal,correct,seconds,reopens,move,answered_at FROM attempts
       WHERE player_id=? ORDER BY date DESC,ordinal`).all(player.id);
     if (!history.length) return null;

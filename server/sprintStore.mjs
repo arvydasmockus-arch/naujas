@@ -3,7 +3,7 @@ import { Chess } from 'chess.js';
 import { compactSolution } from './solutionNotation.mjs';
 import { sprintStatistics, sprintLeaderboard, sprintPlayerHistory, validateSprintStatisticsDate } from './sprintReview.mjs';
 import { normalizePlayer } from './gameStore.mjs';
-import { localSprintDate, sampleSprintRows, selectSprintPuzzles, verifySprintPuzzle } from './sprintSelection.mjs';
+import { localSprintDate, sampleSprintRows, selectSprintPuzzles, verifySprintPuzzle, sprintDifficulty } from './sprintSelection.mjs';
 export { countWrongKeyTries, localSprintDate, sampleSprintRows, selectSprintPuzzles, sprintDifficulty } from './sprintSelection.mjs';
 
 export const SPRINT_DURATION_MS = 20 * 60 * 1000;
@@ -34,6 +34,7 @@ export class SprintStore {
     this.db = db;
     this.clock = clock;
     this.validate = validate;
+    db.exec('CREATE TABLE IF NOT EXISTS sprint_candidates(id TEXT PRIMARY KEY,puzzle TEXT NOT NULL,position_hash TEXT NOT NULL UNIQUE,pieces INTEGER NOT NULL,wrong_key_tries INTEGER NOT NULL,publication_date TEXT NOT NULL)');
     db.exec('CREATE TABLE IF NOT EXISTS sprint_retired_positions(position_hash TEXT PRIMARY KEY,puzzle_id TEXT NOT NULL,retired_at INTEGER NOT NULL)');
     db.exec('CREATE TABLE IF NOT EXISTS sprint_days (date TEXT PRIMARY KEY, created_at INTEGER NOT NULL);'
       + 'CREATE TABLE IF NOT EXISTS sprint_puzzles (date TEXT NOT NULL REFERENCES sprint_days(date), ordinal INTEGER NOT NULL,'
@@ -52,7 +53,7 @@ export class SprintStore {
 
   calendar(name = '') {
     this.ensureDay();
-    const player = name ? normalizePlayer(name) : null;
+    const player = name ? normalizePlayer(name, this.db) : null;
     return { name: player?.name ?? '',
       dates: this.db.prepare('SELECT date FROM sprint_days WHERE date<=? ORDER BY date DESC').all(this.today()).map((row) => row.date),
       completedDates: player ? this.db.prepare('SELECT date FROM sprint_sessions WHERE player_id=? AND submitted_at IS NOT NULL AND date<=? ORDER BY date DESC')
@@ -61,6 +62,18 @@ export class SprintStore {
   }
 
   selectPuzzles(date) {
+    if (this.validate === verifySprintPuzzle) {
+      const cutoff = new Date(date + 'T12:00:00Z');
+      cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 5);
+      const rows = this.db.prepare('SELECT c.puzzle FROM sprint_candidates c WHERE pieces>=15 AND publication_date<=? '
+        + 'AND NOT EXISTS(SELECT 1 FROM sprint_puzzles s WHERE s.puzzle_id=c.id OR s.position_hash=c.position_hash) '
+        + 'AND NOT EXISTS(SELECT 1 FROM sprint_retired_positions s WHERE s.puzzle_id=c.id OR s.position_hash=c.position_hash) '
+        + 'AND NOT EXISTS(SELECT 1 FROM daily_puzzles d WHERE d.puzzle_id=c.id) '
+        + "AND NOT EXISTS(SELECT 1 FROM tournament_problems t WHERE json_extract(t.puzzle,'$.id')=c.id) ORDER BY RANDOM() LIMIT 3")
+        .all(cutoff.toISOString().slice(0, 10));
+      if (rows.length !== PROBLEM_COUNT) throw new Error('The checked 3x#2 reserve needs replenishing.');
+      return rows.map((row) => { const puzzle = JSON.parse(row.puzzle); return { ...puzzle, ...sprintDifficulty(puzzle) }; });
+    }
     const rows = this.db.prepare('SELECT p.id,p.raw,p.puzzle FROM puzzles p WHERE p.eligible=1 AND p.verified>=0 AND p.raw IS NOT NULL '
       + 'AND NOT EXISTS(SELECT 1 FROM sprint_puzzles s WHERE s.puzzle_id=p.id) '
       + 'AND NOT EXISTS(SELECT 1 FROM sprint_retired_positions s WHERE s.puzzle_id=p.id) '
@@ -168,7 +181,7 @@ export class SprintStore {
   }
 
   restore(name, date) {
-    const player = normalizePlayer(name);
+    const player = normalizePlayer(name, this.db);
     const session = this.db.prepare('SELECT * FROM sprint_sessions WHERE date=? AND player_id=?').get(date, player.id);
     return session ? { ...this.sessionView(session, date), puzzles: publicPuzzles(this.db, date) } : { session: null };
   }
@@ -202,7 +215,7 @@ export class SprintStore {
   }
 
   playerHistory(name) {
-    const player = normalizePlayer(name);
+    const player = normalizePlayer(name, this.db);
     return sprintPlayerHistory(this.db.prepare('SELECT date,answers,scores,problem_seconds AS problemSeconds,elapsed_seconds AS elapsedSeconds FROM sprint_sessions WHERE player_id=? AND submitted_at IS NOT NULL ORDER BY date DESC').all(player.id));
   }
 
@@ -254,7 +267,7 @@ export class SprintStore {
       throw new Error('Tournament not found.');
     this.ensureDay(date);
     if (!this.db.prepare('SELECT date FROM sprint_days WHERE date=?').get(date)) throw new Error('Tournament not found.');
-    const player = normalizePlayer(name);
+    const player = normalizePlayer(name, this.db);
     this.db.prepare('INSERT OR IGNORE INTO players(id,name) VALUES(?,?)').run(player.id, player.name);
     this.db.prepare('INSERT OR IGNORE INTO sprint_sessions(id,date,player_id,name,started_at) VALUES(?,?,?,?,?)')
       .run(randomUUID(), date, player.id, player.name, this.clock());

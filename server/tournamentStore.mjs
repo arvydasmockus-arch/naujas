@@ -141,7 +141,7 @@ export class TournamentStore {
   }
   saveResult(id, data) {
     this.get(id, true);
-    const player = normalizePlayer(data.name);
+    const player = normalizePlayer(data.name, this.db);
     if (!Array.isArray(data.scores) || data.scores.length !== 6 || data.scores.some((score) => score !== null &&
       (!Number.isFinite(score) || score < 0 || score > 5))) throw new Error('Each score must be between 0 and 5.');
     if (!Number.isFinite(data.minutes) || data.minutes < 0 || data.minutes > 120) throw new Error('Time must be between 0 and 120 minutes.');
@@ -200,7 +200,7 @@ export class TournamentStore {
   }
   start(id, name) {
     this.get(id);
-    const player = normalizePlayer(name);
+    const player = normalizePlayer(name, this.db);
     this.db.prepare('INSERT OR IGNORE INTO tournament_sessions(id,tournament_id,player_id,name,started_at) VALUES(?,?,?,?,?)')
       .run(randomUUID(), id, player.id, player.name, this.clock());
     const session = this.db.prepare('SELECT * FROM tournament_sessions WHERE tournament_id=? AND player_id=?').get(id, player.id);

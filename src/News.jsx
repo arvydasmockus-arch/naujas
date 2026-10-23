@@ -13,9 +13,6 @@ function News({
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
         allow="fullscreen"
       />
-      <p className="news-page__help">
-        Jei puslapis neatsidaro, <a href={url} target="_blank" rel="noopener noreferrer">atidarykite puslapį atskirai</a>.
-      </p>
     </main>
   );
 }

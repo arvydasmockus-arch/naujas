@@ -8,10 +8,12 @@
 .sprint-header p { margin: 4px 0; }
 .sprint-header small { display: block; max-width: 900px; color: #71806d; line-height: 1.5; }
 .sprint-panel { min-width: 0; padding: 18px; border: 1px solid #dce5d9; border-radius: 11px; background: #fff; box-shadow: 0 2px 6px #214a2706; }
-.sprint-start-panel { max-width: 560px; margin-bottom: 20px; }
+.sprint-start-panel { margin: 0; }
 .sprint-archive { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
 .sprint-archive select { max-width: 100%; padding: 10px 12px; border: 1px solid #cbd8c8; border-radius: 7px; background: #fff; color: #26372c; font: inherit; }
-.sprint-start-panel form { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; }
+.sprint-start-panel form { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.sprint-start-panel form > p { flex: 1 1 200px; margin: 0; }
+.sprint-start-panel > p { margin: 12px 0 0; }
 .sprint-start-panel label, .sprint-answer { display: flex; flex: 1 1 200px; flex-direction: column; gap: 6px; color: #354d3c; font-size: 12px; font-weight: 600; }
 .sprint-page input { box-sizing: border-box; width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid #cbd8c8; border-radius: 7px; background: #fff; color: #26372c; font: inherit; font-size: 16px; }
 .sprint-page button:not(.chess-board__square) { min-height: 40px; padding: 9px 15px; border: 1px solid #087a3b; border-radius: 7px; background: #087a3b; color: #fff; font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; }

@@ -317,3 +317,22 @@ test('the real validator rejects a non-mating key and malformed positions', () =
   assert.equal(verifySprintPuzzle(parseEntry(entry('invalid', startPositions[0]))), false);
   assert.equal(verifySprintPuzzle({ fen: 'invalid', key: 'e2e4' }), false);
 });
+
+test('local daily rounds use the checked 15+ reserve and preserve their randomly drawn set', () => {
+  const { db, store } = setup();
+  try {
+    const save = db.prepare('INSERT INTO sprint_candidates VALUES(?,?,?,?,?,?)');
+    for (let index = 0; index < 4; index++) {
+      const raw = entry(String(95000 + index), index === 0 ? ['Ke1', 'Pe2'] : startPositions[index % 3]);
+      if (index === 0) raw.algebraic.black = black.slice(0, 13);
+      const puzzle = { ...parseTournamentEntry(raw), key: parseEntry(raw).key };
+      save.run(puzzle.id, JSON.stringify(puzzle), puzzle.positionHash, puzzle.whiteCount + puzzle.blackCount, 0, puzzle.publicationDate);
+    }
+    store.validate = verifySprintPuzzle;
+    const selected = store.round();
+    assert.equal(selected.puzzles.length, 3);
+    assert.ok(selected.puzzles.every((puzzle) => puzzle.pieces >= 15));
+    assert.deepEqual(store.round().puzzles, selected.puzzles);
+    assert.throws(() => store.generate('2026-10-13'), /reserve needs replenishing/);
+  } finally { db.close(); }
+});

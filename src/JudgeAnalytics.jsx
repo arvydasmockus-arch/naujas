@@ -1,3 +1,4 @@
+import { localizedError, interfaceText, russianLabels } from './russianTranslations.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getAnalyticsSummary } from './analyticsApi';
 import './JudgeAnalytics.css';
@@ -10,7 +11,7 @@ const labels = {
     avg: 'Avg. visitors/day', sections: 'Sections', section: 'Section', views: 'Views', daysTable: 'Daily activity',
     date: 'Date', visitors: 'Visitors', solvers: '#2 solvers', attempts: '#2 answers', incorrect: 'Incorrect', avgSeconds: 'Avg. seconds', sixTraining: 'Training', sixCompetition: 'Competition',
     privacy: 'Visitor totals are estimates based on a monthly rotating IP and browser identifier. Raw IP addresses are not stored by this app; shared networks can count as one visitor.',
-    pages: { news: 'Home', solving: 'Daily #2', training: 'Training & competitions', tournaments: 'WSC' },
+    pages: { news: 'Home', solving: 'Matplus', training: 'Open Tournaments', tournaments: 'WSC' },
   },
   lt: {
     title: 'Svetainės statistika', days: 'Laikotarpis', refresh: 'Atnaujinti', loading: 'Įkeliama statistika…',
@@ -19,9 +20,11 @@ const labels = {
     avg: 'Vid. lankytojų per dieną', sections: 'Skiltys', section: 'Skiltis', views: 'Peržiūros', daysTable: 'Dienos aktyvumas',
     date: 'Data', visitors: 'Lankytojai', solvers: '#2 sprendėjai', attempts: '#2 atsakymai', incorrect: 'Klaidingi', avgSeconds: 'Vid. sekundės', sixTraining: 'Treniruotė', sixCompetition: 'Varžybos',
     privacy: 'Lankytojų skaičius apytikslis: naudojamas kas mėnesį keičiamas IP ir naršyklės identifikatorius. Neapdorotų IP adresų ši programa neišsaugo; bendras tinklas gali būti skaičiuojamas kaip vienas lankytojas.',
-    pages: { news: 'Pagrindinis', solving: 'Dienos #2', training: 'Treniruotės ir varžybos', tournaments: 'WSC' },
+    pages: { news: 'Pagrindinis', solving: 'Matplus', training: 'Atviri turnyrai', tournaments: 'WSC' },
   },
 };
+
+labels.ru = russianLabels(labels.en);
 const number = (value) => Number(value || 0).toLocaleString();
 const dateText = (value) => new Date(`${value}T12:00:00Z`).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
 
@@ -63,9 +66,9 @@ function JudgeAnalytics({ language = 'en', accessKey }) {
   return <section className="judge-analytics tournament-panel">
     <div className="judge-analytics__heading"><div><h2>{t.title}</h2><p>{t.privacy}</p></div>
       <label>{t.days}<select value={period} onChange={(event) => setPeriod(Number(event.target.value))}>
-        <option value={30}>30 {language === 'lt' ? 'd.' : 'days'}</option><option value={90}>90 {language === 'lt' ? 'd.' : 'days'}</option>
+        <option value={30}>30 {interfaceText(language, 'd.', 'days')}</option><option value={90}>90 {interfaceText(language, 'd.', 'days')}</option>
       </select></label><button type="button" disabled={busy} onClick={load}>{t.refresh}</button></div>
-    {error && <p className="judge-analytics__error" role="alert">{error}</p>}
+    {error && <p className="judge-analytics__error" role="alert">{localizedError(error, language)}</p>}
     {busy && !data ? <p>{t.loading}</p> : data && <>
       <div className="judge-analytics__cards">
         <article><span>{t.pageViews}</span><strong>{number(data.totals.views)}</strong></article>
@@ -82,7 +85,7 @@ function JudgeAnalytics({ language = 'en', accessKey }) {
           <tbody>{data.sections.map((row) => <tr key={row.section}><td>{t.pages[row.section] || row.section}</td><td>{number(row.visitors)}</td><td>{number(row.views)}</td></tr>)}
             {!data.sections.length && <tr><td colSpan="3">0</td></tr>}</tbody></table></div></div>
       </div>
-      <h3>{t.daysTable} · {data.days} {language === 'lt' ? 'dienų' : 'days'}</h3>
+      <h3>{t.daysTable} · {data.days} {interfaceText(language, 'dienų', 'days')}</h3>
       <div className="judge-analytics__scroll judge-analytics__daily"><table><thead><tr><th>{t.date}</th><th>{t.visitors}</th><th>{t.views}</th><th>{t.solvers}</th><th>{t.attempts}</th><th>{t.incorrect}</th><th>{t.avgSeconds}</th><th>{t.sixTraining}</th><th>{t.sixCompetition}</th></tr></thead>
         <tbody>{[...daily.values()].map((row) => <tr key={row.day}><td>{dateText(row.day)}</td><td>{number(row.visitors)}</td><td>{number(row.views)}</td>
           <td>{number(solving.get(row.day)?.players)}</td><td>{number(solving.get(row.day)?.answers)}</td><td>{number(solving.get(row.day)?.incorrect)}</td>

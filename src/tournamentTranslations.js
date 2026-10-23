@@ -1,8 +1,9 @@
+import { russianLabels } from './russianTranslations.js';
 export const tournamentTranslations = {
   en: {
     draftSolution: 'Editable solution & scoring draft', draftHelp: 'Each [score] is awarded for that line: four lines × 1.25, two lines × 2.5. Total: 5. Edit freely; studies need judge assessment.', saveDrafts: 'Save solution drafts', originalSolution: 'Original source solution', draftReview: 'Check the source branches before using this draft.',
     history: 'Tournament history', historyHint: 'Saved sets remain available with their PDFs and published results.', openSet: 'Open set & results', notReleased: 'Not published yet',
-    title: 'Six-problem tournaments', subtitle: 'Training and competitions · 120 minutes · one problem of each type',
+    title: 'Open Tournaments', subtitle: 'Open Tournaments · 120 minutes · one problem of each type',
     schedule: 'A new training set every Saturday at 10:00, Europe/Vilnius.', playerView: 'Player view', judgeView: 'Judge workspace',
     choose: 'Choose a tournament', loading: 'Loading…', noEvents: 'No published tournaments yet. The judge must import the pool first.',
     training: 'Training', competition: 'Competition', draft: 'Draft', published: 'Published', problems: 'Problems PDF', solutions: 'Solutions PDF', resultsPdf: 'Results PDF',
@@ -32,7 +33,7 @@ export const tournamentTranslations = {
   lt: {
     draftSolution: 'Redaguojamas sprendimo ir taškų juodraštis', draftHelp: 'Kiekviena žyma skiria taškus tam variantui: keturiems po 1,25, dviem po 2,5. Iš viso 5. Galite taisyti; etiudus vertina teisėjas.', saveDrafts: 'Išsaugoti sprendimų juodraščius', originalSolution: 'Originalus šaltinio sprendimas', draftReview: 'Prieš naudodami juodraštį patikrinkite šaltinio variantus.',
     history: 'Turnyrų istorija', historyHint: 'Išsaugoti rinkiniai lieka pasiekiami kartu su PDF ir paskelbtais rezultatais.', openSet: 'Atidaryti rinkinį ir rezultatus', notReleased: 'Dar nepaskelbta',
-    title: 'Šešių uždavinių turnyrai', subtitle: 'Treniruotės ir varžybos · 120 minučių · po vieną kiekvieno tipo uždavinį',
+    title: 'Atviri turnyrai', subtitle: 'Atviri turnyrai · 120 minučių · po vieną kiekvieno tipo uždavinį',
     schedule: 'Naujas treniruotės rinkinys šeštadieniais 10:00 Lietuvos laiku.', playerView: 'Žaidėjo puslapis', judgeView: 'Teisėjo darbo vieta',
     choose: 'Pasirinkite turnyrą', loading: 'Įkeliama…', noEvents: 'Paskelbtų turnyrų dar nėra. Pirmiausia teisėjas turi įkelti uždavinių rinkinį.',
     training: 'Treniruotė', competition: 'Varžybos', draft: 'Juodraštis', published: 'Paskelbta', problems: 'Uždavinių PDF', solutions: 'Sprendimų PDF', resultsPdf: 'Rezultatų PDF',
@@ -60,3 +61,5 @@ export const tournamentTranslations = {
     age: 'Tik uždaviniai, pirmą kartą publikuoti bent prieš penkerius metus. Įrašai be datos atmetami.',
   },
 };
+
+tournamentTranslations.ru = russianLabels(tournamentTranslations.en);

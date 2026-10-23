@@ -1,3 +1,5 @@
+import { accountApi, authorizeGameRequest, recordAccountActivity } from './accountAuth.mjs';
+import { d1Adapter } from './d1Adapter.mjs';
 import { createServer } from 'node:http';
 import { networkInterfaces } from 'node:os';
 import { spawn } from 'node:child_process';
@@ -22,7 +24,9 @@ if (!process.env.JUDGE_KEY && !existsSync(judgeKeyPath)) writeFileSync(judgeKeyP
 const judgeKey = (process.env.JUDGE_KEY || readFileSync(judgeKeyPath, 'utf8')).trim();
 if (!judgeKey) throw new Error('Judge key must not be empty.');
 const analytics = new AnalyticsStore(game.db, judgeKey);
+const accountEnv = { ...process.env, DB: d1Adapter(game.db), AUTH_SECRET: process.env.AUTH_SECRET || judgeKey.padEnd(32, '.'), ACCOUNTS_ENABLED: process.env.ACCOUNTS_ENABLED || 'true' };
 function recordAnalytics(req, event) {
+  if (req.accountUser) recordAccountActivity(accountEnv, req.accountUser, event.section, event.action || 'page_view').catch((error) => console.error('Account activity:', error.message));
   try { analytics.record({ ip: req.socket.remoteAddress, userAgent: req.headers['user-agent'] || '', ...event }); }
   catch (error) { console.error('Analytics event:', error.message); }
 }
@@ -39,18 +43,29 @@ const production = process.argv.includes('--production') || process.env.NODE_ENV
 const vite = production ? null : await (await import('vite')).createServer({ server: { middlewareMode: true }, appType: 'spa' });
 const website = production ? staticSite(fileURLToPath(new URL('../dist/', import.meta.url))) : vite.middlewares;
 async function body(req) {
+  if (req.accountBody !== undefined) return req.accountBody;
   let text = '';
   for await (const chunk of req) { text += chunk; if (text.length > 160000) throw new Error('Request too large.'); }
   return text ? JSON.parse(text) : {};
 }
 const server = createServer(async (req, res) => {
-  const url = new URL(req.url, 'http://localhost');
+  let url = new URL(req.url, 'http://localhost');
   if (req.method === 'GET' && url.pathname === '/healthz') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end('{"ok":true}'); return; }
   if (!url.pathname.startsWith('/api/solving/') && !url.pathname.startsWith('/api/tournaments/')
-    && !url.pathname.startsWith('/api/sprint/') && !url.pathname.startsWith('/api/analytics/')) return website(req, res);
+    && !url.pathname.startsWith('/api/sprint/') && !url.pathname.startsWith('/api/analytics/') && !url.pathname.startsWith('/api/accounts/')) return website(req, res);
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
   try {
+    const authRequest = new Request(url, { method: req.method, headers: { ...req.headers, 'CF-Connecting-IP': req.socket.remoteAddress || 'local' },
+      ...(['GET', 'HEAD'].includes(req.method) ? {} : { body: JSON.stringify(await body(req)) }) });
+    if (url.pathname.startsWith('/api/accounts/')) {
+      const response = await accountApi(authRequest, accountEnv, isJudge(req));
+      res.statusCode = response.status; res.end(await response.text()); return;
+    }
+    const authorized = await authorizeGameRequest(authRequest, accountEnv);
+    req.accountUser = authorized.user;
+    url = new URL(authorized.request.url);
+    if (!['GET', 'HEAD'].includes(req.method)) req.accountBody = await authorized.request.json();
     let result;
     if (url.pathname.startsWith('/api/analytics/')) {
       if (req.method === 'POST' && url.pathname === '/api/analytics/visit') {
@@ -147,7 +162,7 @@ const server = createServer(async (req, res) => {
       recordAnalytics(req, { section: 'solving', action: 'answer' });
     } else { res.statusCode = 404; result = { error: 'Not found.' }; }
     res.end(JSON.stringify(result));
-  } catch (error) { res.statusCode = 400; res.end(JSON.stringify({ error: error.message })); }
+  } catch (error) { res.statusCode = error.status || 400; res.end(JSON.stringify({ error: error.message })); }
 });
 const port = Number(process.env.PORT || 5174);
 let verifier;

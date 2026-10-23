@@ -1,11 +1,11 @@
+import { localizedError, interfaceText } from './russianTranslations.js';
 import { useCallback, useEffect, useState } from 'react';
 import ChessBoard from './ChessBoard';
 import { sprintRequest } from './sprintApi';
 import './SprintJudgePanel.css';
 
 function SprintJudgePanel({ accessKey, language }) {
-  const lt = language === 'lt';
-  const text = (lithuanian, english) => lt ? lithuanian : english;
+  const text = (lithuanian, english, russian) => language === 'ru' && russian ? russian : interfaceText(language, lithuanian, english);
   const [catalog, setCatalog] = useState(null);
   const [selected, setSelected] = useState('');
   const [round, setRound] = useState(null);
@@ -78,8 +78,8 @@ function SprintJudgePanel({ accessKey, language }) {
     if (!round || round.date !== selected) return;
     const reset = round.sessions.length > 0;
     const message = reset
-      ? text(`Pergeneruoti ${selected}? Bus pakeisti visi 3 uždaviniai ir ištrinti visi šios dienos žaidėjų atsakymai bei rezultatai.`, `Regenerate ${selected}? All 3 problems and every player session and result for this date will be replaced.`)
-      : text(`Pergeneruoti visus 3 uždavinius ${selected}?`, `Regenerate all 3 problems for ${selected}?`);
+      ? text(`Pergeneruoti ${selected}? Bus pakeisti visi 3 uždaviniai ir ištrinti visi šios dienos žaidėjų atsakymai bei rezultatai.`, `Regenerate ${selected}? All 3 problems and every player session and result for this date will be replaced.`, `Создать турнир ${selected} заново? Все 3 задачи, ответы и результаты игроков за эту дату будут заменены.`)
+      : text(`Pergeneruoti visus 3 uždavinius ${selected}?`, `Regenerate all 3 problems for ${selected}?`, `Заново создать все 3 задачи на ${selected}?`);
     if (!window.confirm(message)) return;
     perform(async () => {
       setRound(await sprintRequest('judge/regenerate', { date: selected, revision: round.revision, resetResults: reset }, accessKey));
@@ -88,14 +88,14 @@ function SprintJudgePanel({ accessKey, language }) {
   }
 
   function deleteSession(item) {
-    if (!window.confirm(text(`Pašalinti ${item.name} atsakymus ir rezultatą ${selected}?`, `Delete ${item.name}'s session and result for ${selected}?`))) return;
+    if (!window.confirm(text(`Pašalinti ${item.name} atsakymus ir rezultatą ${selected}?`, `Delete ${item.name}'s session and result for ${selected}?`, `Удалить ответы и результат игрока ${item.name} за ${selected}?`))) return;
     perform(async () => { await sprintRequest('judge/delete-session', { id: item.id }, accessKey); await refresh(); });
   }
 
   function deleteRound() {
     if (!round || round.date !== selected) return;
     if (!window.confirm(text(`Ištrinti ${selected} 3×#2 turnyrą? Bus pašalinti visi 3 uždaviniai ir visi šios dienos žaidėjų atsakymai bei rezultatai.`,
-      `Delete the ${selected} 3×#2 round? All 3 problems and every player session and result for this date will be deleted.`))) return;
+      `Delete the ${selected} 3×#2 round? All 3 problems and every player session and result for this date will be deleted.`, `Удалить турнир 3×#2 за ${selected}? Все 3 задачи, ответы и результаты игроков за эту дату будут удалены.`))) return;
     perform(async () => {
       await sprintRequest('judge/delete', { date: selected, revision: round.revision, confirmed: true }, accessKey);
       setRound(null);
@@ -105,13 +105,13 @@ function SprintJudgePanel({ accessKey, language }) {
   }
 
   function deletePlayer(item) {
-    if (!window.confirm(text(`Pašalinti ${item.name} iš „3×#2“? Bus ištrinti visi jo ${item.rounds} šio režimo turnyrų atsakymai ir rezultatai.`, `Remove ${item.name} from 3×#2? All ${item.rounds} of their sessions and results in this mode will be deleted.`))) return;
+    if (!window.confirm(text(`Pašalinti ${item.name} iš „3×#2“? Bus ištrinti visi jo ${item.rounds} šio režimo turnyrų atsakymai ir rezultatai.`, `Remove ${item.name} from 3×#2? All ${item.rounds} of their sessions and results in this mode will be deleted.`, `Удалить игрока ${item.name} из 3×#2? Ответы и результаты всех его турниров (${item.rounds}) в этом режиме будут удалены.`))) return;
     perform(async () => { await sprintRequest('judge/delete-player', { playerId: item.id }, accessKey); await refresh(); });
   }
 
   const loaded = round?.date === selected;
   return <section className="sprint-judge" aria-label="3 × #2">
-    {error && <p className="tournament-page__error" role="alert">{error}</p>}
+    {error && <p className="tournament-page__error" role="alert">{localizedError(error, language)}</p>}
     {status && <p role="status">{status}</p>}
     <form className="tournament-panel sprint-judge__generate" onSubmit={generate}>
       <h2>{text('Generuoti „3×#2“ turnyrus', 'Generate 3×#2 rounds')}</h2>

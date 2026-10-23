@@ -1,3 +1,4 @@
+import { localizedError, interfaceText, russianLabels } from './russianTranslations.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import ChessBoard from './ChessBoard';
@@ -6,10 +7,11 @@ import SprintCalendar from './SprintCalendar';
 import SolvingHallOfFame from './SolvingHallOfFame';
 import { sprintRequest } from './sprintApi';
 import { sprintTranslations } from './sprintTranslations';
+import { sprintToday } from './sprintDate';
 import './SprintPlatform.css';
 
 const emptyAnswers = () => ['', '', ''];
-const storageKey = (date) => `ml-sprint-20-${date}`;
+const storageKey = (date, accountId) => `ml-sprint-20-${accountId ? `${accountId}-` : ''}${date}`;
 const resultLabels = {
   en: { problemStatus: 'Result', seconds: 'sec', correct: 'Solved', wrong: 'Not solved', skipped: 'No answer',
     problemStatistics: 'Problem statistics', solvedBy: 'Solved', failedBy: 'Not solved', averageCorrect: 'Avg. correct time',
@@ -18,11 +20,10 @@ const resultLabels = {
     problemStatistics: 'Uždavinio statistika', solvedBy: 'Išsprendė', failedBy: 'Neišsprendė', averageCorrect: 'Teisingo sprendimo vidurkis',
     wrongMoves: 'Klaidingi atsakymai', move: 'Ėjimas', count: 'Kiekis', solution: 'Sprendimas' },
 };
-function readSaved(date) {
-  try { return JSON.parse(localStorage.getItem(storageKey(date))) ?? {}; } catch { return {}; }
-}
-function readPlayerName() {
-  try { return localStorage.getItem('ml-sprint-player') ?? ''; } catch { return ''; }
+
+resultLabels.ru = russianLabels(resultLabels.en);
+function readSaved(date, accountId) {
+  try { return JSON.parse(localStorage.getItem(storageKey(date, accountId))) ?? {}; } catch { return {}; }
 }
 function normalizedName(name) { return name.normalize('NFKC').trim().replace(/\s+/g, ' '); }
 function timeText(value) {
@@ -55,13 +56,13 @@ function tableRows(rows, t, kind) {
   </tr>)}</tbody></table></div>;
 }
 
-function SprintPlatform({ language = 'en' }) {
+function SprintPlatform({ language = 'en', accountUser = null, accountsEnabled = false }) {
   const t = { ...sprintTranslations[language], ...resultLabels[language] };
   const [round, setRound] = useState(null);
-  const [selectedDate] = useState(() => new URLSearchParams(window.location.search).get('sprintDate') || '');
-  const roundAction = selectedDate ? `round?date=${encodeURIComponent(selectedDate)}` : 'round';
+  const [selectedDate, setSelectedDate] = useState(sprintToday);
+  const roundAction = `round?date=${encodeURIComponent(selectedDate)}`;
   const [player, setPlayer] = useState('');
-  const [draftName, setDraftName] = useState(readPlayerName);
+  const [draftName, setDraftName] = useState(accountUser?.username || '');
   const [calendar, setCalendar] = useState(null);
   const [session, setSession] = useState(null);
   const [answers, setAnswers] = useState(emptyAnswers);
@@ -77,6 +78,12 @@ function SprintPlatform({ language = 'en' }) {
   const remaining = session ? Math.max(0, session.deadline - (now - offset)) : 0;
   const submitted = Boolean(session?.submittedAt);
   const calendarName = normalizedName(session?.name || draftName);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sprintDate', selectedDate);
+    window.history.replaceState(null, '', url);
+  }, [selectedDate]);
 
   useEffect(() => {
     let current = true;
@@ -97,11 +104,11 @@ function SprintPlatform({ language = 'en' }) {
     if (sessionId && session?.id === sessionId && data.sessionStatus === 'missing') {
       setSession(null); setAnswers(emptyAnswers()); setProblemSeconds([null, null, null]);
       setBoardAnswers(emptyAnswers()); setBoardVersions([0, 0, 0]);
-      try { localStorage.removeItem(storageKey(data.date)); } catch { /* Server data remains authoritative. */ }
+      try { localStorage.removeItem(storageKey(data.date, accountUser?.id)); } catch { /* Server data remains authoritative. */ }
     }
     setRound(data);
     return data;
-  }, [roundAction, session]);
+  }, [roundAction, session, accountUser]);
 
   useEffect(() => {
     let current = true;
@@ -110,22 +117,6 @@ function SprintPlatform({ language = 'en' }) {
         const data = await sprintRequest(roundAction);
         if (!current) return;
         setRound(data);
-        const saved = readSaved(data.date);
-        if (!saved.name) return;
-        const remembered = readPlayerName();
-        if (remembered && normalizedName(remembered).toLocaleLowerCase('en-US') !== normalizedName(saved.name).toLocaleLowerCase('en-US')) return;
-        setPlayer(saved.name); setDraftName(saved.name); setAnswers(saved.answers ?? emptyAnswers());
-        setProblemSeconds(saved.problemSeconds ?? [null, null, null]);
-        if (saved.started) {
-          const restored = await sprintRequest(`session?${new URLSearchParams({ name: saved.name, date: data.date })}`);
-          if (!current) return;
-          if (!restored.id) {
-            setAnswers(emptyAnswers()); setProblemSeconds([null, null, null]);
-            return;
-          }
-          setSession(restored); setOffset(Date.now() - restored.serverNow);
-          if (restored.submittedAt) setAnswers(restored.answers ?? emptyAnswers());
-        }
       } catch (problem) { if (current) setError(problem.message || t.error); }
     }
     load();
@@ -133,29 +124,28 @@ function SprintPlatform({ language = 'en' }) {
   }, [t.error, roundAction]);
 
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 250); return () => clearInterval(timer); }, []);
-  useEffect(() => {
-    const timer = setInterval(() => { refreshRound().catch((problem) => setError(problem.message)); }, 10000);
-    return () => clearInterval(timer);
-  }, [refreshRound]);
 
   useEffect(() => {
     if (!round || !player) return;
     try {
-      localStorage.setItem('ml-sprint-player', player);
-      localStorage.setItem(storageKey(round.date), JSON.stringify({ name: player, started: Boolean(session), answers, problemSeconds }));
+      localStorage.setItem(storageKey(round.date, accountUser?.id), JSON.stringify({ name: player, started: Boolean(session), answers, problemSeconds }));
     }
     catch { /* The server retains submitted results; local storage only keeps an in-progress draft. */ }
-  }, [round, player, session, answers, problemSeconds]);
+  }, [round, player, session, answers, problemSeconds, accountUser?.id]);
 
   async function start(event) {
     event.preventDefault();
-    const name = draftName.normalize('NFKC').trim().replace(/\s+/g, ' ');
+    if (accountsEnabled && !accountUser) return;
+    const name = (accountUser?.username || draftName).normalize('NFKC').trim().replace(/\s+/g, ' ');
     if (name.length < 2 || name.length > 40 || busy) return;
     setBusy(true); setError('');
     try {
+      const saved = readSaved(round.date, accountUser?.id);
+      const restoreDraft = saved.started && normalizedName(saved.name || '').toLocaleLowerCase('en-US') === name.toLocaleLowerCase('en-US');
       const data = await sprintRequest('start', { name, date: round.date });
       setPlayer(data.name); setDraftName(data.name); setSession(data); setOffset(Date.now() - data.serverNow);
-      setAnswers(data.answers ?? emptyAnswers()); setProblemSeconds(data.problemSeconds ?? [null, null, null]);
+      setAnswers(data.answers ?? (restoreDraft ? saved.answers : null) ?? emptyAnswers());
+      setProblemSeconds(data.problemSeconds ?? (restoreDraft ? saved.problemSeconds : null) ?? [null, null, null]);
       setBoardAnswers(emptyAnswers()); setBoardVersions([0, 0, 0]);
       await refreshRound();
     } catch (problem) { setError(problem.message); }
@@ -210,32 +200,32 @@ function SprintPlatform({ language = 'en' }) {
   }
 
   function switchPlayer() {
-    if (round) localStorage.removeItem(storageKey(round.date));
+    if (round) localStorage.removeItem(storageKey(round.date, accountUser?.id));
     try { localStorage.removeItem('ml-sprint-player'); } catch { /* Player switching remains available without storage. */ }
-    setSession(null); setPlayer(''); setDraftName(''); setAnswers(emptyAnswers()); setBoardAnswers(emptyAnswers());
+    setSession(null); setPlayer(''); setDraftName(accountUser?.username || ''); setAnswers(emptyAnswers()); setBoardAnswers(emptyAnswers());
   }
 
   return <main className="sprint-page" lang={language}>
     <header className="sprint-header"><div><span>ML Academy</span><h1>{t.title}</h1><p>{t.subtitle}</p></div></header>
-    {error && <div className="sprint-error" role="alert">{error}</div>}
+    {error && <div className="sprint-error" role="alert">{localizedError(error, language)}</div>}
     {round && <SprintCalendar dates={round.dates ?? calendar?.dates ?? [round.date]}
       completedDates={calendar?.name === calendarName ? calendar.completedDates : []}
       selectedDate={round.date} playerName={calendarName} language={language}
       disabled={busy || Boolean(session && !submitted)} onSelect={(date) => {
         if (date === round.date) return;
-        try { localStorage.setItem('ml-sprint-player', calendarName); } catch { /* Name entry remains available without storage. */ }
-        const url = new URL(window.location.href);
-        url.searchParams.set('page', 'sprint');
-        url.searchParams.set('sprintDate', date);
-        window.location.assign(url.href);
-      }} />}
-    {!round && !error && <section className="sprint-panel">{t.error}</section>}
-    {round && !session && <section className="sprint-panel sprint-start-panel">
-      <form onSubmit={start}><label>{t.name}<input value={draftName} minLength={2} maxLength={40} required
-        onChange={(event) => setDraftName(event.target.value)} /></label>
-        <button type="submit" disabled={busy || draftName.trim().length < 2}>{busy ? '…' : t.start}</button></form>
+        setSelectedDate(date); setRound(null); setSession(null); setPlayer('');
+        setAnswers(emptyAnswers()); setProblemSeconds([null, null, null]);
+        setBoardAnswers(emptyAnswers()); setBoardVersions([0, 0, 0]); setError('');
+        autoSubmitted.current = null;
+      }}>
+    {!session && <div className="sprint-start-panel">
+      <form onSubmit={start}>{accountsEnabled ? <p>{accountUser ? accountUser.username : interfaceText(language, 'Norėdami spręsti, prisijunkite.', 'Log in to start solving.')}</p> : <label>{t.name}<input autoComplete="off" value={draftName} minLength={2} maxLength={40} required
+        onChange={(event) => setDraftName(event.target.value)} /></label>}
+        <button type="submit" disabled={busy || draftName.trim().length < 2 || (accountsEnabled && !accountUser)}>{busy ? '…' : t.start}</button></form>
       <p>{t.submitHint}</p>
-    </section>}
+    </div>}
+    </SprintCalendar>}
+    {!round && !error && <section className="sprint-panel">{t.error}</section>}
     {round && session && <>
       <section className="sprint-session-bar" aria-live="polite">
         <strong>{session.name}</strong>

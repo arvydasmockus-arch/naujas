@@ -15,14 +15,17 @@ let source = readFileSync(url, 'utf8').replace("import { pdfAssets } from './pdf
 source = source.replace(/from '([^']+)'/g, (_, path) => `from '${path.startsWith('.') ? new URL(path, url).href : import.meta.resolve(path)}'`);
 const { default: worker } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
 
-function setup() {
+function setup(extraEnv = {}) {
   const db = openDatabase(':memory:', false);
   new TournamentStore(db); new SprintStore(db);
   db.exec(readFileSync(new URL('../cloudflare/migrations/0010_sprint_candidates.sql', import.meta.url), 'utf8'));
   const adapter = {
     prepare(sql) {
       let params = [];
-      return { bind(...values) { params = values; return this; },
+      return { bind(...values) {
+        if (values.some((value) => value === undefined)) throw new Error('D1_TYPE_ERROR: undefined is not supported');
+        params = values; return this;
+      },
         async first() { return db.prepare(sql).get(...params) ?? null; },
         async all() { return { results: db.prepare(sql).all(...params) }; },
         async run() { const result = db.prepare(sql).run(...params); return { meta: { changes: result.changes, rows_written: result.changes } }; },
@@ -34,11 +37,11 @@ function setup() {
       catch (error) { db.exec('ROLLBACK'); throw error; }
     },
   };
-  async function request(path, data, authenticated = true) {
+  async function request(path, data, authenticated = true, playerToken = '') {
     return worker.fetch(new Request('https://example.test' + path, {
-      method: data === undefined ? 'GET' : 'POST', headers: { ...(authenticated ? { Authorization: 'Bearer test-access' } : {}), 'Content-Type': 'application/json' },
+      method: data === undefined ? 'GET' : 'POST', headers: { ...(playerToken ? { 'X-Player-Session': playerToken } : {}), ...(authenticated ? { Authorization: 'Bearer test-access' } : {}), 'Content-Type': 'application/json' },
       ...(data === undefined ? {} : { body: JSON.stringify(data) }),
-    }), { DB: adapter, JUDGE_KEY: 'test-access' });
+    }), { DB: adapter, JUDGE_KEY: 'test-access', ...extraEnv });
   }
   return { db, request };
 }
@@ -127,17 +130,21 @@ test('Cloudflare imports checked candidates and schedules future rounds without 
     const white = ['Ke1', 'Qd1', 'Ra1', 'Rh1', 'Bc1', 'Bf1', 'Sb1', 'Sg1', 'Pa2', 'Pb2', 'Pc2', 'Pd2', 'Pe2', 'Pf2', 'Pg2', 'Ph2'];
     const black = ['Ke8', 'Qd8', 'Ra8', 'Rh8', 'Bc8', 'Bf8', 'Sb8', 'Sg8', 'Pa7', 'Pb7', 'Pc7', 'Pd7', 'Pe7', 'Pf7', 'Pg7', 'Ph7'];
     const candidates = Array.from({ length: 3 }, (_, index) => {
-      const pieces = white.map((piece) => index === 1 && piece === 'Sb1' ? 'Sa3' : index === 2 && piece === 'Sg1' ? 'Sh3' : piece);
-      const raw = { id: 90000 + index, stipulation: '#2', algebraic: { white: pieces, black }, source: { name: 'Test', date: { year: 1990 } }, solution: '1.e2-e4 !' };
-      const puzzle = { ...parseTournamentEntry(raw), key: parseEntry(raw).key, alternativeMoves: 20, pieces: 32, wrongKeyTries: index };
-      return { id: puzzle.id, puzzle: JSON.stringify(puzzle), position_hash: puzzle.positionHash, pieces: 32, wrong_key_tries: index, publication_date: puzzle.publicationDate };
+      const pieces = index === 1 ? ['Ke1', 'Pe2'] : white.map((piece) => index === 2 && piece === 'Sg1' ? 'Sh3' : piece);
+      const raw = { id: 90000 + index, stipulation: '#2', algebraic: { white: pieces, black: index === 1 ? black.slice(0, 13) : black }, source: { name: 'Test', date: { year: 1990 } }, solution: '1.e2-e4 !' };
+      const parsed = parseTournamentEntry(raw);
+      const puzzle = { ...parsed, key: parseEntry(raw).key, pieces: parsed.whiteCount + parsed.blackCount, wrongKeyTries: index };
+      return { id: puzzle.id, puzzle: JSON.stringify(puzzle), position_hash: puzzle.positionHash, pieces: puzzle.pieces, wrong_key_tries: index, publication_date: puzzle.publicationDate };
     });
     assert.equal((await request('/api/admin/import', { sprintCandidates: candidates })).status, 200);
     const date = new Date(Date.parse(localSprintDate() + 'T12:00:00Z') + 86400000).toISOString().slice(0, 10);
     assert.equal((await request('/api/sprint/judge/generate', { date })).status, 200);
     const round = await (await request('/api/sprint/judge/round?date=' + date)).json();
     assert.equal(round.puzzles.length, 3);
-    assert.equal(round.puzzles[0].id, '90002');
+    assert.deepEqual(round.puzzles.map((puzzle) => puzzle.id).sort(), ['90000', '90001', '90002']);
+    assert.ok(round.puzzles.some((puzzle) => puzzle.pieces === 15));
+    assert.equal((await request('/api/admin/import', { sprintCandidates: [{ ...candidates[0], id: 'too-small', pieces: 14 }] })).status, 400);
+    assert.ok(round.puzzles.every((puzzle) => Number.isInteger(puzzle.alternativeMoves) && puzzle.alternativeMoves > 0));
     assert.equal(db.prepare('SELECT COUNT(*) AS n FROM puzzles').get().n, 0);
     assert.equal((await request('/api/sprint/round?date=' + date)).status, 400);
   } finally { db.close(); }
@@ -173,5 +180,77 @@ test('failed automatic batches retain a reservation and a new UTC day gets its o
     await assert.rejects(request('/api/admin/import', { automatic: true, puzzles: [{ id: 'failed', raw: '{}', puzzle: null }] }));
     assert.equal((await (await request('/api/admin/import', { automaticImportStatus: true })).json()).written, 8);
     assert.equal(db.prepare('SELECT count(*) AS n FROM puzzles').get().n, 0);
+  } finally { db.close(); }
+});
+
+
+test('midnight and 08:00 retry follow Vilnius daylight saving and skip other UTC candidates without database reads', async (t) => {
+  for (const timestamp of ['2026-07-10T21:00:00Z', '2026-12-10T22:00:00Z', '2026-07-11T05:00:00Z', '2026-12-11T06:00:00Z']) {
+    t.mock.method(Date, 'now', () => Date.parse(timestamp));
+    const queries = [];
+    const adapter = { prepare(sql) {
+      queries.push(sql);
+      return { bind() { return this; }, async first() {
+        if (sql.includes('COUNT(*) AS n FROM daily_puzzles')) return { n: 6 };
+        if (sql.includes('COUNT(*) AS n FROM sprint_puzzles')) return { n: 3 };
+        assert.ok(!sql.includes('FROM puzzles p'), 'No background reserve scans');
+        return null;
+      } };
+    } };
+    await worker.scheduled({ scheduledTime: Date.parse(timestamp) }, { DB: adapter });
+    assert.ok(queries.some((sql) => sql.includes('COUNT(*) AS n FROM daily_puzzles')));
+    assert.ok(queries.some((sql) => sql.includes('FROM sprint_puzzles')));
+    t.mock.restoreAll();
+  }
+  for (const timestamp of ['2026-07-10T22:00:00Z', '2026-12-10T21:00:00Z', '2026-07-11T06:00:00Z', '2026-12-11T05:00:00Z', '2026-10-20T12:00:00Z']) {
+    await worker.scheduled({ scheduledTime: Date.parse(timestamp) }, {
+      DB: { prepare() { assert.fail('No database work outside local midnight or 08:00'); } },
+    });
+  }
+});
+
+
+test('sprint selection scans exclusion history once instead of once per candidate', () => {
+  const { db } = setup();
+  try {
+    const sql = source.match(/WITH used_ids AS MATERIALIZED[\s\S]*?ORDER BY RANDOM\(\) LIMIT 3/)[0];
+    const plan = db.prepare(`EXPLAIN QUERY PLAN ${sql}`).all('2021-10-22');
+    assert.ok(plan.some((row) => row.detail.includes('MATERIALIZE used_ids')));
+    assert.ok(plan.some((row) => row.detail.includes('MATERIALIZE used_positions')));
+    assert.ok(plan.every((row) => !row.detail.includes('CORRELATED')), 'History lookups must not run for every candidate');
+  } finally { db.close(); }
+});
+
+test('pending verification queue is acknowledged without D1 queries', async () => {
+  let acknowledged = false;
+  await worker.queue({ ackAll() { acknowledged = true; } }, {
+    DB: { prepare() { assert.fail('Verification must not read D1'); } },
+  });
+  assert.equal(acknowledged, true);
+});
+
+
+test('deployed worker routes bind authenticated names and protect session ownership with CORS', async () => {
+  const mail = [];
+  const { db, request } = setup({ ACCOUNTS_ENABLED: 'true', AUTH_SECRET: 'test-secret-with-at-least-32-characters', SEND_VERIFICATION: async (message) => mail.push(message) });
+  try {
+    const signup = await (await request('/api/accounts/register', { username: 'Account Player', email: 'worker@example.test', password: 'a-long-test-password' }, false)).json();
+    const login = await (await request('/api/accounts/verify', { challengeId: signup.challengeId, code: mail[0].code }, false)).json();
+    assert.ok(login.token);
+    const calendar = await request('/api/sprint/calendar?name=Someone', undefined, false, login.token);
+    assert.equal(calendar.status, 200);
+    assert.equal((await calendar.json()).name, 'Account Player');
+    assert.equal((await request('/api/solving/series?name=Someone', undefined, false)).status, 401);
+    assert.equal((await request('/api/sprint/start', { name: 'Someone' }, false)).status, 401);
+    assert.equal((await request('/api/tournaments/start', { name: 'Someone' }, false)).status, 401);
+    assert.equal((await request('/api/sprint/submit', { sessionId: 'foreign', answers: [] }, false, login.token)).status, 403);
+    db.exec(readFileSync(new URL('../cloudflare/migrations/0005_analytics_events.sql', import.meta.url), 'utf8'));
+    const visit = await request('/api/analytics/visit', { section: 'sprint' }, false, login.token);
+    assert.equal(visit.status, 200);
+    const history = await (await request('/api/accounts/judge/history?id=' + login.user.id)).json();
+    assert.equal(history.activity[0].section, 'sprint');
+    assert.equal((await request('/api/accounts/judge/users', undefined, false, login.token)).status, 401);
+    const options = await worker.fetch(new Request('https://example.test/api/accounts/login', { method: 'OPTIONS', headers: { Origin: 'https://ml-mokykla.pages.dev' } }), {});
+    assert.match(options.headers.get('Access-Control-Allow-Headers'), /X-Player-Session/);
   } finally { db.close(); }
 });

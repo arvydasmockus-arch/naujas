@@ -1,3 +1,5 @@
+import { localizedError, interfaceText } from './russianTranslations.js';
+import JudgeAccounts from './JudgeAccounts';
 import { useCallback, useEffect, useState } from 'react';
 import ChessBoard from './ChessBoard';
 import TournamentResults from './TournamentResults';
@@ -16,7 +18,7 @@ function remainingTime(milliseconds) {
   return `${String(Math.floor(seconds / 3600)).padStart(2, '0')}:${String(Math.floor(seconds / 60) % 60).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
-function TournamentPlatform({ language = 'en' }) {
+function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabled = false }) {
   const t = tournamentTranslations[language];
   const [judge, setJudge] = useState(false);
   const [judgeMode, setJudgeMode] = useState('tournaments');
@@ -26,7 +28,7 @@ function TournamentPlatform({ language = 'en' }) {
   const [event, setEvent] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [name, setName] = useState('');
+  const [name, setName] = useState(accountUser?.username || '');
   const [session, setSession] = useState(null);
   const [answers, setAnswers] = useState(Array(6).fill(''));
   const [now, setNow] = useState(Date.now);
@@ -42,7 +44,7 @@ function TournamentPlatform({ language = 'en' }) {
   const [solutionDrafts, setSolutionDrafts] = useState(Array(6).fill(''));
   const [result, setResult] = useState(emptyResult);
   const key = judge ? accessKey : '';
-  const storageKey = `ml-tournament-${selected}`;
+  const storageKey = `ml-tournament-${accountUser ? `${accountUser.id}-` : ''}${selected}`;
   const expired = session ? now - offset >= session.deadline : false;
 
   const acceptEvent = useCallback((data) => {
@@ -72,8 +74,8 @@ function TournamentPlatform({ language = 'en' }) {
         if (controller.signal.aborted) return;
         acceptEvent(data); setError(''); setResult(emptyResult());
         const local = stored(storageKey, {});
-        setName(local.name ?? ''); setAnswers(local.answers ?? Array(6).fill('')); setSession(null);
-        if (!judge && local.name && local.started) {
+        setName(accountsEnabled ? accountUser?.username || '' : local.name ?? ''); setAnswers(local.answers ?? Array(6).fill('')); setSession(null);
+        if (!judge && local.name && local.started && (!accountsEnabled || local.name === accountUser?.username)) {
           const restored = await tournamentRequest('start', { signal: controller.signal, data: { id: selected, name: local.name } });
           if (controller.signal.aborted) return;
           setSession(restored); setOffset(Date.now() - restored.serverNow);
@@ -81,7 +83,7 @@ function TournamentPlatform({ language = 'en' }) {
         }
       }).catch((problem) => { if (!controller.signal.aborted) setError(problem.message); });
     return () => controller.abort();
-  }, [selected, key, judge, storageKey, acceptEvent]);
+  }, [selected, key, judge, storageKey, acceptEvent, accountsEnabled, accountUser?.username]);
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, []);
   useEffect(() => {
     if (!selected || judge || !session) return;
@@ -141,7 +143,7 @@ function TournamentPlatform({ language = 'en' }) {
   }
   function switchPlayer() {
     try { localStorage.removeItem(storageKey); } catch { /* Optional local draft. */ }
-    setSession(null); setName(''); setAnswers(Array(6).fill(''));
+    setSession(null); setName(accountUser?.username || ''); setAnswers(Array(6).fill(''));
   }
   function refreshSubmissions() {
     perform(async () => {
@@ -150,7 +152,7 @@ function TournamentPlatform({ language = 'en' }) {
     });
   }
   function answerText() {
-    return `${event.displayTitle}\nPlayer: ${session?.name ?? name}\n120-minute solving session\n\n` + answers.map((answer, index) => `${index + 1}. ${event.puzzles[index].stipulation}\n${answer || '—'}`).join('\n\n');
+    return `${event.displayTitle}\n${t.name}: ${session?.name ?? name}\n${t.subtitle}\n\n` + answers.map((answer, index) => `${index + 1}. ${event.puzzles[index].stipulation}\n${answer || '—'}`).join('\n\n');
   }
   function downloadText() {
     const url = URL.createObjectURL(new Blob([answerText()], { type: 'text/plain;charset=utf-8' }));
@@ -159,7 +161,7 @@ function TournamentPlatform({ language = 'en' }) {
   function mail() {
     const text = answerText();
     // Long solutions are attached as a downloaded text file, avoiding mailto URL truncation.
-    const body = text.length < 1800 ? text : `Player: ${session?.name ?? name}\n${event.displayTitle}\nPlease attach the downloaded answers .txt file containing all six solutions.`;
+    const body = text.length < 1800 ? text : `${t.name}: ${session?.name ?? name}\n${event.displayTitle}\n${interfaceText(language, 'Pridėkite atsisiųstą .txt failą su visais šešiais sprendimais.', 'Please attach the downloaded answers .txt file containing all six solutions.')}`;
     if (text.length >= 1800) downloadText();
     window.location.href = `mailto:arvydas.mockus@gmail.com?subject=${encodeURIComponent(`${event.displayTitle} — ${session?.name ?? name}`)}&body=${encodeURIComponent(body)}`;
   }
@@ -193,11 +195,12 @@ function TournamentPlatform({ language = 'en' }) {
       {judge ? <button type="button" onClick={() => { setJudge(false); setEvent(null); setAccessKey(''); }}>{t.logout}</button> :
         <details><summary>{t.judgeView}</summary><form onSubmit={login}><label>{t.access}<input type="password" value={accessKey} onChange={(e) => setAccessKey(e.target.value)} required /></label><button disabled={busy}>{t.login}</button><p>{t.keyHint}</p></form></details>}
     </div>
-    {error && <p className="tournament-page__error" role="alert">{error}</p>}
+    {error && <p className="tournament-page__error" role="alert">{localizedError(error, language)}</p>}
     {judge && <JudgeAnalytics language={language} accessKey={accessKey} />}
-    {judge && <label className="tournament-selector">{language === 'lt' ? 'Ką tvarkyti' : 'Manage'}
+    {judge && accountsEnabled && <JudgeAccounts accessKey={accessKey} language={language} />}
+    {judge && <label className="tournament-selector">{interfaceText(language, 'Ką tvarkyti', 'Manage')}
       <select value={judgeMode} onChange={(event) => setJudgeMode(event.target.value)}>
-        <option value="tournaments">{language === 'lt' ? 'Treniruotės ir varžybos' : 'Training and competitions'}</option>
+        <option value="tournaments">{interfaceText(language, 'Atviri turnyrai', 'Open Tournaments')}</option>
         <option value="sprint">3 × #2 · 20 min</option>
       </select>
     </label>}
@@ -227,7 +230,7 @@ function TournamentPlatform({ language = 'en' }) {
         <p className="tournament-note">{t.usage}</p>
       </section>}
       {!judge && <section className="tournament-panel">
-        {!session ? <form className="tournament-start" onSubmit={start}><label>{t.name}<input value={name} onChange={(e) => setName(e.target.value)} minLength={2} maxLength={40} required /></label><button disabled={busy}>{t.start}</button></form>
+        {!session ? <form className="tournament-start" onSubmit={start}>{accountsEnabled ? <p>{accountUser ? accountUser.username : interfaceText(language, 'Norėdami spręsti, prisijunkite.', 'Log in to start solving.')}</p> : <label>{t.name}<input value={name} onChange={(e) => setName(e.target.value)} minLength={2} maxLength={40} required /></label>}<button disabled={busy || (accountsEnabled && !accountUser)}>{t.start}</button></form>
           : <div className="tournament-clock"><strong>{session.name}</strong><span>{t.remaining}: {remainingTime(session.deadline - (now - offset))}</span>{session.submittedAt && <p role="status">{t.submitted}</p>}{expired && !session.submittedAt && <p>{t.deadline}</p>}
             {(session.submittedAt || expired) && <button type="button" onClick={switchPlayer}>{t.switchPlayer}</button>}</div>}
       </section>}
@@ -236,12 +239,12 @@ function TournamentPlatform({ language = 'en' }) {
         <div className="tournament-diagram">
           <ChessBoard fen={puzzle.fen} disabled compact language={language} description={`${t.problem} ${index + 1}: ${puzzle.stipulation}`} onMove={() => {}} />
           <div className="tournament-diagram__caption"><span>{puzzle.stipulation}</span>
-            {puzzle.solutions ? <small>{puzzle.solutions} {language === 'lt' ? 'sprendiniai' : 'solutions'}</small> : <span />}
+            {puzzle.solutions ? <small>{puzzle.solutions} {interfaceText(language, 'sprendiniai', 'solutions')}</small> : <span />}
             <span>({puzzle.whiteCount} + {puzzle.blackCount})</span>
           </div>
         </div>
         {(judge || event.solutionsPublic) && <div className="tournament-source"><strong>{puzzle.authors.join(' · ')}</strong><p>{puzzle.source} {puzzle.year} · <a href={puzzle.sourceUrl} target="_blank" rel="noopener noreferrer">YACPDB #{puzzle.id}</a></p>
-          <details><summary>{judge ? t.originalSolution : language === 'lt' ? 'Sprendimas' : 'Solution'}</summary>{judge ? <pre>{puzzle.solution}</pre> : <ScoredSolution text={puzzle.solutionDraft} />}</details></div>}
+          <details><summary>{judge ? t.originalSolution : interfaceText(language, 'Sprendimas', 'Solution')}</summary>{judge ? <pre>{puzzle.solution}</pre> : <ScoredSolution text={puzzle.solutionDraft} />}</details></div>}
         {judge && <><label>{t.draftSolution}<textarea className="tournament-solution-editor" rows={6} value={solutionDrafts[index]} onChange={(e) => setSolutionDrafts((drafts) => drafts.map((draft, i) => i === index ? e.target.value : draft))} maxLength={20000} /></label>
           <p className="tournament-note">{t.draftHelp}</p>
           {puzzle.draftWarnings?.length > 0 && <p className="tournament-draft-warning">{t.draftReview}</p>}

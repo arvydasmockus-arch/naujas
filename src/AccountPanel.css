@@ -1,0 +1,30 @@
+.account-controls { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.account-controls__username { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f3f1fa; font-size: 13px; }
+.account-controls__button { padding: 9px 12px; border: 1px solid #575562; border-radius: 8px; background: #24232d; color: #f4f2f7; font: inherit; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.account-controls__button--primary { background: #7551c9; border-color: #9b7be0; }
+.account-controls__button:hover { border-color: #ad8ae8; background: #393046; }
+.account-controls__button--primary:hover { background: #8760dc; }
+.account-controls__button:disabled { opacity: .6; cursor: wait; }
+.account-controls__error { max-width: 220px; color: #ffb3b3; font-size: 12px; }
+.account-panel { width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); margin: auto; padding: 24px; box-sizing: border-box; overflow-y: auto; border: 1px solid #494058; border-radius: 14px; background: #191823; color: #f3f1fa; box-shadow: 0 24px 80px #0008; }
+.account-panel::backdrop { background: #08070dbb; }
+.account-panel__heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.account-panel__heading h2 { margin: 0; color: #f3f1fa; font-size: 22px; }
+.account-panel__tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.account-panel form { display: grid; gap: 16px; margin-top: 20px; }
+.account-panel label { display: grid; gap: 6px; }
+.account-panel input { min-width: 0; width: 100%; box-sizing: border-box; padding: 11px; border: 1px solid #494258; border-radius: 8px; background: #12111b; color: #f3f1fa; font: inherit; }
+.account-panel button { padding: 10px 14px; border: 1px solid #9b7be0; border-radius: 8px; background: #7551c9; color: #fff; font: inherit; cursor: pointer; }
+.account-panel__tabs button { background: #24232d; border-color: #494258; font-size: 13px; }
+.account-panel__tabs button[aria-pressed="true"] { background: #563888; border-color: #9b7be0; }
+.account-panel button.account-panel__close { padding: 2px 9px; border-color: transparent; background: transparent; color: #c6c0d2; font-size: 26px; }
+.account-panel button:disabled { opacity: .6; cursor: wait; }
+.account-panel p, .account-panel small { color: #c6c0d2; line-height: 1.5; }
+.account-panel [role="alert"] { color: #ffb3b3; }
+.account-panel input:focus-visible, .account-panel button:focus-visible, .account-controls__button:focus-visible { outline: 2px solid #c7a7ff; outline-offset: 3px; }
+@media (max-width: 580px) {
+  .account-controls { gap: 5px; }
+  .account-controls__button { padding: 8px; font-size: 12px; }
+  .account-controls__username { max-width: 95px; font-size: 12px; }
+  .account-panel { padding: 20px; }
+}
