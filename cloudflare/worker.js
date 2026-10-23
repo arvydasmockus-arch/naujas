@@ -1,3 +1,4 @@
+import { drawSprintRows } from '../server/sprintDraw.mjs';
 import { accountApi, accountsEnabled, authorizeGameRequest, recordAccountActivity } from '../server/accountAuth.mjs';
 import { latestSaturday, oldEnough, parseTournamentEntry, rankResults, tournamentTypes } from '../server/tournamentTools.mjs';
 import { solutionDraft } from '../server/solutionDraft.mjs';
@@ -513,23 +514,7 @@ async function solvingApi(request, url, env) {
 }
 
 async function pickSprintPuzzles(db, date) {
-  const cutoff = new Date(date + 'T12:00:00Z');
-  cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 5);
-  // Build exclusion lists once, rather than scanning history for every candidate.
-  const rows = await db.prepare(`WITH used_ids AS MATERIALIZED (
-      SELECT puzzle_id AS id FROM sprint_puzzles WHERE puzzle_id IS NOT NULL
-      UNION SELECT puzzle_id FROM sprint_retired_positions WHERE puzzle_id IS NOT NULL
-      UNION SELECT puzzle_id FROM daily_puzzles WHERE puzzle_id IS NOT NULL
-      UNION SELECT json_extract(puzzle,'$.id') FROM tournament_problems WHERE json_extract(puzzle,'$.id') IS NOT NULL
-    ), used_positions AS MATERIALIZED (
-      SELECT position_hash FROM sprint_puzzles WHERE position_hash IS NOT NULL
-      UNION SELECT position_hash FROM sprint_retired_positions WHERE position_hash IS NOT NULL
-    )
-    SELECT c.puzzle FROM sprint_candidates c WHERE pieces>=15 AND publication_date<=?
-      AND c.id NOT IN (SELECT id FROM used_ids)
-      AND c.position_hash NOT IN (SELECT position_hash FROM used_positions)
-    ORDER BY RANDOM() LIMIT 3`)
-    .bind(cutoff.toISOString().slice(0,10)).all();
+  const rows = { results: await drawSprintRows(db, date) };
   const puzzles = (rows.results ?? []).map((row) => {
     const puzzle = JSON.parse(row.puzzle);
     return { ...puzzle, ...trainingDifficulty(puzzle) };

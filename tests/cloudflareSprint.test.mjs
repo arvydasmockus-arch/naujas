@@ -19,6 +19,7 @@ function setup(extraEnv = {}) {
   const db = openDatabase(':memory:', false);
   new TournamentStore(db); new SprintStore(db);
   db.exec(readFileSync(new URL('../cloudflare/migrations/0010_sprint_candidates.sql', import.meta.url), 'utf8'));
+  db.exec(readFileSync(new URL('../cloudflare/migrations/0012_sprint_draw_pool.sql', import.meta.url), 'utf8'));
   const adapter = {
     prepare(sql) {
       let params = [];
@@ -209,17 +210,6 @@ test('midnight and 08:00 retry follow Vilnius daylight saving and skip other UTC
   }
 });
 
-
-test('sprint selection scans exclusion history once instead of once per candidate', () => {
-  const { db } = setup();
-  try {
-    const sql = source.match(/WITH used_ids AS MATERIALIZED[\s\S]*?ORDER BY RANDOM\(\) LIMIT 3/)[0];
-    const plan = db.prepare(`EXPLAIN QUERY PLAN ${sql}`).all('2021-10-22');
-    assert.ok(plan.some((row) => row.detail.includes('MATERIALIZE used_ids')));
-    assert.ok(plan.some((row) => row.detail.includes('MATERIALIZE used_positions')));
-    assert.ok(plan.every((row) => !row.detail.includes('CORRELATED')), 'History lookups must not run for every candidate');
-  } finally { db.close(); }
-});
 
 test('pending verification queue is acknowledged without D1 queries', async () => {
   let acknowledged = false;
