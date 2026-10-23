@@ -83,7 +83,7 @@
 .navbar__language:hover { border-color: #9b7be0; background: #302c3c; }
 .navbar__actions .account-controls__button, .navbar__actions .account-controls__username { font-size: 14px; }
 
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
   .navbar__container { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding: 10px 20px; }
   .navbar__identity { grid-column: 1; grid-row: 1; }
   .navbar__actions { grid-column: 2; grid-row: 1; }
@@ -116,5 +116,4 @@
   .navbar__actions .account-controls__username { max-width: 90px; font-size: 13px; }
   .navbar__links { grid-column: 2; grid-row: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; width: 100%; min-width: 0; margin-left: 0; padding-left: 18px; box-sizing: border-box; }
   .navbar__link { padding: 10px 6px; font-size: 16px; }
-  .navbar__links .navbar__link:last-child { grid-column: 1 / -1; }
 }

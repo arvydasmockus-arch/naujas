@@ -6,6 +6,7 @@ import News from './News';
 import SolvingPlatform from './SolvingPlatform';
 import TournamentPlatform from './TournamentPlatform';
 import SprintPlatform from './SprintPlatform';
+import Forum from './Forum';
 import { trackPageView } from './analyticsApi';
 import './App.css';
 import { interfaceText } from './russianTranslations.js';
@@ -14,7 +15,7 @@ import { accountErrorText } from './accountTranslations';
 function App() {
   const [activePage, setActivePage] = useState(() => {
     const page = new URLSearchParams(window.location.search).get('page');
-    return ['solving', 'sprint', 'training', 'tournaments'].includes(page) ? page : 'sprint';
+    return ['solving', 'sprint', 'training', 'tournaments', 'forum'].includes(page) ? page : 'sprint';
   });
   const [language, setLanguage] = useState(() => {
     try { const saved = JSON.parse(localStorage.getItem('ml-solving-preferences-v2'))?.language; return ['lt', 'en', 'ru'].includes(saved) ? saved : 'en'; }
@@ -66,6 +67,7 @@ function App() {
       {activePage === 'solving' && accountConfig && <SolvingPlatform key={accountUser?.id || 'guest'} language={language} accountUser={accountUser} accountsEnabled={accountConfig.enabled} />}
       {activePage === 'sprint' && accountConfig && <SprintPlatform key={accountUser?.id || 'guest'} language={language} accountUser={accountUser} accountsEnabled={accountConfig.enabled} />}
       {activePage === 'training' && accountConfig && <TournamentPlatform key={accountUser?.id || 'guest'} language={language} accountUser={accountUser} accountsEnabled={accountConfig.enabled} />}
+      {activePage === 'forum' && <Forum key={accountUser?.id || 'guest'} language={language} accountUser={accountUser} />}
       {activePage === 'tournaments' && <News url="https://solving.wfcc.ch/wsc/2026-2027/info.html" title={interfaceText(language, 'Pasaulio sprendimo taurės turnyrai', 'World Solving Cup tournaments')} />}
     </>
   );

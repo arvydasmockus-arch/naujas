@@ -1,5 +1,6 @@
 import { accountApi, authorizeGameRequest, recordAccountActivity } from './accountAuth.mjs';
 import { d1Adapter } from './d1Adapter.mjs';
+import { forumApi } from './forumApi.mjs';
 import { createServer } from 'node:http';
 import { networkInterfaces } from 'node:os';
 import { spawn } from 'node:child_process';
@@ -52,7 +53,7 @@ const server = createServer(async (req, res) => {
   let url = new URL(req.url, 'http://localhost');
   if (req.method === 'GET' && url.pathname === '/healthz') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end('{"ok":true}'); return; }
   if (!url.pathname.startsWith('/api/solving/') && !url.pathname.startsWith('/api/tournaments/')
-    && !url.pathname.startsWith('/api/sprint/') && !url.pathname.startsWith('/api/analytics/') && !url.pathname.startsWith('/api/accounts/')) return website(req, res);
+    && !url.pathname.startsWith('/api/sprint/') && !url.pathname.startsWith('/api/analytics/') && !url.pathname.startsWith('/api/accounts/') && !url.pathname.startsWith('/api/forum/')) return website(req, res);
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
   try {
@@ -60,6 +61,10 @@ const server = createServer(async (req, res) => {
       ...(['GET', 'HEAD'].includes(req.method) ? {} : { body: JSON.stringify(await body(req)) }) });
     if (url.pathname.startsWith('/api/accounts/')) {
       const response = await accountApi(authRequest, accountEnv, isJudge(req));
+      res.statusCode = response.status; res.end(await response.text()); return;
+    }
+    if (url.pathname.startsWith('/api/forum/')) {
+      const response = await forumApi(authRequest, accountEnv, isJudge(req));
       res.statusCode = response.status; res.end(await response.text()); return;
     }
     const authorized = await authorizeGameRequest(authRequest, accountEnv);

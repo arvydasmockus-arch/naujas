@@ -1,5 +1,6 @@
 import { localizedError, interfaceText } from './russianTranslations.js';
 import JudgeAccounts from './JudgeAccounts';
+import Forum from './Forum';
 import { useCallback, useEffect, useState } from 'react';
 import ChessBoard from './ChessBoard';
 import TournamentResults from './TournamentResults';
@@ -202,9 +203,10 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
       <select value={judgeMode} onChange={(event) => setJudgeMode(event.target.value)}>
         <option value="tournaments">{interfaceText(language, 'Atviri turnyrai', 'Open Tournaments')}</option>
         <option value="sprint">3 × #2 · 20 min</option>
+        <option value="forum">{language === 'ru' ? 'Форум' : interfaceText(language, 'Forumas', 'Forum')}</option>
       </select>
     </label>}
-    {judge && judgeMode === 'sprint' ? <SprintJudgePanel accessKey={accessKey} language={language} /> : <>
+    {judge && judgeMode === 'forum' ? <Forum language={language} accountUser={accountUser} judgeKey={accessKey} /> : judge && judgeMode === 'sprint' ? <SprintJudgePanel accessKey={accessKey} language={language} /> : <>
     {judge && <form className="tournament-panel tournament-generate" onSubmit={generate}>
       <label>{t.tournamentTitle}<input value={generateTitle} onChange={(e) => setGenerateTitle(e.target.value)} maxLength={140} placeholder="ML Academy" /></label>
       <label>{t.date}<input type="date" value={generateDate} onChange={(e) => setGenerateDate(e.target.value)} required /></label>

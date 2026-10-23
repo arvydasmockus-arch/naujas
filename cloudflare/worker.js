@@ -1,4 +1,5 @@
 import { drawSprintRows } from '../server/sprintDraw.mjs';
+import { forumApi } from '../server/forumApi.mjs';
 import { accountApi, accountsEnabled, authorizeGameRequest, recordAccountActivity } from '../server/accountAuth.mjs';
 import { latestSaturday, oldEnough, parseTournamentEntry, rankResults, tournamentTypes } from '../server/tournamentTools.mjs';
 import { solutionDraft } from '../server/solutionDraft.mjs';
@@ -938,6 +939,11 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
     let url = new URL(request.url);
     if (request.method === 'GET' && url.pathname === '/healthz') return json({ ok: true, service: 'ml-academy-api' }, 200, headers);
+    if (url.pathname.startsWith('/api/forum/')) {
+      const response = await forumApi(request, env, isJudge(request, env));
+      for (const [key, value] of headers) response.headers.set(key, value);
+      return response;
+    }
     if (url.pathname.startsWith('/api/accounts/')) {
       const response = await accountApi(request, env, isJudge(request, env));
       for (const [key, value] of headers) response.headers.set(key, value);

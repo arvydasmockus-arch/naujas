@@ -7,7 +7,7 @@ export function d1Adapter(db) {
         bind(...values) { params = values; return this; },
         first() { return db.prepare(sql).get(...params) ?? null; },
         all() { return { results: db.prepare(sql).all(...params) }; },
-        run() { const result = db.prepare(sql).run(...params); return { meta: { changes: result.changes, rows_written: result.changes } }; },
+        run() { const result = db.prepare(sql).run(...params); return { meta: { changes: result.changes, rows_written: result.changes, last_row_id: Number(result.lastInsertRowid) } }; },
       };
     },
     async batch(statements) {
