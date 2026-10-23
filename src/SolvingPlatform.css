@@ -17,6 +17,12 @@
 .solving-calendar > p { margin: 8px 0; font-size: 12px; }
 .solving-calendar .solving-library { margin-top: 10px; }
 .solving-calendar .solving-library summary { cursor: pointer; }
+.solving-calendar__start { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.solving-calendar__start p { margin: 0; font-size: 13px; }
+.solving-calendar__start .solving-button { flex-shrink: 0; max-width: 100%; white-space: normal; }
+@media (max-width: 760px) {
+  .solving-calendar__start { align-items: stretch; flex-direction: column; }
+}
 .solving-page__content { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 .solving-panel { background: #fff; border: 1px solid #dce5d9; border-radius: 12px; padding: 22px; min-width: 0; box-shadow: 0 2px 6px #214a2706; }
 .solving-button { padding: 10px 15px; border: 1px solid #087a3b; border-radius: 7px; background: #087a3b; color: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }

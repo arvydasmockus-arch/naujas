@@ -50,6 +50,7 @@ function SolvingPlatform({ language = 'en', accountUser = null, accountsEnabled 
   const activeDay = days.find((day) => day.date === activeDate);
   const compactSession = Boolean(series && available && (!series.finished || feedback));
   const canChangeDate = !feedback || Boolean(series?.finished);
+  const readyToStart = series && available && !series.finished && series.startedAt === null && !feedback && count === 0;
   const pieceCounts = puzzle ? {
     white: (puzzle.fen.split(' ')[0].match(/[KQRBNP]/g) ?? []).length,
     black: (puzzle.fen.split(' ')[0].match(/[kqrbnp]/g) ?? []).length,
@@ -236,7 +237,14 @@ function SolvingPlatform({ language = 'en', accountUser = null, accountsEnabled 
       <div className="solving-calendar">
         <SprintCalendar dates={days.map((day) => day.date)} completedDates={days.filter((day) => day.answered === 6).map((day) => day.date)}
           selectedDate={activeDate} playerName={player} language={language} label={t.dates} selectionLabel={t.chooseDateLabel}
-          disabled={busy || !canChangeDate} onSelect={chooseDate} />
+          disabled={busy || !canChangeDate} onSelect={chooseDate}>
+          {(!series || readyToStart) && <div className="solving-calendar__start">
+            <p>{readyToStart ? t.startWhenReady : accountsEnabled && !accountUser
+              ? interfaceText(language, 'Norėdami spręsti, prisijunkite.', 'Log in to start solving.') : player ? t.chooseDate : t.selectName}</p>
+            <button type="button" className="solving-button" disabled={!player || !catalog || busy || (!readyToStart && !days.some((day) => day.date === catalog.today))}
+              onClick={readyToStart ? startFirstProblem : () => chooseDate(catalog.today)}>{readyToStart ? t.startTimer : t.startToday}</button>
+          </div>}
+        </SprintCalendar>
         <p>{t.dateHint}</p>
         {activeDay && <p>{activeDay.answered === 6 ? `${activeDay.points}/6 ${t.points}` : activeDay.answered ? `${t.started} · ${activeDay.answered}/6` : t.problems} · {activeDay.players} {t.players}</p>}
           {catalog?.library && <details className="solving-library"><summary>{t.library}</summary>
@@ -249,8 +257,7 @@ function SolvingPlatform({ language = 'en', accountUser = null, accountsEnabled 
         <div className="solving-page__content">
           {!series && <section className="solving-panel solving-intro">
             <span className="solving-intro__symbol" aria-hidden="true">#2</span>
-            <h2>{activeDate && player ? t.loading : t.ready}</h2><p>{accountsEnabled && !accountUser ? (interfaceText(language, 'Norėdami spręsti, prisijunkite.', 'Log in to start solving.')) : player ? t.chooseDate : t.selectName}</p>
-            <button type="button" className="solving-button" disabled={!player || !catalog || busy || !days.some((day) => day.date === catalog.today)} onClick={() => chooseDate(catalog.today)}>{t.startToday}</button>
+            <h2>{activeDate && player ? t.loading : t.ready}</h2>
             <ul><li>{t.firstMove}</li><li>{t.oneAttempt}</li><li>{t.nextManual}</li><li>{t.timerRule}</li></ul>
           </section>}
           {series && <>
@@ -260,9 +267,6 @@ function SolvingPlatform({ language = 'en', accountUser = null, accountsEnabled 
                 {puzzle && available && (series.startedAt !== null || feedback) && <div className="solving-timer"><strong>{feedback ? feedback.seconds : Math.floor(elapsedMs / 1000)}</strong><span>{t.seconds}</span></div>}
               </div>
               {!available && <p className="solving-page__warning">{t.closed}</p>}
-              {available && !series.finished && series.startedAt === null && !feedback && count === 0 && <div className="solving-test__ready">
-                <p>{t.startWhenReady}</p><button type="button" className="solving-button" disabled={busy} onClick={startFirstProblem}>{t.startTimer}</button>
-              </div>}
               {puzzle && available && (series.startedAt !== null || feedback || (!series.finished && count > 0)) && <div
                 className="solving-test__board-layout">
                 <div className="solving-board-column">
