@@ -4,6 +4,8 @@
 .judge-accounts th, .judge-accounts td { padding: 10px; text-align: left; border-bottom: 1px solid #494353; white-space: nowrap; }
 .judge-accounts p { color: #8a8491; }
 .judge-accounts__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.judge-accounts td input { min-width: 180px; max-width: 300px; width: 100%; box-sizing: border-box; padding: 9px; border: 1px solid #a69ab8; border-radius: 7px; background: #fff; color: #352d40; font: inherit; }
+.judge-accounts td input[type="email"] { min-width: 240px; }
 .judge-accounts [role="alert"] { color: #c14444; }
 .judge-accounts .judge-accounts__delete { color: #d24b4b; border-color: #ba6666; background: transparent; }
 .judge-accounts .judge-accounts__delete:hover { background: #b6404014; }

@@ -154,6 +154,143 @@ test('activity and login timestamps are visible only through judge history and i
   } finally { app.db.close(); }
 });
 
+test('judge can rename an account without losing identity, verification, sessions or results', async () => {
+  const app = setup();
+  try {
+    const login = await app.verified();
+    const user = login.user;
+    app.db.prepare('INSERT INTO sprint_days(date,created_at) VALUES(?,?)').run('2026-10-01', 1);
+    app.db.prepare('INSERT INTO sprint_sessions(id,date,player_id,name,started_at,submitted_at,points) VALUES(?,?,?,?,?,?,?)')
+      .run('rename-result', '2026-10-01', user.playerId, user.username, 1, 2, 3);
+    app.db.prepare('INSERT INTO tournaments(id,title,date,mode,status,created_at) VALUES(?,?,?,?,?,?)').run('event', 'Event', '2026-10-01', 'training', 'published', 1);
+    app.db.prepare('INSERT INTO tournament_sessions(id,tournament_id,player_id,name,started_at) VALUES(?,?,?,?,?)')
+      .run('rename-tournament', 'event', user.playerId, user.username, 1);
+    app.db.prepare('INSERT INTO forum_topics(id,title,author_id,author_name,created_at,updated_at) VALUES(?,?,?,?,?,?)').run('rename-topic', 'Topic', user.id, user.username, 1, 1);
+    app.db.prepare('INSERT INTO forum_posts(topic_id,author_id,author_name,body,created_at) VALUES(?,?,?,?,?)').run('rename-topic', user.id, user.username, 'Hello', 1);
+    const before = app.db.prepare('SELECT * FROM accounts WHERE id=?').get(user.id);
+    const payload = { id: user.id, username: user.username, email: user.email, newUsername: '  New   Player  ', newEmail: user.email, confirmed: true };
+    const result = await app.call('judge/edit', payload, undefined, true);
+    assert.equal(result.status, 200); assert.equal(result.data.emailChanged, false);
+    const after = app.db.prepare('SELECT * FROM accounts WHERE id=?').get(user.id);
+    assert.equal(after.username, 'New Player'); assert.equal(after.username_key, 'new player');
+    assert.equal(after.verified_at, before.verified_at); assert.equal(after.password_hash, before.password_hash);
+    assert.equal((await currentAccount(app.request('/api/accounts/me', undefined, login.token), app.env)).username, 'New Player');
+    assert.equal(normalizePlayer('New Player', app.db).id, user.playerId);
+    assert.equal(app.db.prepare('SELECT name FROM players WHERE id=?').get(user.playerId).name, 'New Player');
+    const score = app.db.prepare('SELECT * FROM sprint_sessions WHERE id=?').get('rename-result');
+    assert.equal(score.name, 'New Player'); assert.equal(score.points, 3); assert.equal(score.player_id, user.playerId);
+    assert.equal(app.db.prepare('SELECT name FROM tournament_sessions WHERE id=?').get('rename-tournament').name, 'New Player');
+    assert.equal(app.db.prepare('SELECT author_name FROM forum_posts WHERE topic_id=?').get('rename-topic').author_name, 'New Player');
+    assert.equal((await app.call('login', { login: user.username, password: 'a-long-test-password' })).status, 401);
+    assert.equal((await app.call('login', { login: 'New Player', password: 'a-long-test-password' })).status, 200);
+  } finally { app.db.close(); }
+});
+
+test('changing email invalidates verification, old codes and sessions while preserving password and account ID', async () => {
+  const app = setup();
+  try {
+    const login = await app.verified();
+    const before = app.db.prepare('SELECT * FROM accounts').get();
+    const payload = { id: before.id, username: before.username, email: before.email, newUsername: before.username, newEmail: '  Correct@Example.Test ', confirmed: true };
+    assert.equal((await app.call('judge/edit', payload, undefined, true)).status, 200);
+    const after = app.db.prepare('SELECT * FROM accounts').get();
+    assert.equal(after.id, before.id); assert.equal(after.email, 'correct@example.test');
+    assert.equal(after.verified_at, null); assert.equal(after.verification_method, null);
+    assert.equal(after.password_hash, before.password_hash); assert.equal(after.salt, before.salt);
+    assert.equal(after.code_hash, null); assert.notEqual(after.challenge_id, before.challenge_id);
+    assert.equal(await currentAccount(app.request('/api/accounts/me', undefined, login.token), app.env), null);
+    assert.ok(app.db.prepare('SELECT logout_at FROM account_sessions WHERE account_id=?').get(before.id).logout_at);
+    assert.equal(app.mail.length, 1, 'Saving an email never sends email automatically');
+    const pending = await app.call('login', { login: before.username, password: 'a-long-test-password' });
+    assert.equal(pending.data.needsVerification, true); assert.equal(pending.data.token, undefined);
+    const resent = await app.call('resend', { challengeId: pending.data.challengeId });
+    assert.equal(resent.status, 200); assert.equal(app.mail.at(-1).email, 'correct@example.test');
+    const verified = await app.call('verify', { challengeId: resent.data.challengeId, code: app.mail.at(-1).code });
+    assert.equal(verified.status, 200); assert.equal(verified.data.user.id, before.id);
+    assert.equal(await currentAccount(app.request('/api/accounts/me', undefined, login.token), app.env), null, 'Re-verification must not revive the old session');
+  } finally { app.db.close(); }
+});
+
+test('judge editing enforces authorization, uniqueness, validation and stale-row protection atomically', async () => {
+  const app = setup();
+  try {
+    const first = await app.verified('First', 'first@example.test');
+    await app.verified('Second', 'second@example.test');
+    const payload = { id: first.user.id, username: 'First', email: 'first@example.test', newUsername: 'Changed', newEmail: 'first@example.test', confirmed: true };
+    assert.equal((await app.call('judge/edit', payload, first.token)).status, 401);
+    assert.equal((await app.call('judge/edit', { ...payload, confirmed: false }, undefined, true)).status, 400);
+    assert.equal((await app.call('judge/edit', { ...payload, username: 'Stale' }, undefined, true)).status, 409);
+    assert.equal((await app.call('judge/edit', { ...payload, newUsername: 'SECOND' }, undefined, true)).status, 409);
+    assert.equal((await app.call('judge/edit', { ...payload, newEmail: 'second@example.test' }, undefined, true)).status, 409);
+    assert.equal((await app.call('judge/edit', { ...payload, newEmail: 'invalid' }, undefined, true)).status, 400);
+    assert.equal((await app.call('judge/edit', { ...payload, newUsername: '@invalid' }, undefined, true)).status, 400);
+    assert.equal(app.db.prepare('SELECT username FROM accounts WHERE id=?').get(first.user.id).username, 'First');
+    assert.ok(await currentAccount(app.request('/api/accounts/me', undefined, first.token), app.env));
+    const batch = app.env.DB.batch;
+    app.env.DB.batch = async statements => {
+      app.db.prepare('UPDATE accounts SET username=?,username_key=? WHERE id=?').run('Concurrent', 'concurrent', first.user.id);
+      app.db.prepare('UPDATE players SET name=? WHERE id=?').run('Concurrent', first.user.playerId);
+      return batch(statements);
+    };
+    assert.equal((await app.call('judge/edit', payload, undefined, true)).status, 409);
+    assert.equal(app.db.prepare('SELECT name FROM players WHERE id=?').get(first.user.playerId).name, 'Concurrent');
+  } finally { app.db.close(); }
+});
+
+test('an email change during login cannot create a new session from stale account details', async () => {
+  const app = setup();
+  try {
+    const login = await app.verified();
+    const batch = app.env.DB.batch;
+    app.env.DB.batch = async statements => {
+      app.db.prepare('UPDATE accounts SET email=?,verified_at=NULL WHERE id=?').run('changed@example.test', login.user.id);
+      app.db.prepare('UPDATE account_sessions SET logout_at=? WHERE account_id=?').run(Date.now(), login.user.id);
+      return batch(statements);
+    };
+    const result = await app.call('login', { login: login.user.username, password: 'a-long-test-password' });
+    assert.equal(result.status, 409);
+    assert.equal(result.data.token, undefined);
+    assert.equal(app.db.prepare('SELECT COUNT(*) AS n FROM account_sessions').get().n, 1);
+  } finally { app.db.close(); }
+});
+
+test('resending a code cannot approve a new address with a code sent to the old mailbox', async () => {
+  const app = setup();
+  try {
+    const signup = await app.register();
+    app.db.prepare('UPDATE accounts SET code_sent_at=0').run();
+    const prepare = app.env.DB.prepare;
+    app.env.DB.prepare = sql => {
+      const statement = prepare(sql);
+      if (sql.startsWith('UPDATE accounts SET code_hash=')) {
+        const run = statement.run;
+        statement.run = () => {
+          app.db.prepare("UPDATE accounts SET email='changed@example.test',challenge_id='changed-challenge',code_hash=NULL").run();
+          return run();
+        };
+      }
+      return statement;
+    };
+    assert.notEqual((await app.call('resend', { challengeId: signup.data.challengeId })).status, 200);
+    assert.equal(app.mail.length, 1);
+    const row = app.db.prepare('SELECT email,challenge_id,code_hash FROM accounts').get();
+    assert.equal(row.email, 'changed@example.test'); assert.equal(row.challenge_id, 'changed-challenge'); assert.equal(row.code_hash, null);
+  } finally { app.db.close(); }
+});
+
+test('pending email edits revoke the old working code and can be approved manually', async () => {
+  const app = setup();
+  try {
+    const signup = await app.register();
+    const code = app.mail.at(-1).code;
+    const before = app.db.prepare('SELECT id,username,email FROM accounts').get();
+    assert.equal((await app.call('judge/edit', { ...before, newUsername: before.username, newEmail: 'new@example.test', confirmed: true }, undefined, true)).status, 200);
+    assert.equal((await app.call('verify', { challengeId: signup.data.challengeId, code })).status, 400);
+    assert.equal((await app.call('judge/verify', { ...before, email: 'new@example.test', confirmed: true }, undefined, true)).status, 200);
+    assert.equal((await app.call('login', { login: 'new@example.test', password: 'a-long-test-password' })).status, 200);
+  } finally { app.db.close(); }
+});
+
 test('only the judge can manually verify the exact pending account; old codes expire and password login works', async () => {
   const app = setup();
   try {

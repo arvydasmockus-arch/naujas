@@ -49,6 +49,15 @@ const entries = [
 ];
 
 const russian = Object.fromEntries([...entries,
+  ['Save', 'Сохранить'],
+  ['Email changed. Verify it again using a code or the judge approval button.', 'Почта изменена. Подтвердите её заново кодом или кнопкой судьи.'],
+  ['User details saved. The account and results have been preserved.', 'Данные пользователя сохранены. Учётная запись и результаты сохранены.'],
+  ['Changing the username preserves the account and results. Changing the email invalidates the old code and logins; the new address must be verified.', 'При изменении имени учётная запись и результаты сохраняются. При изменении почты старый код и сеансы входа аннулируются; новый адрес нужно подтвердить.'],
+  ['Confirm changing the user details.', 'Подтвердите изменение данных пользователя.'],
+  ['Confirm approving the user’s email.', 'Подтвердите одобрение почты пользователя.'],
+  ['Confirm deleting the user.', 'Подтвердите удаление пользователя.'],
+  ['User not found.', 'Пользователь не найден.'],
+  ['User details have changed. Refresh the table.', 'Данные пользователя изменились. Обновите таблицу.'],
   ['Approve email', 'Подтвердить почту'], ['Approved by judge', 'Подтверждено судьёй'],
   ['User approved. They can log in with their username and password.', 'Пользователь подтверждён. Он может войти с именем пользователя и паролем.'],
   ['Patvirtinkite vartotojo pašto patvirtinimą.', 'Подтвердите одобрение почты пользователя.'],

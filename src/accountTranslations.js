@@ -25,6 +25,11 @@ export const accountTranslations = {
 accountTranslations.ru = russianLabels(accountTranslations.en);
 
 const englishErrors = {
+  'Patvirtinkite vartotojo duomenų pakeitimą.': 'Confirm changing the user details.',
+  'Patvirtinkite vartotojo pašto patvirtinimą.': 'Confirm approving the user’s email.',
+  'Patvirtinkite vartotojo ištrynimą.': 'Confirm deleting the user.',
+  'Vartotojas nerastas.': 'User not found.',
+  'Vartotojo duomenys pasikeitė. Atnaujinkite lentelę.': 'User details have changed. Refresh the table.',
   'Registracija dar neparuošta.': 'Registration is not ready yet.',
   'Slaptažodis turi būti 4–128 simbolių.': 'Your password must contain 4–128 characters.',
   'Per daug bandymų. Bandykite vėliau.': 'Too many attempts. Please try again later.',

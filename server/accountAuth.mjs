@@ -6,6 +6,13 @@ const hex = (bytes) => [...new Uint8Array(bytes)].map((byte) => byte.toString(16
 const random = () => hex(crypto.getRandomValues(new Uint8Array(32)));
 const normalize = (value) => String(value ?? '').normalize('NFKC').trim().replace(/\s+/g, ' ');
 export const usernameKey = (value) => normalize(value).toLocaleLowerCase('en-US');
+function identityInput(name, address) {
+  const username = normalize(name); const key = usernameKey(username);
+  const email = String(address ?? '').trim().toLowerCase();
+  if (!/^[\p{L}\p{N}][\p{L}\p{N} ._-]{1,39}$/u.test(username) || username.includes('@')) fail('Vartotojo vardas turi būti 2–40 simbolių: raidės, skaičiai, tarpai, taškai, _ arba -.');
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail('Įveskite tinkamą el. paštą.');
+  return { username, key, email };
+}
 const reply = (data, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
 function fail(message, status = 400) { throw Object.assign(new Error(message), { status }); }
 async function digest(value) { return hex(await crypto.subtle.digest('SHA-256', encoder.encode(value))); }
@@ -69,8 +76,8 @@ async function issueCode(row, env, now) {
   const challengeId = random();
   const hash = await keyed(`code:${row.id}:${challengeId}:${code}`, env);
   const result = await env.DB.prepare(`UPDATE accounts SET code_hash=?,code_expires_at=?,code_attempts=0,code_sent_at=?,challenge_id=?
-    WHERE id=? AND verified_at IS NULL AND (code_sent_at IS NULL OR code_sent_at<=?)`)
-    .bind(hash, now + CODE_MS, now, challengeId, row.id, now - 60000).run();
+    WHERE id=? AND email=? AND verified_at IS NULL AND (code_sent_at IS NULL OR code_sent_at<=?)`)
+    .bind(hash, now + CODE_MS, now, challengeId, row.id, row.email, now - 60000).run();
   if (!result.meta.changes) fail('Naują kodą galėsite gauti po minutės.', 429);
   try { await sendCode(env, row.email, code, challengeId); }
   catch {
@@ -81,12 +88,14 @@ async function issueCode(row, env, now) {
 }
 async function createSession(row, env, now) {
   const token = random(); const id = crypto.randomUUID();
-  await env.DB.batch([
-    env.DB.prepare('INSERT INTO account_sessions(id,account_id,token_hash,login_at,last_seen_at,expires_at) VALUES(?,?,?,?,?,?)')
-      .bind(id, row.id, await digest(token), now, now, now + SESSION_MS),
-    env.DB.prepare('UPDATE accounts SET last_login_at=?,last_seen_at=? WHERE id=?').bind(now, now, row.id),
-    env.DB.prepare('INSERT OR IGNORE INTO players(id,name) VALUES(?,?)').bind(`account:${row.id}`, row.username),
+  const results = await env.DB.batch([
+    env.DB.prepare(`INSERT INTO account_sessions(id,account_id,token_hash,login_at,last_seen_at,expires_at)
+      SELECT ?,?,?,?,?,? FROM accounts WHERE id=? AND username=? AND email=? AND verified_at IS NOT NULL`)
+      .bind(id, row.id, await digest(token), now, now, now + SESSION_MS, row.id, row.username, row.email),
+    env.DB.prepare('UPDATE accounts SET last_login_at=?,last_seen_at=? WHERE id=? AND EXISTS(SELECT 1 FROM account_sessions WHERE id=?)').bind(now, now, row.id, id),
+    env.DB.prepare('INSERT OR IGNORE INTO players(id,name) SELECT ?,? WHERE EXISTS(SELECT 1 FROM account_sessions WHERE id=?)').bind(`account:${row.id}`, row.username, id),
   ]);
+  if (!results[0].meta.changes) fail('Vartotojo duomenys pasikeitė. Atnaujinkite lentelę.', 409);
   return { user: publicUser(row), token, expiresAt: now + SESSION_MS };
 }
 export async function currentAccount(request, env) {
@@ -122,27 +131,65 @@ export async function accountApi(request, env, judge = false) {
     if (action === 'config' && request.method === 'GET') return reply({ enabled: accountsEnabled(env), registrationReady: emailReady(env) && Boolean(env.AUTH_SECRET?.length >= 32) });
     if (action.startsWith('judge/')) {
       if (!judge) fail('Reikalinga teisėjo prieiga.', 401);
-      if (['judge/delete', 'judge/verify'].includes(action) && request.method === 'POST') {
+      if (['judge/delete', 'judge/verify', 'judge/edit'].includes(action) && request.method === 'POST') {
         const body = await request.text();
         if (body.length > 4096) fail('Per didelė užklausa.');
         let data;
         try { data = JSON.parse(body); } catch { fail('Netinkama užklausa.'); }
-        if (!data || typeof data.id !== 'string' || !data.id || data.id.length > 100 || data.confirmed !== true) fail(action === 'judge/verify' ? 'Patvirtinkite vartotojo pašto patvirtinimą.' : 'Patvirtinkite vartotojo ištrynimą.');
+        if (!data || typeof data.id !== 'string' || !data.id || data.id.length > 100 || data.confirmed !== true) fail(action === 'judge/edit' ? 'Patvirtinkite vartotojo duomenų pakeitimą.' : action === 'judge/verify' ? 'Patvirtinkite vartotojo pašto patvirtinimą.' : 'Patvirtinkite vartotojo ištrynimą.');
         const user = await env.DB.prepare('SELECT id,username,email,verified_at FROM accounts WHERE id=?').bind(data.id).first();
         if (!user) fail('Vartotojas nerastas.', 404);
         if (data.email !== user.email || data.username !== user.username) fail('Vartotojo duomenys pasikeitė. Atnaujinkite lentelę.', 409);
+        if (action === 'judge/edit') {
+          const next = identityInput(data.newUsername, data.newEmail);
+          const emailChanged = next.email !== user.email;
+          const nameChanged = next.username !== user.username;
+          if (!emailChanged && !nameChanged) return reply({ saved: true, emailChanged: false });
+          const params = [next.username, next.key, next.email];
+          let sql = 'UPDATE accounts SET username=?,username_key=?,email=?';
+          if (emailChanged) {
+            sql += ',verified_at=NULL,verification_method=NULL,code_hash=NULL,code_expires_at=NULL,code_attempts=0,code_sent_at=NULL,challenge_id=?';
+            params.push(random());
+          }
+          sql += ' WHERE id=? AND username=? AND email=?';
+          params.push(user.id, user.username, user.email);
+          const statements = [env.DB.prepare(sql).bind(...params)];
+          // Keep every dependent write tied to the same successful optimistic update.
+          const ifCurrent = (query, values) => env.DB.prepare(query + ' AND EXISTS(SELECT 1 FROM accounts a WHERE a.id=? AND a.username=? AND a.email=?)')
+            .bind(...values, user.id, next.username, next.email);
+          if (nameChanged) {
+            const playerId = `account:${user.id}`;
+            statements.push(
+              ifCurrent('UPDATE players SET name=? WHERE id=?', [next.username, playerId]),
+              ifCurrent('UPDATE sprint_sessions SET name=? WHERE player_id=?', [next.username, playerId]),
+              ifCurrent('UPDATE tournament_sessions SET name=? WHERE player_id=?', [next.username, playerId]),
+              ifCurrent('UPDATE forum_topics SET author_name=? WHERE author_id=?', [next.username, user.id]),
+              ifCurrent('UPDATE forum_posts SET author_name=? WHERE author_id=?', [next.username, user.id]),
+            );
+          }
+          if (emailChanged) statements.push(ifCurrent('UPDATE account_sessions SET logout_at=?,last_seen_at=? WHERE account_id=? AND logout_at IS NULL', [Date.now(), Date.now(), user.id]));
+          let results;
+          try { results = await env.DB.batch(statements); }
+          catch (error) { if (/UNIQUE/i.test(error.message)) fail('Šis vartotojo vardas arba el. paštas jau užregistruotas.', 409); throw error; }
+          if (!results[0].meta.changes) fail('Vartotojo duomenys pasikeitė. Atnaujinkite lentelę.', 409);
+          return reply({ saved: true, emailChanged });
+        }
         if (action === 'judge/verify') {
-          if (!user.verified_at) await env.DB.prepare(`UPDATE accounts SET verified_at=?,verification_method='judge',code_hash=NULL,
-            code_expires_at=NULL,code_attempts=0,challenge_id=NULL WHERE id=? AND verified_at IS NULL`)
-            .bind(Date.now(), user.id).run();
+          if (!user.verified_at) {
+            const result = await env.DB.prepare(`UPDATE accounts SET verified_at=?,verification_method='judge',code_hash=NULL,
+              code_expires_at=NULL,code_attempts=0,challenge_id=NULL WHERE id=? AND username=? AND email=? AND verified_at IS NULL`)
+              .bind(Date.now(), user.id, user.username, user.email).run();
+            if (!result.meta.changes) fail('Vartotojo duomenys pasikeitė. Atnaujinkite lentelę.', 409);
+          }
           return reply({ verified: true });
         }
         // Remove account-only data atomically. Game results retain their original player ID.
-        await env.DB.batch([
-          env.DB.prepare('DELETE FROM account_activity WHERE account_id=?').bind(user.id),
-          env.DB.prepare('DELETE FROM account_sessions WHERE account_id=?').bind(user.id),
-          env.DB.prepare('DELETE FROM accounts WHERE id=?').bind(user.id),
+        const results = await env.DB.batch([
+          env.DB.prepare('DELETE FROM account_activity WHERE account_id=? AND EXISTS(SELECT 1 FROM accounts WHERE id=? AND username=? AND email=?)').bind(user.id, user.id, user.username, user.email),
+          env.DB.prepare('DELETE FROM account_sessions WHERE account_id=? AND EXISTS(SELECT 1 FROM accounts WHERE id=? AND username=? AND email=?)').bind(user.id, user.id, user.username, user.email),
+          env.DB.prepare('DELETE FROM accounts WHERE id=? AND username=? AND email=?').bind(user.id, user.username, user.email),
         ]);
+        if (!results.at(-1).meta.changes) fail('Vartotojo duomenys pasikeitė. Atnaujinkite lentelę.', 409);
         return reply({ deleted: true });
       }
       if (request.method !== 'GET') fail('Not found.', 404);
@@ -184,10 +231,7 @@ export async function accountApi(request, env, judge = false) {
     await rateLimit(db, `ip:${action}:${ip}`, action === 'login' ? 30 : 10, 3600000, now);
     if (action === 'register') {
       if (!emailReady(env)) fail('Laiškų siuntimas dar neparuoštas.', 503);
-      const username = normalize(data.username); const key = usernameKey(username);
-      const email = String(data.email ?? '').trim().toLowerCase();
-      if (!/^[\p{L}\p{N}][\p{L}\p{N} ._-]{1,39}$/u.test(username) || username.includes('@')) fail('Vartotojo vardas turi būti 2–40 simbolių: raidės, skaičiai, tarpai, taškai, _ arba -.');
-      if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail('Įveskite tinkamą el. paštą.');
+      const { username, key, email } = identityInput(data.username, data.email);
       const salt = random(); const password = await passwordHash(data.password, salt, env);
       const id = crypto.randomUUID();
       try { await db.prepare('INSERT INTO accounts(id,username,username_key,email,password_hash,salt,created_at) VALUES(?,?,?,?,?,?,?)')

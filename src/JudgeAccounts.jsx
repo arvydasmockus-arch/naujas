@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { accountRequest } from './accountApi';
 import './JudgeAccounts.css';
-import { interfaceText, languageLocale, localizedError } from './russianTranslations.js';
+import { interfaceText, languageLocale } from './russianTranslations.js';
+import { accountErrorText } from './accountTranslations';
 
 function JudgeAccounts({ accessKey, language = 'lt' }) {
   const text = (lt, en) => interfaceText(language, lt, en);
@@ -16,6 +17,31 @@ function JudgeAccounts({ accessKey, language = 'lt' }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('');
+  const [editing, setEditing] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const editFormId = useId();
+  function beginEdit(user) {
+    setEditing(user); setEditName(user.username); setEditEmail(user.email); setError(''); setStatus('');
+  }
+  async function saveUser(event) {
+    event.preventDefault();
+    if (busy || !editing) return;
+    setBusy(true); setError(''); setStatus('');
+    try {
+      const result = await accountRequest('judge/edit', { id: editing.id, username: editing.username, email: editing.email,
+        newUsername: editName, newEmail: editEmail, confirmed: true }, accessKey);
+      const editedId = editing.id;
+      setEditing(null);
+      setStatus(result.emailChanged
+        ? text('Paštas pakeistas. Jį reikia patvirtinti iš naujo kodu arba teisėjo mygtuku.', 'Email changed. Verify it again using a code or the judge approval button.')
+        : text('Vartotojo duomenys išsaugoti. Paskyra ir rezultatai išliko.', 'User details saved. The account and results have been preserved.'));
+      const refreshed = await accountRequest(`judge/users?page=${page}`, undefined, accessKey);
+      setData(refreshed);
+      if (selected?.id === editedId) setSelected(refreshed.users.find(user => user.id === editedId) || null);
+    } catch (problem) { setError(problem.message); }
+    finally { setBusy(false); }
+  }
   async function verifyUser(user) {
     const warning = language === 'ru'
       ? `Подтвердить почту пользователя «${user.username}» (${user.email}) вручную? Он сможет войти с паролем без кода из письма. Подтверждайте только знакомого человека и проверенный адрес.`
@@ -66,18 +92,29 @@ function JudgeAccounts({ accessKey, language = 'lt' }) {
     return () => { current = false; };
   }, [selected, accessKey]);
   return <section className="judge-accounts tournament-panel">
-    <div className="judge-accounts__heading"><h2>{text('Registruoti vartotojai', 'Registered users')}</h2><button type="button" disabled={busy} onClick={load}>{text('Atnaujinti', 'Refresh')}</button></div>
+    <div className="judge-accounts__heading"><h2>{text('Registruoti vartotojai', 'Registered users')}</h2><button type="button" disabled={busy || Boolean(editing)} onClick={load}>{text('Atnaujinti', 'Refresh')}</button></div>
     <p>{text('Laikai Lietuvos laiku. Aktyvumas fiksuojamas atliekant veiksmus; naršyklės uždarymo laikas nežinomas.', 'Times are shown in Lithuanian time. Activity is recorded on actions; browser closing time is unknown.')}</p>
-    {error && <p role="alert">{localizedError(error, language)}</p>}
+    {error && <p role="alert">{accountErrorText(error, language)}</p>}
     {status && <p role="status">{status}</p>}
+    {editing && <p>{text('Keičiant vardą išlieka ta pati paskyra ir rezultatai. Pakeitus paštą, senas kodas ir prisijungimai nebegalios; naują adresą reikės patvirtinti.', 'Changing the username preserves the account and results. Changing the email invalidates the old code and logins; the new address must be verified.')}</p>}
     <div className="judge-accounts__scroll"><table><thead><tr><th>{text('Vartotojo vardas', 'Username')}</th><th>{text('El. paštas', 'Email')}</th><th>{text('Registracija', 'Registration')}</th><th>{text('Paštas', 'Email')}</th><th>{text('Paskutinis prisijungimas', 'Last login')}</th><th>{text('Paskutinis aktyvumas', 'Last activity')}</th><th>{text('Veiksmas', 'Action')}</th></tr></thead>
-      <tbody>{data?.users.map((user) => <tr key={user.id}><td><button type="button" onClick={() => { setHistory(null); setSelected(user); }}>{user.username}</button></td><td>{user.email}</td><td>{time(user.created_at)}</td>
+      <tbody>{data?.users.map((user) => <tr key={user.id}><td>{editing?.id === user.id
+        ? <input form={editFormId} aria-label={text('Vartotojo vardas', 'Username')} value={editName} onChange={event => setEditName(event.target.value)} minLength={2} maxLength={40} required disabled={busy} />
+        : <button type="button" onClick={() => { setHistory(null); setSelected(user); }}>{user.username}</button>}</td><td>{editing?.id === user.id
+        ? <input form={editFormId} aria-label={text('El. paštas', 'Email')} type="email" value={editEmail} onChange={event => setEditEmail(event.target.value)} maxLength={254} required disabled={busy} />
+        : user.email}</td><td>{time(user.created_at)}</td>
         <td title={user.verified_at ? time(user.verified_at) : undefined}>{user.verified_at ? user.verification_method === 'judge' ? text('Patvirtintas teisėjo', 'Approved by judge') : text('Patvirtintas', 'Verified') : text('Nepatvirtintas', 'Unverified')}</td><td>{time(user.last_login_at)}</td><td>{time(user.last_seen_at)}</td><td><div className="judge-accounts__actions">
-          {!user.verified_at && <button type="button" disabled={busy} onClick={() => verifyUser(user)}>{text('Patvirtinti paštą', 'Approve email')}</button>}
-          <button type="button" className="judge-accounts__delete" disabled={busy} onClick={() => deleteUser(user)}>{text('Ištrinti vartotoją', 'Delete user')}</button></div></td></tr>)}</tbody></table></div>
+          {editing?.id === user.id ? <form id={editFormId} className="judge-accounts__actions" onSubmit={saveUser}>
+            <button disabled={busy || !editName.trim() || !editEmail.trim()}>{text('Išsaugoti', 'Save')}</button>
+            <button type="button" disabled={busy} onClick={() => { setEditing(null); setError(''); }}>{text('Atšaukti', 'Cancel')}</button>
+          </form> : <>
+            <button type="button" disabled={busy || Boolean(editing)} onClick={() => beginEdit(user)}>{text('Taisyti', 'Edit')}</button>
+            {!user.verified_at && <button type="button" disabled={busy || Boolean(editing)} onClick={() => verifyUser(user)}>{text('Patvirtinti paštą', 'Approve email')}</button>}
+            <button type="button" className="judge-accounts__delete" disabled={busy || Boolean(editing)} onClick={() => deleteUser(user)}>{text('Ištrinti vartotoją', 'Delete user')}</button>
+          </>}</div></td></tr>)}</tbody></table></div>
     {data && !data.users.length && <p>{text('Vartotojų dar nėra.', 'No users yet.')}</p>}
-    <div className="judge-accounts__heading"><button type="button" disabled={page === 0 || busy} onClick={() => { setData(null); setPage(page - 1); }}>{text('Ankstesni', 'Previous')}</button><span>{page + 1} {text('puslapis', 'page')}</span>
-      <button type="button" disabled={!data?.hasMore || busy} onClick={() => { setData(null); setPage(page + 1); }}>{text('Kiti', 'Next')}</button></div>
+    <div className="judge-accounts__heading"><button type="button" disabled={page === 0 || busy || Boolean(editing)} onClick={() => { setData(null); setPage(page - 1); }}>{text('Ankstesni', 'Previous')}</button><span>{page + 1} {text('puslapis', 'page')}</span>
+      <button type="button" disabled={!data?.hasMore || busy || Boolean(editing)} onClick={() => { setData(null); setPage(page + 1); }}>{text('Kiti', 'Next')}</button></div>
     {selected && <div><h3>{selected.username} – {text('prisijungimų istorija', 'Login history')}</h3>
       {history && <><div className="judge-accounts__scroll"><table><thead><tr><th>{text('Prisijungė', 'Logged in')}</th><th>{text('Paskutinis aktyvumas', 'Last activity')}</th><th>{text('Atsijungė', 'Logged out')}</th><th>{text('Stebėta trukmė', 'Observed duration')}</th></tr></thead>
         <tbody>{history.sessions.map((session) => <tr key={session.id}><td>{time(session.login_at)}</td><td>{time(session.last_seen_at)}</td><td>{session.logout_at ? time(session.logout_at) : session.expires_at < now ? text('Sesija pasibaigusi', 'Session expired') : text('Atsijungimas nefiksuotas', 'Logout not recorded')}</td>
