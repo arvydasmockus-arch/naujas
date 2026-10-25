@@ -3,6 +3,7 @@
 .judge-accounts table { width: 100%; border-collapse: collapse; font-size: .9rem; }
 .judge-accounts th, .judge-accounts td { padding: 10px; text-align: left; border-bottom: 1px solid #494353; white-space: nowrap; }
 .judge-accounts p { color: #8a8491; }
+.judge-accounts__actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .judge-accounts [role="alert"] { color: #c14444; }
 .judge-accounts .judge-accounts__delete { color: #d24b4b; border-color: #ba6666; background: transparent; }
 .judge-accounts .judge-accounts__delete:hover { background: #b6404014; }

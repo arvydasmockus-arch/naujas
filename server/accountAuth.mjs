@@ -122,15 +122,21 @@ export async function accountApi(request, env, judge = false) {
     if (action === 'config' && request.method === 'GET') return reply({ enabled: accountsEnabled(env), registrationReady: emailReady(env) && Boolean(env.AUTH_SECRET?.length >= 32) });
     if (action.startsWith('judge/')) {
       if (!judge) fail('Reikalinga teisėjo prieiga.', 401);
-      if (action === 'judge/delete' && request.method === 'POST') {
+      if (['judge/delete', 'judge/verify'].includes(action) && request.method === 'POST') {
         const body = await request.text();
         if (body.length > 4096) fail('Per didelė užklausa.');
         let data;
         try { data = JSON.parse(body); } catch { fail('Netinkama užklausa.'); }
-        if (!data || typeof data.id !== 'string' || !data.id || data.id.length > 100 || data.confirmed !== true) fail('Patvirtinkite vartotojo ištrynimą.');
-        const user = await env.DB.prepare('SELECT id,username,email FROM accounts WHERE id=?').bind(data.id).first();
+        if (!data || typeof data.id !== 'string' || !data.id || data.id.length > 100 || data.confirmed !== true) fail(action === 'judge/verify' ? 'Patvirtinkite vartotojo pašto patvirtinimą.' : 'Patvirtinkite vartotojo ištrynimą.');
+        const user = await env.DB.prepare('SELECT id,username,email,verified_at FROM accounts WHERE id=?').bind(data.id).first();
         if (!user) fail('Vartotojas nerastas.', 404);
         if (data.email !== user.email || data.username !== user.username) fail('Vartotojo duomenys pasikeitė. Atnaujinkite lentelę.', 409);
+        if (action === 'judge/verify') {
+          if (!user.verified_at) await env.DB.prepare(`UPDATE accounts SET verified_at=?,verification_method='judge',code_hash=NULL,
+            code_expires_at=NULL,code_attempts=0,challenge_id=NULL WHERE id=? AND verified_at IS NULL`)
+            .bind(Date.now(), user.id).run();
+          return reply({ verified: true });
+        }
         // Remove account-only data atomically. Game results retain their original player ID.
         await env.DB.batch([
           env.DB.prepare('DELETE FROM account_activity WHERE account_id=?').bind(user.id),
@@ -142,7 +148,7 @@ export async function accountApi(request, env, judge = false) {
       if (request.method !== 'GET') fail('Not found.', 404);
       if (action === 'judge/users') {
         const page = Math.max(0, Math.min(10000, Math.floor(Number(url.searchParams.get('page')) || 0)));
-        const users = await env.DB.prepare(`SELECT id,username,email,created_at,verified_at,last_login_at,last_seen_at
+        const users = await env.DB.prepare(`SELECT id,username,email,created_at,verified_at,verification_method,last_login_at,last_seen_at
           FROM accounts ORDER BY created_at DESC,id LIMIT 51 OFFSET ?`).bind(page * 50).all();
         return reply({ users: users.results.slice(0, 50), hasMore: users.results.length > 50, page });
       }
@@ -205,7 +211,7 @@ export async function accountApi(request, env, judge = false) {
         await db.prepare('UPDATE accounts SET code_attempts=code_attempts+1 WHERE id=? AND challenge_id=? AND verified_at IS NULL').bind(row.id, row.challenge_id).run();
         fail('Neteisingas kodas.');
       }
-      const result = await db.prepare(`UPDATE accounts SET verified_at=?,code_hash=NULL,code_expires_at=NULL
+      const result = await db.prepare(`UPDATE accounts SET verified_at=?,verification_method='email',code_hash=NULL,code_expires_at=NULL
         WHERE id=? AND challenge_id=? AND code_hash=? AND verified_at IS NULL AND code_attempts<5 AND code_expires_at>?`)
         .bind(now, row.id, row.challenge_id, expected, now).run();
       if (!result.meta.changes) fail('Kodas nebegalioja.');

@@ -16,6 +16,20 @@ function JudgeAccounts({ accessKey, language = 'lt' }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('');
+  async function verifyUser(user) {
+    const warning = language === 'ru'
+      ? `Подтвердить почту пользователя «${user.username}» (${user.email}) вручную? Он сможет войти с паролем без кода из письма. Подтверждайте только знакомого человека и проверенный адрес.`
+      : text(`Patvirtinti vartotojo „${user.username}“ paštą (${user.email}) rankiniu būdu? Jis galės prisijungti su slaptažodžiu be laiško kodo. Patvirtinkite tik pažįstamą žmogų ir patikrintą adresą.`,
+        `Manually approve the email for “${user.username}” (${user.email})? They will be able to log in with their password without an email code. Only approve someone you know and an address you have checked.`);
+    if (busy || user.verified_at || !window.confirm(warning)) return;
+    setBusy(true); setError(''); setStatus('');
+    try {
+      await accountRequest('judge/verify', { id: user.id, username: user.username, email: user.email, confirmed: true }, accessKey);
+      setData(await accountRequest(`judge/users?page=${page}`, undefined, accessKey));
+      setStatus(text('Vartotojas patvirtintas. Jis gali prisijungti savo vardu ir slaptažodžiu.', 'User approved. They can log in with their username and password.'));
+    } catch (problem) { setError(problem.message); }
+    finally { setBusy(false); }
+  }
   async function deleteUser(user) {
     const warning = language === 'ru'
       ? `Удалить пользователя «${user.username}» (${user.email})? Учётная запись и история входов будут удалены, активные сеансы закрыты. Результаты игр сохранятся. Это действие нельзя отменить.`
@@ -58,7 +72,9 @@ function JudgeAccounts({ accessKey, language = 'lt' }) {
     {status && <p role="status">{status}</p>}
     <div className="judge-accounts__scroll"><table><thead><tr><th>{text('Vartotojo vardas', 'Username')}</th><th>{text('El. paštas', 'Email')}</th><th>{text('Registracija', 'Registration')}</th><th>{text('Paštas', 'Email')}</th><th>{text('Paskutinis prisijungimas', 'Last login')}</th><th>{text('Paskutinis aktyvumas', 'Last activity')}</th><th>{text('Veiksmas', 'Action')}</th></tr></thead>
       <tbody>{data?.users.map((user) => <tr key={user.id}><td><button type="button" onClick={() => { setHistory(null); setSelected(user); }}>{user.username}</button></td><td>{user.email}</td><td>{time(user.created_at)}</td>
-        <td>{user.verified_at ? text('Patvirtintas', 'Verified') : text('Nepatvirtintas', 'Unverified')}</td><td>{time(user.last_login_at)}</td><td>{time(user.last_seen_at)}</td><td><button type="button" className="judge-accounts__delete" disabled={busy} onClick={() => deleteUser(user)}>{text('Ištrinti vartotoją', 'Delete user')}</button></td></tr>)}</tbody></table></div>
+        <td title={user.verified_at ? time(user.verified_at) : undefined}>{user.verified_at ? user.verification_method === 'judge' ? text('Patvirtintas teisėjo', 'Approved by judge') : text('Patvirtintas', 'Verified') : text('Nepatvirtintas', 'Unverified')}</td><td>{time(user.last_login_at)}</td><td>{time(user.last_seen_at)}</td><td><div className="judge-accounts__actions">
+          {!user.verified_at && <button type="button" disabled={busy} onClick={() => verifyUser(user)}>{text('Patvirtinti paštą', 'Approve email')}</button>}
+          <button type="button" className="judge-accounts__delete" disabled={busy} onClick={() => deleteUser(user)}>{text('Ištrinti vartotoją', 'Delete user')}</button></div></td></tr>)}</tbody></table></div>
     {data && !data.users.length && <p>{text('Vartotojų dar nėra.', 'No users yet.')}</p>}
     <div className="judge-accounts__heading"><button type="button" disabled={page === 0 || busy} onClick={() => { setData(null); setPage(page - 1); }}>{text('Ankstesni', 'Previous')}</button><span>{page + 1} {text('puslapis', 'page')}</span>
       <button type="button" disabled={!data?.hasMore || busy} onClick={() => { setData(null); setPage(page + 1); }}>{text('Kiti', 'Next')}</button></div>

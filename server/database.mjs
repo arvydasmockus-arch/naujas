@@ -48,6 +48,9 @@ export function openDatabase(path = defaultDatabasePath, seed = true) {
   const puzzleColumns = new Set(db.prepare('PRAGMA table_info(puzzles)').all().map((column) => column.name));
   if (!puzzleColumns.has('verification_version')) db.exec('ALTER TABLE puzzles ADD COLUMN verification_version INTEGER NOT NULL DEFAULT 0');
   db.exec(readFileSync(new URL('../cloudflare/migrations/0011_accounts.sql', import.meta.url), 'utf8'));
+  if (!db.prepare('PRAGMA table_info(accounts)').all().some((column) => column.name === 'verification_method')) {
+    db.exec(readFileSync(new URL('../cloudflare/migrations/0014_account_verification_method.sql', import.meta.url), 'utf8'));
+  }
   db.exec(readFileSync(new URL('../cloudflare/migrations/0013_forum.sql', import.meta.url), 'utf8'));
   if (seed) {
     const puzzles = JSON.parse(readFileSync(new URL('../src/solvingPuzzles.json', import.meta.url), 'utf8'));

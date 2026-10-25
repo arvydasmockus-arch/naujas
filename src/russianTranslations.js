@@ -49,6 +49,9 @@ const entries = [
 ];
 
 const russian = Object.fromEntries([...entries,
+  ['Approve email', 'Подтвердить почту'], ['Approved by judge', 'Подтверждено судьёй'],
+  ['User approved. They can log in with their username and password.', 'Пользователь подтверждён. Он может войти с именем пользователя и паролем.'],
+  ['Patvirtinkite vartotojo pašto patvirtinimą.', 'Подтвердите одобрение почты пользователя.'],
   ['All saved sets are in the calendar. The latest 30 days are open for solving; older sets are available for review.', 'В календаре все сохранённые наборы. Последние 30 дней доступны для решения, более ранние — для просмотра.'],
   ['The round for this date is not available yet. Choose an earlier date in the calendar.', 'Набор на эту дату ещё не готов. Выберите предыдущую дату в календаре.'],
   ['Delete user', 'Удалить пользователя'],
@@ -73,6 +76,7 @@ export function russianLabels(value) {
 export const languageLocale = (language) => ({ lt: 'lt-LT', en: 'en-GB', ru: 'ru-RU' }[language] || 'en-GB');
 export function localizedError(message, language) {
   if (language === 'en') return ({
+    'Patvirtinkite vartotojo pašto patvirtinimą.': 'Confirm approving the user’s email.',
     'Patvirtinkite vartotojo ištrynimą.': 'Confirm deleting the user.',
     'Vartotojas nerastas.': 'User not found.',
     'Vartotojo duomenys pasikeitė. Atnaujinkite lentelę.': 'User details have changed. Refresh the table.',

@@ -154,6 +154,48 @@ test('activity and login timestamps are visible only through judge history and i
   } finally { app.db.close(); }
 });
 
+test('only the judge can manually verify the exact pending account; old codes expire and password login works', async () => {
+  const app = setup();
+  try {
+    const signup = await app.register();
+    const pending = app.db.prepare('SELECT * FROM accounts').get();
+    const code = app.mail.at(-1).code;
+    const payload = { id: pending.id, username: pending.username, email: pending.email, confirmed: true };
+    assert.equal((await app.call('judge/verify', payload)).status, 401);
+    assert.equal((await app.call('judge/verify', { ...payload, confirmed: false }, undefined, true)).status, 400);
+    assert.equal((await app.call('judge/verify', { ...payload, email: 'stale@example.test' }, undefined, true)).status, 409);
+    assert.equal((await app.call('judge/verify', undefined, undefined, true)).status, 404);
+    assert.equal(app.db.prepare('SELECT verified_at FROM accounts').get().verified_at, null);
+    assert.equal((await app.call('judge/verify', payload, undefined, true)).status, 200);
+    const verified = app.db.prepare('SELECT * FROM accounts').get();
+    assert.ok(verified.verified_at);
+    assert.equal(verified.verification_method, 'judge');
+    assert.equal(verified.code_hash, null); assert.equal(verified.code_expires_at, null); assert.equal(verified.challenge_id, null);
+    assert.equal(verified.password_hash, pending.password_hash); assert.equal(verified.salt, pending.salt);
+    assert.equal(app.mail.length, 1, 'Manual approval does not send another email');
+    assert.equal(app.db.prepare('SELECT COUNT(*) AS n FROM account_sessions').get().n, 0, 'Approval does not sign anyone in');
+    assert.equal((await app.call('verify', { challengeId: signup.data.challengeId, code })).status, 400);
+    const login = await app.call('login', { login: pending.username, password: 'a-long-test-password' });
+    assert.equal(login.status, 200); assert.ok(login.data.token); assert.equal(login.data.user.id, pending.id);
+    assert.equal((await app.call('judge/verify', payload, undefined, true)).status, 200);
+    assert.equal(app.db.prepare('SELECT verified_at FROM accounts').get().verified_at, verified.verified_at);
+    const listing = await app.call('judge/users', undefined, undefined, true);
+    assert.equal(listing.data.users[0].verification_method, 'judge');
+  } finally { app.db.close(); }
+});
+
+test('manual verification never changes an account already verified by email', async () => {
+  const app = setup();
+  try {
+    const login = await app.verified();
+    const before = app.db.prepare('SELECT * FROM accounts').get();
+    assert.equal(before.verification_method, 'email');
+    assert.equal((await app.call('judge/verify', { id: login.user.id, username: before.username, email: before.email, confirmed: true }, undefined, true)).status, 200);
+    const after = app.db.prepare('SELECT * FROM accounts').get();
+    assert.equal(after.verification_method, 'email'); assert.equal(after.verified_at, before.verified_at);
+  } finally { app.db.close(); }
+});
+
 test('only the judge can delete accounts; confirmation is required and existing results survive', async () => {
   const app = setup();
   try {
