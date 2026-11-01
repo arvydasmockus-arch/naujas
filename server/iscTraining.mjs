@@ -51,12 +51,12 @@ async function job(db, id, kind, when) {
 }
 
 export async function frozenIscPdf(db, id, kind) {
-  const row = await db.prepare(`SELECT p.content,t.id,t.title,t.number,t.date FROM isc_pdfs p
+  const row = await db.prepare(`SELECT p.content,t.id,t.title,t.date FROM isc_pdfs p
     JOIN tournaments t ON t.id=p.tournament_id JOIN isc_trainings i ON i.tournament_id=p.tournament_id
     WHERE p.tournament_id=? AND p.kind=? AND p.revision=i.revision`).bind(id, kind).first();
   if (!row) error('Prepare both ISC PDFs before approving the start.');
-  return { event: { id: row.id, title: row.title, date: row.date, number: row.number,
-    displayTitle: `${row.title} No. ${row.number} — ${row.date.replaceAll('-', '.')}` }, pdf: row.content };
+  return { event: { id: row.id, title: row.title, date: row.date,
+    displayTitle: `${row.title} — ${row.date.split('-').reverse().join('.')}` }, pdf: row.content };
 }
 
 export async function iscApi(request, env, judge, dependencies) {
@@ -92,15 +92,14 @@ export async function iscApi(request, env, judge, dependencies) {
     if (!judge) error('Judge access required.', 401);
     if (action === 'create') {
       const startsAt = iscStart(data.date); if (startsAt <= now) error('Choose a future Sunday.');
-      const title = typeof data.title === 'string' && data.title.trim() ? data.title.trim() : 'ISC Training';
-      if (title.length > 140) error('Enter a title (max. 140 characters).');
+      const title = typeof data.title === 'string' ? data.title.trim() : '';
+      if (!title || title.length > 140) error('Enter a tournament name (max. 140 characters).');
       const generateAt = data.generateAt == null || data.generateAt === '' ? null : Number(data.generateAt);
       if (generateAt !== null && (!Number.isFinite(generateAt) || generateAt <= now || generateAt >= startsAt)) error('Generation must be scheduled before the ISC start and after now.');
       const id = crypto.randomUUID();
       await db.batch([
         db.prepare(`INSERT INTO tournaments(id,title,date,mode,status,created_at,weekly,number)
-          SELECT ?,?,?,'competition','draft',?,0,CAST(value AS INTEGER) FROM metadata WHERE key='tournament_next_number'`).bind(id, title, data.date, now),
-        db.prepare("UPDATE metadata SET value=CAST(value AS INTEGER)+1 WHERE key='tournament_next_number'"),
+          VALUES(?,?,?,'competition','draft',?,0,NULL)`).bind(id, title, data.date, now),
         db.prepare('INSERT INTO isc_trainings(tournament_id,starts_at,generate_at) VALUES(?,?,?)').bind(id, startsAt, generateAt),
         ...(generateAt === null ? [] : [await job(db, id, 'generate', generateAt)]),
       ]);

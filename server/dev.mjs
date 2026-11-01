@@ -139,7 +139,7 @@ const server = createServer(async (req, res) => {
         const pdf = event.isc?.armed && ['problems', 'solutions'].includes(kind)
           ? Buffer.from((await frozenIscPdf(accountEnv.DB, event.id, kind)).pdf, 'base64') : await tournamentPdf(event, kind);
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="ML-Academy-No-${event.number}-${event.date}-${kind}.pdf"`);
+        res.setHeader('Content-Disposition', `attachment; filename="ML-Academy-${event.isc ? event.date : `No-${event.number}-${event.date}`}-${kind}.pdf"`);
         res.end(pdf); return;
       } else if (req.method === 'POST') {
         const data = await body(req);

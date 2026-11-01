@@ -5,7 +5,11 @@ import { tournamentTypes, latestSaturday, rankResults, oldEnough, parseTournamen
 import { normalizePlayer } from './gameStore.mjs';
 import { solutionDraft } from './solutionDraft.mjs';
 const defaultTitle = 'Solving tournament of Martynas Limontas';
-function namedEvent(row) { return { ...row, displayTitle: `${row.title} No. ${row.number} — ${row.date.replaceAll('-', '.')}` }; }
+function namedEvent(row) {
+  const date = row.date.replaceAll('-', '.');
+  const eventDate = row.date.split('-').reverse().join('.');
+  return { ...row, displayTitle: row.starts_at != null ? `${row.title} — ${eventDate}` : `${row.title} No. ${row.number} — ${date}` };
+}
 
 export class TournamentStore {
   constructor(db, clock = () => Date.now()) {

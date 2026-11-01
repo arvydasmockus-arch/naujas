@@ -110,7 +110,9 @@ test('ISC common deadline and three-hour solution gate hold even if cron is late
 test('scheduled generation creates a judge draft once; approval is explicit and disarming cancels release jobs', async (t) => {
   const app = setup(t);
   const generation = Date.parse('2026-11-03T09:00:00Z');
-  const { id } = await app.call('create', { date: '2026-11-08', generateAt: generation });
+  const { id } = await app.call('create', { title: 'Limontas Open', date: '2026-11-08', generateAt: generation });
+  assert.equal(app.store.get(id, true).displayTitle, 'Limontas Open — 08.11.2026');
+  assert.equal(app.store.get(id, true).number, null);
   await app.schedule(); assert.equal(app.store.get(id, true).puzzles.length, 0);
   app.setTime(generation); await app.schedule(); await app.schedule();
   assert.equal(app.store.get(id, true).puzzles.length, 6);

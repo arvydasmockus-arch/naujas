@@ -11,7 +11,7 @@ const labels = {
     avg: 'Avg. visitors/day', sections: 'Sections', section: 'Section', views: 'Views', daysTable: 'Daily activity',
     date: 'Date', visitors: 'Visitors', solvers: '#2 solvers', attempts: '#2 answers', incorrect: 'Incorrect', avgSeconds: 'Avg. seconds', sixTraining: 'Training', sixCompetition: 'Competition',
     privacy: 'Visitor totals are estimates based on a monthly rotating IP and browser identifier. Raw IP addresses are not stored by this app; shared networks can count as one visitor.',
-    pages: { news: 'Home', solving: 'Matplus', training: 'ISC Training', tournaments: 'WSC' },
+    pages: { news: 'Home', solving: 'Matplus', training: 'Open Tournaments', tournaments: 'WSC' },
   },
   lt: {
     title: 'Svetainės statistika', days: 'Laikotarpis', refresh: 'Atnaujinti', loading: 'Įkeliama statistika…',
@@ -20,7 +20,7 @@ const labels = {
     avg: 'Vid. lankytojų per dieną', sections: 'Skiltys', section: 'Skiltis', views: 'Peržiūros', daysTable: 'Dienos aktyvumas',
     date: 'Data', visitors: 'Lankytojai', solvers: '#2 sprendėjai', attempts: '#2 atsakymai', incorrect: 'Klaidingi', avgSeconds: 'Vid. sekundės', sixTraining: 'Treniruotė', sixCompetition: 'Varžybos',
     privacy: 'Lankytojų skaičius apytikslis: naudojamas kas mėnesį keičiamas IP ir naršyklės identifikatorius. Neapdorotų IP adresų ši programa neišsaugo; bendras tinklas gali būti skaičiuojamas kaip vienas lankytojas.',
-    pages: { news: 'Pagrindinis', solving: 'Matplus', training: 'ISC treniruotė', tournaments: 'WSC' },
+    pages: { news: 'Pagrindinis', solving: 'Matplus', training: 'Atviri turnyrai', tournaments: 'WSC' },
   },
 };
 

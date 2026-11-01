@@ -13,13 +13,13 @@ export function IscCreate({ language, accessKey, onCreated }) {
     e.preventDefault(); setBusy(true); setError('');
     try {
       const event = await tournamentRequest('isc/create', { key: accessKey,
-        data: { title: title || t.title, date, generateAt: scheduled ? new Date(generateAt).getTime() : null } });
+        data: { title, date, generateAt: scheduled ? new Date(generateAt).getTime() : null } });
       await onCreated(event.id);
     } catch (cause) { setError(cause.message); } finally { setBusy(false); }
   }
   return <form className="tournament-panel isc-create" onSubmit={create}>
     <h2>{t.create}</h2><p>{t.createHint}</p>
-    <div className="isc-fields"><label>{t.name}<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={140} placeholder={t.title} /></label>
+    <div className="isc-fields"><label>{t.name}<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={140} required /></label>
       <label>{t.date}<input type="date" value={date} onChange={(e) => setDate(e.target.value)} required /></label>
       <label>{t.generation}<select value={scheduled ? 'scheduled' : 'manual'} onChange={(e) => setScheduled(e.target.value === 'scheduled')}><option value="manual">{t.manual}</option><option value="scheduled">{t.scheduled}</option></select></label>
       {scheduled && <label>{t.generationAt}<input type="datetime-local" value={generateAt} onChange={(e) => setGenerateAt(e.target.value)} required /></label>}</div>

@@ -62,8 +62,8 @@ function heading(doc, event, subtitle, centered = false, logoAsset) {
   const logo = logoAsset ?? new URL('../src/assets/ml-academy-logo.jpg', import.meta.url);
   if (centered) {
     doc.image(logo, (doc.page.width - 96) / 2, 5, { fit: [96, 49], align: 'center', valign: 'center' });
-    doc.fillColor('#111111').fontSize(15).text(event.title, 20, 53, { width: doc.page.width - 40, height: 20, align: 'center', ellipsis: true });
-    doc.fontSize(10).text(`No. ${event.number} · ${event.date.replaceAll('-', '.')} · ${subtitle} · 120 minutes`, 20, 76, { width: doc.page.width - 40, align: 'center' });
+    doc.fillColor('#111111').fontSize(15).text(event.isc ? event.displayTitle : event.title, 20, 53, { width: doc.page.width - 40, height: 20, align: 'center', ellipsis: true });
+    doc.fontSize(10).text(`${event.isc ? '' : `No. ${event.number} · ${event.date.replaceAll('-', '.')} · `}${subtitle} · 120 minutes`, 20, 76, { width: doc.page.width - 40, align: 'center' });
     return;
   }
   doc.image(logo, 28, 16, { fit: [82, 49], align: 'center', valign: 'center' });

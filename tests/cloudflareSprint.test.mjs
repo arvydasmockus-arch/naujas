@@ -243,7 +243,7 @@ test('Worker ISC routes protect drafts and PDFs, require registration, and enfor
       const puzzle = parseTournamentEntry(entry, '2026-10-09T00:00:00Z');
       db.prepare('INSERT INTO tournament_pool VALUES(?,?,?,?,?,?)').run(puzzle.id, puzzle.type, JSON.stringify(entry), JSON.stringify(puzzle), puzzle.positionHash, puzzle.usageCheckedAt);
     }
-    const create = await request('/api/tournaments/isc/create', { date: '2026-11-08' });
+    const create = await request('/api/tournaments/isc/create', { title: 'Limontas Open', date: '2026-11-08' });
     assert.equal(create.status, 200); const { id } = await create.json();
     assert.equal((await request('/api/tournaments/event?id=' + id, undefined, false)).status, 404);
     assert.equal((await request('/api/tournaments/isc/generate', { id })).status, 200);

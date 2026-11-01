@@ -23,7 +23,7 @@ function remainingTime(milliseconds) {
 }
 
 function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabled = false }) {
-  const t = { ...tournamentTranslations[language], ...Object.fromEntries(['title', 'subtitle', 'schedule'].map((key) => [key, iscTranslations[language][key]])) };
+  const t = { ...tournamentTranslations[language], title: interfaceText(language, 'Atviri turnyrai', 'Open Tournaments'), subtitle: iscTranslations[language].subtitle, schedule: '' };
   const iscText = iscTranslations[language];
   const [judge, setJudge] = useState(false);
   const [judgeMode, setJudgeMode] = useState('tournaments');
@@ -178,7 +178,7 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
   }
   function downloadText() {
     const url = URL.createObjectURL(new Blob([answerText()], { type: 'text/plain;charset=utf-8' }));
-    const a = document.createElement('a'); a.href = url; a.download = `ML-Academy-No-${event.number}-answers-${event.date}.txt`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const a = document.createElement('a'); a.href = url; a.download = `ML-Academy-${event.date}-answers.txt`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   function mail() {
     const text = answerText();
@@ -212,7 +212,7 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
   }
 
   return <main className="tournament-page" lang={language}>
-    <header className="tournament-page__header"><div><h1>{t.title}</h1><p>{t.subtitle}</p><small>{t.schedule}</small></div></header>
+    <header className="tournament-page__header"><div><h1>{t.title}</h1><p>{t.subtitle}</p>{t.schedule && <small>{t.schedule}</small>}</div></header>
     <div className="tournament-page__views"><strong>{judge ? t.judgeView : t.playerView}</strong>
       {judge ? <button type="button" onClick={() => { setJudge(false); setEvent(null); setAccessKey(''); }}>{t.logout}</button> :
         <details><summary>{t.judgeView}</summary><form onSubmit={login}><label>{t.access}<input type="password" value={accessKey} onChange={(e) => setAccessKey(e.target.value)} required /></label><button disabled={busy}>{t.login}</button><p>{t.keyHint}</p></form></details>}
@@ -230,9 +230,9 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
     {judge && judgeMode === 'forum' ? <Forum language={language} accountUser={accountUser} judgeKey={accessKey} /> : judge && judgeMode === 'sprint' ? <SprintJudgePanel accessKey={accessKey} language={language} /> : <>
     {judge && <IscCreate language={language} accessKey={key} onCreated={async (id) => { await refreshCatalog(); selectTournament(id); await refreshEvent(id); }} />}
     <label className="tournament-selector">{t.choose}<select disabled={busy} value={selected ?? ''} onChange={(e) => selectTournament(e.target.value)}>
-      <option value="" disabled>{t.choose}</option>{catalog?.tournaments.map((item) => <option key={item.id} value={item.id}>{item.displayTitle} · {item.isc ? iscText.title : t[item.mode]}{item.isc ? ` · ${item.isc.announced ? iscText.announced : iscText.draft}` : item.status === 'draft' ? ` · ${t.draft}` : ''}</option>)}</select></label>
+      <option value="" disabled>{t.choose}</option>{catalog?.tournaments.map((item) => <option key={item.id} value={item.id}>{item.displayTitle}{item.isc ? ` · ${item.isc.announced ? iscText.announced : iscText.draft}` : item.status === 'draft' ? ` · ${t.draft}` : ''}</option>)}</select></label>
     {!event ? <p>{catalog?.tournaments.length ? t.loading : t.noEvents}</p> : <>
-      <section className="tournament-panel"><div className="tournament-event-heading"><div className="tournament-set-brand"><img src={academyLogo} alt="ML Academy" /><div><h2>{event.displayTitle}</h2><p>{event.isc ? iscText.title : t[event.mode]} · 120 min</p></div></div>
+      <section className="tournament-panel"><div className="tournament-event-heading"><div className="tournament-set-brand"><img src={academyLogo} alt="ML Academy" /><div><h2>{event.displayTitle}</h2><p>{event.isc ? iscText.subtitle : t[event.mode]} · 120 min</p></div></div>
         <div className="tournament-downloads">{(judge || !event.isc || event.isc.problemsAvailable) && <button disabled={busy || event.puzzles.length !== 6} onClick={() => pdf('problems')}>{t.problems}</button>}
           {(judge || event.solutionsPublic) && <button disabled={busy} onClick={() => pdf('solutions')}>{t.solutions}</button>}
           {(judge || event.resultsPublic) && <button disabled={busy} onClick={() => pdf('results')}>{t.resultsPdf}</button>}</div></div>
@@ -300,7 +300,7 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
     <section className="tournament-panel tournament-history" aria-label={t.history}>
       <h2>{t.history}</h2><p>{t.historyHint}</p>
       <div className="tournament-history__list">{catalog?.tournaments.map((item) => <article key={item.id} className={item.id === selected ? 'tournament-history__selected' : ''}>
-        <div><strong>{item.displayTitle}</strong><p>{item.isc ? iscText.title : t[item.mode]}{item.isc ? ` · ${item.isc.announced ? iscText.announced : iscText.draft}` : item.status === 'draft' ? ` · ${t.draft}` : ''}</p></div>
+        <div><strong>{item.displayTitle}</strong><p>{item.isc ? iscText.subtitle : t[item.mode]}{item.isc ? ` · ${item.isc.announced ? iscText.announced : iscText.draft}` : item.status === 'draft' ? ` · ${t.draft}` : ''}</p></div>
         <div className="tournament-downloads"><button disabled={busy} type="button" onClick={() => { selectTournament(item.id); document.querySelector('.tournament-selector')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>{t.openSet}</button>
           {(judge || !item.isc || item.isc.problemsAvailable) && <button disabled={busy} type="button" onClick={() => pdf('problems', item.id)}>{t.problems}</button>}
           {Boolean(judge || item.solutionsPublic) && <button disabled={busy} type="button" onClick={() => pdf('solutions', item.id)}>{t.solutions}</button>}

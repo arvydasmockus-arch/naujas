@@ -7,7 +7,7 @@ import { accountErrorText } from './accountTranslations';
 function JudgeAccounts({ accessKey, language = 'lt' }) {
   const text = (lt, en) => interfaceText(language, lt, en);
   const time = (value) => value ? new Date(value).toLocaleString(languageLocale(language), { timeZone: 'Europe/Vilnius' }) : '—';
-  const sections = { news: text('Pagrindinis', 'Home'), solving: 'Matplus', sprint: '3 × #2', training: text('ISC treniruotė', 'ISC Training'), tournaments: 'WSC' };
+  const sections = { news: text('Pagrindinis', 'Home'), solving: 'Matplus', sprint: '3 × #2', training: text('Atviri turnyrai', 'Open Tournaments'), tournaments: 'WSC' };
   const actions = { page_view: text('Atidarė puslapį', 'Opened page'), start: text('Pradėjo spręsti', 'Started solving'), submit: text('Pateikė atsakymus', 'Submitted answers'), answer: text('Pateikė ėjimą', 'Submitted move') };
   const [now] = useState(Date.now);
   const [page, setPage] = useState(0);

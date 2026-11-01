@@ -48,7 +48,9 @@ function isJudge(request, env) {
 }
 
 async function namedEvent(row) {
-  return { ...row, displayTitle: `${row.title} No. ${row.number} — ${row.date.replaceAll('-', '.')}` };
+  const date = row.date.replaceAll('-', '.');
+  const eventDate = row.date.split('-').reverse().join('.');
+  return { ...row, displayTitle: row.starts_at != null ? `${row.title} — ${eventDate}` : `${row.title} No. ${row.number} — ${date}` };
 }
 
 async function getEvent(db, id, judge = false) {
@@ -848,7 +850,7 @@ async function tournamentApi(request, url, env) {
         ? Buffer.from((await frozenIscPdf(db, event.id, kind)).pdf, 'base64')
         : await tournamentPdf(event, kind, pdfAssets, PDFDocumentBrowser);
       return new Response(pdf, { headers: { 'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="ML-Academy-No-${event.number}-${event.date}-${kind}.pdf"`,
+        'Content-Disposition': `attachment; filename="ML-Academy-${event.isc ? event.date : `No-${event.number}-${event.date}`}-${kind}.pdf"`,
         'Cache-Control': 'no-store' } });
     } catch (error) { return json({ error: error.message }, 400); }
   }
