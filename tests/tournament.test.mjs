@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { openDatabase } from '../server/database.mjs';
 import { TournamentStore } from '../server/tournamentStore.mjs';
 import { publicationDate, oldEnough, parseTournamentEntry, helpmateSolutionCount, latestSaturday, knownSolvingUse } from '../server/tournamentTools.mjs';
-import { tournamentPdf } from '../server/tournamentPdf.mjs';
+import { pdfEventTitle, tournamentPdf } from '../server/tournamentPdf.mjs';
 const entries = JSON.parse(readFileSync(new URL('./fixtures/tournamentEntries.json', import.meta.url), 'utf8'));
 function setup() {
   let now = Date.parse('2026-10-10T07:05:00Z');
@@ -194,4 +194,11 @@ test('problem, solution and result exports are real PDFs', async () => {
       assert.equal(pdf.subarray(0, 5).toString(), '%PDF-'); assert.ok(pdf.length > 10000);
     }
   } finally { db.close(); }
+});
+
+test('English PDFs translate the generic ISC training title while preserving custom tournament names', () => {
+  const event = { isc: true, title: 'ISC treniruotė', displayTitle: 'ISC treniruotė — 01.11.2026' };
+  assert.equal(pdfEventTitle(event, 'en'), 'ISC Training — 01.11.2026');
+  assert.equal(pdfEventTitle(event, 'lt'), event.displayTitle);
+  assert.equal(pdfEventTitle({ ...event, title: 'Limontas Open', displayTitle: 'Limontas Open — 01.11.2026' }, 'en'), 'Limontas Open — 01.11.2026');
 });

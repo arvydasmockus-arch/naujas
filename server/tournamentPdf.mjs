@@ -57,17 +57,24 @@ function board(doc, fen, x, y, size, pieceAssets) {
   }
   doc.rect(x, y, size, size).lineWidth(0.7).stroke('#111111');
 }
-function heading(doc, event, subtitle, centered = false, logoAsset) {
+export function pdfEventTitle(event, language = 'en') {
+  const title = event.displayTitle ?? event.title;
+  if (language === 'en' && event.isc && event.title?.trim().toLocaleLowerCase('lt-LT') === 'isc treniruotė') {
+    return title.replace(/^ISC treniruotė/i, 'ISC Training');
+  }
+  return title;
+}
+function heading(doc, event, subtitle, centered = false, logoAsset, language = 'en') {
   const logo = logoAsset ?? new URL('../src/assets/ml-academy-logo.jpg', import.meta.url);
   if (centered) {
     doc.image(logo, (doc.page.width - 96) / 2, 5, { fit: [96, 49], align: 'center', valign: 'center' });
-    doc.fillColor('#111111').fontSize(15).text(event.isc ? event.displayTitle : event.title, 20, 53, { width: doc.page.width - 40, height: 20, align: 'center', ellipsis: true });
+    doc.fillColor('#111111').fontSize(15).text(event.isc ? pdfEventTitle(event, language) : event.title, 20, 53, { width: doc.page.width - 40, height: 20, align: 'center', ellipsis: true });
     doc.fontSize(10).text(`${event.isc ? '' : `No. ${event.number} · ${event.date.replaceAll('-', '.')} · `}${subtitle} · 120 minutes`, 20, 76, { width: doc.page.width - 40, align: 'center' });
     return;
   }
   doc.image(logo, 28, 16, { fit: [82, 49], align: 'center', valign: 'center' });
   const width = doc.page.width - 156;
-  doc.fillColor('#111111').fontSize(12).text(event.displayTitle ?? event.title, 124, 19, { width, height: 31, align: 'center', ellipsis: true });
+  doc.fillColor('#111111').fontSize(12).text(pdfEventTitle(event, language), 124, 19, { width, height: 31, align: 'center', ellipsis: true });
   doc.fontSize(9).text(`${subtitle} · 120 minutes`, 124, 54, { width, align: 'center' });
 }
 function caption(doc, puzzle, x, y, width, labels) {
@@ -92,12 +99,12 @@ export async function tournamentPdf(event, kind, assets = {}, PDFDocumentType, l
   const PDFDocument = PDFDocumentType ?? (await import('pdfkit')).default;
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', layout: kind === 'results' ? 'landscape' : 'portrait', margin: kind === 'problems' ? 14 : 28,
-      info: { Title: `${event.displayTitle ?? event.title} — ${kind}`, Author: 'ML Academy' } });
+      info: { Title: `${pdfEventTitle(event, language)} — ${kind}`, Author: 'ML Academy' } });
     const chunks = []; doc.on('data', (chunk) => chunks.push(chunk)); doc.on('end', () => resolve(Buffer.concat(chunks))); doc.on('error', reject);
     try {
       fonts(doc, assets.font);
       if (kind === 'problems') {
-        heading(doc, event, labels.problems, true, assets.logo);
+        heading(doc, event, labels.problems, true, assets.logo, language);
         event.puzzles.forEach((puzzle, index) => {
           const size = 206, gap = 24, left = (doc.page.width - size * 2 - gap) / 2;
           const x = left + (index % 2) * (size + gap), y = 104 + Math.floor(index / 2) * 238;
@@ -110,7 +117,7 @@ export async function tournamentPdf(event, kind, assets = {}, PDFDocumentType, l
         event.puzzles.forEach((puzzle, index) => {
           if (index % 3 === 0) {
             if (index) doc.addPage();
-            heading(doc, event, labels.solutions, true, assets.logo);
+            heading(doc, event, labels.solutions, true, assets.logo, language);
           }
           const top = 104 + index % 3 * 232, size = 166, textX = 214;
           const textWidth = doc.page.width - textX - 28;
@@ -127,7 +134,7 @@ export async function tournamentPdf(event, kind, assets = {}, PDFDocumentType, l
         const columns = [28, 52, 245, 288, 322, 374, 415, 451, 487, 523, 559, 595, 631, 695, 753, 814];
         let y;
         function tableHeader() {
-          heading(doc, event, labels.results, false, assets.logo);
+          heading(doc, event, labels.results, false, assets.logo, language);
           y = 84;
           const columnsText = [labels.rank, labels.name, labels.category, labels.country, labels.rating, labels.title, ...event.puzzles.map((puzzle, i) => `${i + 1}. ${puzzle.stipulation}`), labels.total, labels.minutes, ''];
           columnsText.slice(0, 14).forEach((label, i) => {
