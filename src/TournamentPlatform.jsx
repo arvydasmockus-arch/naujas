@@ -240,7 +240,7 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
         {(!event.isc || event.puzzles.length > 0) && <p>{t.ready}</p>}
         {!judge && !event.isc && !event.solutionsPublic && <p className="tournament-note">{t.unavailable}</p>}
       </section>
-      {event.isc && <IscEvent event={event} language={language} accessKey={key} accountUser={accountUser} now={now - offset} reviewed={reviewed} onReviewChange={setReviewed} onChanged={refreshEvent} onArm={armIsc} onRegistrationChanged={setIscRegistered} />}
+      {event.isc && <IscEvent event={event} language={language} accessKey={key} accountUser={accountUser} now={now - offset} reviewed={reviewed} busy={busy} pageError={error} onReviewChange={setReviewed} onChanged={refreshEvent} onArm={armIsc} onRegistrationChanged={setIscRegistered} />}
       {judge && (!event.isc || (!event.isc.armed && now - offset < event.isc.startsAt && event.puzzles.length === 6)) && <section className="tournament-panel"><h2>{t.settings}</h2><label>{t.tournamentTitle}<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={140} /></label>
         {!event.isc && <label className="tournament-check"><input type="checkbox" checked={reviewed} onChange={(e) => setReviewed(e.target.checked)} />{t.review}</label>}
         {!event.isc && <label className="tournament-check"><input type="checkbox" checked={solutionsPublic} onChange={(e) => setSolutionsPublic(e.target.checked)} />{t.publishSolutions}</label>}
