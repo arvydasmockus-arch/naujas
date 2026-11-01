@@ -3,10 +3,12 @@
 .isc-timetable dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
 .isc-timetable small { display: block; font-weight: 400; margin-top: 4px; }
 .isc-management, .isc-participants { border-top: 1px solid #dce5d9; padding-top: 16px; margin-top: 20px; }
-.isc-participants ol { columns: 3 180px; padding-left: 24px; }
-.isc-participants li { padding: 5px 0; overflow-wrap: anywhere; break-inside: avoid; }
+.isc-participants ol { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 1px 18px; margin: 8px 0 14px; padding: 0; list-style: none; counter-reset: participant; }
+.isc-participants li { display: flex; min-width: 0; gap: 7px; padding: 3px 0; border-bottom: 1px solid #e7ece5; overflow-wrap: anywhere; counter-increment: participant; }
+.isc-participants li::before { flex: 0 0 22px; color: #697c64; font-size: .85em; content: counter(participant) "."; }
 .isc-participants button { margin: 8px 12px 0 0; }
 .isc-status p { overflow-wrap: anywhere; }
 .isc-status span { display: block; color: #a2322b; }
 .isc-review-check { margin: 16px 0; }
 @media (max-width: 640px) { .isc-timetable { grid-template-columns: 1fr; gap: 16px; } }
+@media (max-width: 480px) { .isc-participants ol { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px 12px; } }
