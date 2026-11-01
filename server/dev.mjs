@@ -136,7 +136,7 @@ const server = createServer(async (req, res) => {
         if (!judge && event.isc && !event.isc.problemsAvailable) throw new Error('ISC training has not started yet.');
         if (kind === 'solutions' && !judge && !event.solutionsPublic) throw new Error('Solutions have not been published.');
         if (kind === 'results' && !judge && !event.resultsPublic) throw new Error('Results have not been published.');
-        const pdf = event.isc?.armed && ['problems', 'solutions'].includes(kind)
+        const pdf = event.isc?.armed && !judge && ['problems', 'solutions'].includes(kind)
           ? Buffer.from((await frozenIscPdf(accountEnv.DB, event.id, kind)).pdf, 'base64') : await tournamentPdf(event, kind, {}, undefined, url.searchParams.get('language') === 'lt' ? 'lt' : 'en');
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="ML-Academy-${event.isc ? event.date : `No-${event.number}-${event.date}`}-${kind}.pdf"`);

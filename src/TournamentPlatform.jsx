@@ -129,6 +129,14 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
       await refreshEvent();
     });
   }
+  function regenerateIscPdfs() {
+    perform(async () => {
+      for (const kind of ['problems', 'solutions']) {
+        await tournamentRequest('isc/prepare', { key, data: { id: selected, kind, language: pdfLanguage } });
+      }
+      await refreshEvent();
+    });
+  }
   function saveSettings(status = event.status) {
     perform(async () => {
       const data = await tournamentRequest('settings', { key, data: { id: selected, title, status, judgeReviewed: reviewed, solutionsPublic, resultsPublic, scoringNotes, solutionDrafts } });
@@ -235,7 +243,7 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
       <option value="" disabled>{t.choose}</option>{catalog?.tournaments.map((item) => <option key={item.id} value={item.id}>{item.displayTitle}{item.isc ? ` · ${item.isc.announced ? iscText.announced : iscText.draft}` : item.status === 'draft' ? ` · ${t.draft}` : ''}</option>)}</select></label>
     {!event ? <p>{catalog?.tournaments.length ? t.loading : t.noEvents}</p> : <>
       <section className="tournament-panel"><div className="tournament-event-heading"><div className="tournament-set-brand"><img src={academyLogo} alt="ML Academy" /><div><h2>{event.displayTitle}</h2><p>{event.isc ? iscText.subtitle : t[event.mode]} · 120 min</p></div></div>
-        <div className="tournament-downloads">{judge && <label>{iscText.pdfLanguage}<select value={pdfLanguage} onChange={(e) => setPdfLanguage(e.target.value)}><option value="en">{iscText.english}</option><option value="lt">{iscText.lithuanian}</option></select></label>}{(judge || !event.isc || event.isc.problemsAvailable) && <button disabled={busy || event.puzzles.length !== 6} onClick={() => pdf('problems')}>{t.problems}</button>}
+        <div className="tournament-downloads">{judge && <label>{iscText.pdfLanguage}<select value={pdfLanguage} onChange={(e) => setPdfLanguage(e.target.value)}><option value="en">{iscText.english}</option><option value="lt">{iscText.lithuanian}</option></select></label>}{judge && event.isc && <button disabled={busy || event.puzzles.length !== 6 || now - offset >= event.isc.startsAt} onClick={regenerateIscPdfs}>{iscText.applyPdfLanguage}</button>}{(judge || !event.isc || event.isc.problemsAvailable) && <button disabled={busy || event.puzzles.length !== 6} onClick={() => pdf('problems')}>{t.problems}</button>}
           {(judge || event.solutionsPublic) && <button disabled={busy} onClick={() => pdf('solutions')}>{t.solutions}</button>}
           {(judge || event.resultsPublic) && <button disabled={busy} onClick={() => pdf('results')}>{t.resultsPdf}</button>}</div></div>
         {(!event.isc || event.puzzles.length > 0) && <p>{t.ready}</p>}

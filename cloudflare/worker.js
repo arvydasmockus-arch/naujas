@@ -846,7 +846,7 @@ async function tournamentApi(request, url, env) {
       if (!judge && event.isc && !event.isc.problemsAvailable) throw new Error('ISC training has not started yet.');
       if (kind === 'solutions' && !judge && !event.solutionsPublic) throw new Error('Solutions have not been published.');
       if (kind === 'results' && !judge && !event.resultsPublic) throw new Error('Results have not been published.');
-      const pdf = event.isc?.armed && ['problems', 'solutions'].includes(kind)
+      const pdf = event.isc?.armed && !judge && ['problems', 'solutions'].includes(kind)
         ? Buffer.from((await frozenIscPdf(db, event.id, kind)).pdf, 'base64')
         : await tournamentPdf(event, kind, pdfAssets, PDFDocumentBrowser, url.searchParams.get('language') === 'lt' ? 'lt' : 'en');
       return new Response(pdf, { headers: { 'Content-Type': 'application/pdf',

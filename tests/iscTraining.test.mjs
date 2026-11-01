@@ -187,6 +187,18 @@ test('editing invalidates prepared PDFs and approval requires both PDFs from the
   assert.equal((await frozenIscPdf(app.env.DB, id, 'problems')).event.title, 'Corrected ISC title');
 });
 
+test('judge can regenerate armed PDFs in the selected language until the scheduled start', async (t) => {
+  const app = setup(t); const id = await app.event(true); const generated = [];
+  app.dependencies.pdf = async (_event, kind, language) => {
+    generated.push([kind, language]); return Buffer.from(`%PDF-${language}-${kind}`);
+  };
+  for (const kind of ['problems', 'solutions']) assert.equal((await app.call('prepare', { id, kind, language: 'en' })).status, 200);
+  assert.deepEqual(generated, [['problems', 'en'], ['solutions', 'en']]);
+  assert.equal(Buffer.from((await frozenIscPdf(app.env.DB, id, 'problems')).pdf, 'base64').toString(), '%PDF-en-problems');
+  app.setTime('2026-11-08T10:00:00Z');
+  assert.equal((await app.call('prepare', { id, kind: 'problems', language: 'lt' })).status, 400);
+});
+
 test('ISC queue sends one stored PDF per recipient, ignores duplicate/stale messages, and never regenerates PDFs', async (t) => {
   const app = setup(t); const id = await app.event(true); const alice = await app.user();
   await app.call('register', { id }, false, alice.token);

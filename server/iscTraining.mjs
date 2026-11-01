@@ -32,6 +32,7 @@ export async function guardIsc(db, id, action, accountId, now = Date.now()) {
     if (row.armed) error('Disarm ISC training before editing its problems or deleting it.');
     if (now >= row.starts_at) error('ISC training can no longer be edited after its start.');
   }
+  if (action === 'prepare-pdf' && now >= row.starts_at) error('ISC PDFs can no longer be prepared after the start.');
   if (['start', 'submit'].includes(action)) {
     if (!accountId || !await db.prepare('SELECT 1 AS found FROM isc_registrations WHERE tournament_id=? AND account_id=?').bind(id, accountId).first()) error('Register for this ISC training first.', 403);
     if (!row.announced || !state.problemsAvailable) error('ISC training has not started yet.');
@@ -125,7 +126,7 @@ export async function iscApi(request, env, judge, dependencies) {
       await dependencies.generate(data.id);
       await db.prepare("UPDATE isc_jobs SET status='done',last_error='' WHERE id=?").bind(`${data.id}:generate`).run();
     } else if (action === 'prepare') {
-      await guardIsc(db, data.id, 'settings');
+      await guardIsc(db, data.id, 'prepare-pdf');
       if (!['problems', 'solutions'].includes(data.kind)) error('Invalid PDF kind.');
       const language = data.language === 'lt' ? 'lt' : 'en';
       const event = await dependencies.event(data.id);
@@ -133,7 +134,7 @@ export async function iscApi(request, env, judge, dependencies) {
       const content = Buffer.from(await dependencies.pdf(event, data.kind, language)).toString('base64');
       if (content.length > 1500000) error('ISC PDF is too large.');
       const saved = await db.prepare(`INSERT INTO isc_pdfs(tournament_id,kind,revision,content)
-        SELECT tournament_id,?,revision,? FROM isc_trainings WHERE tournament_id=? AND revision=? AND armed=0 AND starts_at>?
+        SELECT tournament_id,?,revision,? FROM isc_trainings WHERE tournament_id=? AND revision=? AND starts_at>?
         ON CONFLICT(tournament_id,kind) DO UPDATE SET revision=excluded.revision,content=excluded.content`)
         .bind(data.kind, content, data.id, row.revision, Date.now()).run();
       if (!saved.meta.changes) error('ISC training changed. Refresh and prepare the PDFs again.');
