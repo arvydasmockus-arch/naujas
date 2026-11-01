@@ -1,6 +1,6 @@
 import { accountHeaders } from './accountApi';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '' : 'https://ml-academy-api.arvydasmockus.workers.dev')).replace(/\/+$/, '');
 
 export async function trackPageView(section) {
   try {
