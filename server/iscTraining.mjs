@@ -28,7 +28,7 @@ export async function guardIsc(db, id, action, accountId, now = Date.now()) {
   const row = await db.prepare('SELECT * FROM isc_trainings WHERE tournament_id=?').bind(id).first();
   if (!row) return null;
   const state = iscState(row, now);
-  if (['settings', 'replace', 'generate', 'delete'].includes(action)) {
+  if (['settings', 'replace', 'generate'].includes(action)) {
     if (row.armed) error('Disarm ISC training before editing its problems or deleting it.');
     if (now >= row.starts_at) error('ISC training can no longer be edited after its start.');
   }

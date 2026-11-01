@@ -21,7 +21,7 @@ export const tournamentTranslations = {
     saveSettings: 'Save settings', review: 'I have checked difficulty, the source solutions and my scoring plan.',
     notes: 'Scoring notes (maximum 5 points)', replace: 'Replace problem', replaceConfirm: 'Replace problem {number}? The saved set and its PDFs will be updated.',
     replaceHint: 'Problems can be replaced before a player starts and before results are entered.', deleteTournament: 'Delete tournament',
-    deleteConfirm: 'Delete this tournament set? Its problems, player submissions and manually entered results will be permanently deleted.',
+    deleteConfirm: 'Permanently delete this tournament, its registrations, problems, submissions, results, PDFs and pending emails?',
     source: 'Source', count: 'pieces',
     difficulty: 'Direct mates and selfmates have more than 15 pieces; 20–25 are preferred. Studies and helpmates have no piece-count restriction. Difficulty needs judge review.',
     usage: 'Excluded recorded YACPDB solving-event reprints at import. A missing record does not prove a problem has never been used.',
@@ -51,7 +51,7 @@ export const tournamentTranslations = {
     saveSettings: 'Išsaugoti nustatymus', review: 'Patikrinau sunkumą, šaltinio sprendimus ir savo taškų skyrimo planą.',
     notes: 'Taškų skyrimo pastabos (maks. 5 taškai)', replace: 'Pakeisti uždavinį', replaceConfirm: 'Pakeisti {number} uždavinį? Rinkinys ir jo PDF bus atnaujinti.',
     replaceHint: 'Uždavinį galima pakeisti iki žaidėjui pradedant spręsti ir iki suvedant rezultatus.', deleteTournament: 'Ištrinti turnyrą',
-    deleteConfirm: 'Ištrinti šį rinkinį? Uždaviniai, žaidėjų pateikti atsakymai ir ranka suvesti rezultatai bus pašalinti visam laikui.',
+    deleteConfirm: 'Visam laikui ištrinti turnyrą, registracijas, uždavinius, atsakymus, rezultatus, PDF ir neišsiųstus laiškus?',
     source: 'Šaltinis', count: 'figūrų',
     difficulty: 'Tiesioginiams matams ir s uždaviniams daugiau nei 15 figūrų, pirmenybė 20–25. Etiudams ir h figūrų skaičius neribojamas. Sunkumą įvertina teisėjas.',
     usage: 'Importuojant atmesti YACPDB pažymėti sprendimo varžybų perspaudai. Žymos nebuvimas neįrodo, kad uždavinys niekur nebuvo naudotas.',
@@ -64,6 +64,7 @@ export const tournamentTranslations = {
 };
 
 tournamentTranslations.ru = russianLabels(tournamentTranslations.en);
+tournamentTranslations.ru.deleteConfirm = '\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0442\u0443\u0440\u043d\u0438\u0440, \u0435\u0433\u043e \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438, \u0437\u0430\u0434\u0430\u0447\u0438, \u043e\u0442\u0432\u0435\u0442\u044b, \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u044b, PDF \u0438 \u043d\u0435\u043e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u043d\u044b\u0435 \u043f\u0438\u0441\u044c\u043c\u0430?';
 
 for (const language of ['lt', 'en', 'ru']) {
   for (const key of ['title', 'subtitle', 'schedule']) tournamentTranslations[language][key] = iscTranslations[language][key];

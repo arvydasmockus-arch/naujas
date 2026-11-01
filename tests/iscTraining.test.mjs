@@ -199,6 +199,14 @@ test('judge can regenerate armed PDFs in the selected language until the schedul
   assert.equal((await app.call('prepare', { id, kind: 'problems', language: 'lt' })).status, 400);
 });
 
+test('judge can delete a started ISC test tournament', async (t) => {
+  const app = setup(t); const id = await app.event(true);
+  app.setTime('2026-11-08T10:01:00Z');
+  assert.equal((await guardIsc(app.env.DB, id, 'delete')).armed, true);
+  assert.equal(app.store.deleteTournament(id).deleted, true);
+  assert.equal(app.db.prepare('SELECT COUNT(*) AS n FROM isc_trainings WHERE tournament_id=?').get(id).n, 0);
+});
+
 test('ISC queue sends one stored PDF per recipient, ignores duplicate/stale messages, and never regenerates PDFs', async (t) => {
   const app = setup(t); const id = await app.event(true); const alice = await app.user();
   await app.call('register', { id }, false, alice.token);
