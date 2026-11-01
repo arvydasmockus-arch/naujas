@@ -1,3 +1,6 @@
+import { IscCreate } from './IscCreate';
+import { IscEvent } from './IscEvent';
+import { iscTranslations } from './iscTranslations';
 import { localizedError, interfaceText } from './russianTranslations.js';
 import JudgeAccounts from './JudgeAccounts';
 import Forum from './Forum';
@@ -20,13 +23,15 @@ function remainingTime(milliseconds) {
 }
 
 function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabled = false }) {
-  const t = tournamentTranslations[language];
+  const t = { ...tournamentTranslations[language], ...Object.fromEntries(['title', 'subtitle', 'schedule'].map((key) => [key, iscTranslations[language][key]])) };
+  const iscText = iscTranslations[language];
   const [judge, setJudge] = useState(false);
   const [judgeMode, setJudgeMode] = useState('tournaments');
   const [accessKey, setAccessKey] = useState('');
   const [catalog, setCatalog] = useState(null);
   const [selected, setSelected] = useState(() => new URLSearchParams(window.location.search).get('set'));
   const [event, setEvent] = useState(null);
+  const [iscRegistered, setIscRegistered] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState(accountUser?.username || '');
@@ -34,9 +39,6 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
   const [answers, setAnswers] = useState(Array(6).fill(''));
   const [now, setNow] = useState(Date.now);
   const [offset, setOffset] = useState(0);
-  const [generateTitle, setGenerateTitle] = useState('');
-  const [generateDate, setGenerateDate] = useState(() => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Vilnius' }).format(new Date()));
-  const [mode, setMode] = useState('competition');
   const [title, setTitle] = useState('');
   const [reviewed, setReviewed] = useState(false);
   const [solutionsPublic, setSolutionsPublic] = useState(false);
@@ -49,6 +51,7 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
   const expired = session ? now - offset >= session.deadline : false;
 
   const acceptEvent = useCallback((data) => {
+    setOffset(Date.now() - data.serverNow);
     setEvent(data); setTitle(data.title); setSolutionsPublic(data.solutionsPublic); setResultsPublic(data.resultsPublic);
     setScoringNotes(data.puzzles.map((puzzle) => puzzle.scoringNotes ?? '')); setReviewed(false);
     setSolutionDrafts(data.puzzles.map((puzzle) => puzzle.solutionDraft ?? ''));
@@ -76,7 +79,7 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
         acceptEvent(data); setError(''); setResult(emptyResult());
         const local = stored(storageKey, {});
         setName(accountsEnabled ? accountUser?.username || '' : local.name ?? ''); setAnswers(local.answers ?? Array(6).fill('')); setSession(null);
-        if (!judge && local.name && local.started && (!accountsEnabled || local.name === accountUser?.username)) {
+        if (!judge && (!data.isc || data.isc.problemsAvailable) && local.name && local.started && (!accountsEnabled || local.name === accountUser?.username)) {
           const restored = await tournamentRequest('start', { signal: controller.signal, data: { id: selected, name: local.name } });
           if (controller.signal.aborted) return;
           setSession(restored); setOffset(Date.now() - restored.serverNow);
@@ -91,6 +94,17 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
     try { localStorage.setItem(storageKey, JSON.stringify({ name: session.name, started: true, answers })); } catch { /* Optional local draft. */ }
   }, [selected, judge, session, storageKey, answers]);
 
+  useEffect(() => {
+    if (judge || !event?.isc?.armed) return;
+    const timers = [event.isc.startsAt, event.isc.endsAt, event.isc.solutionsAt].filter((time) => time > Date.now() - offset).map((time) => {
+      const wait = time - (Date.now() - offset) + 500;
+      // Long waits are refreshed by a single timer as well (setTimeout's maximum is ~24 days).
+      const refresh = () => tournamentRequest('event', { params: { id: event.id } }).then(acceptEvent).catch((cause) => setError(cause.message));
+      return setTimeout(refresh, Math.min(wait, 2147483647));
+    });
+    return () => timers.forEach(clearTimeout);
+  }, [judge, event?.id, event?.isc?.armed, event?.isc?.startsAt, event?.isc?.endsAt, event?.isc?.solutionsAt, offset, acceptEvent]);
+
   async function perform(task) {
     setBusy(true); setError('');
     try { return await task(); } catch (problem) { setError(problem.message); } finally { setBusy(false); }
@@ -99,11 +113,18 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
     e.preventDefault();
     perform(async () => { await tournamentRequest('judge/login', { key: accessKey, data: {} }); setEvent(null); setJudge(true); });
   }
-  function generate(e) {
-    e.preventDefault();
+  async function refreshEvent(id = selected) {
+    const data = await tournamentRequest('event', { key, params: { id, ...(judge ? { judge: 1 } : {}) } });
+    acceptEvent(data); await refreshCatalog();
+  }
+  async function armIsc() {
+    if (!reviewed) { setError(iscText.review); return; }
     perform(async () => {
-      const data = await tournamentRequest('generate', { key, data: { title: generateTitle, date: generateDate, mode } });
-      await refreshCatalog(); selectTournament(data.id); acceptEvent(data);
+      await tournamentRequest('settings', { key, data: { id: selected, title, scoringNotes, solutionDrafts } });
+      await tournamentRequest('isc/prepare', { key, data: { id: selected, kind: 'problems' } });
+      await tournamentRequest('isc/prepare', { key, data: { id: selected, kind: 'solutions' } });
+      await tournamentRequest('isc/arm', { key, data: { id: selected, reviewed: true } });
+      await refreshEvent();
     });
   }
   function saveSettings(status = event.status) {
@@ -175,7 +196,7 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
   }
   function pdf(kind, id = selected) {
     perform(async () => {
-      if (judge && kind === 'solutions' && id === selected) {
+      if (judge && kind === 'solutions' && id === selected && !event.isc?.armed && (!event.isc || now - offset < event.isc.startsAt)) {
         const saved = await tournamentRequest('settings', { key, data: { id: selected, scoringNotes, solutionDrafts } });
         setEvent(saved);
       }
@@ -201,38 +222,34 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
     {judge && accountsEnabled && <JudgeAccounts accessKey={accessKey} language={language} />}
     {judge && <label className="tournament-selector">{interfaceText(language, 'Ką tvarkyti', 'Manage')}
       <select value={judgeMode} onChange={(event) => setJudgeMode(event.target.value)}>
-        <option value="tournaments">{interfaceText(language, 'Atviri turnyrai', 'Open Tournaments')}</option>
+        <option value="tournaments">{iscText.title}</option>
         <option value="sprint">3 × #2 · 20 min</option>
         <option value="forum">{language === 'ru' ? 'Форум' : interfaceText(language, 'Forumas', 'Forum')}</option>
       </select>
     </label>}
     {judge && judgeMode === 'forum' ? <Forum language={language} accountUser={accountUser} judgeKey={accessKey} /> : judge && judgeMode === 'sprint' ? <SprintJudgePanel accessKey={accessKey} language={language} /> : <>
-    {judge && <form className="tournament-panel tournament-generate" onSubmit={generate}>
-      <label>{t.tournamentTitle}<input value={generateTitle} onChange={(e) => setGenerateTitle(e.target.value)} maxLength={140} placeholder="ML Academy" /></label>
-      <label>{t.date}<input type="date" value={generateDate} onChange={(e) => setGenerateDate(e.target.value)} required /></label>
-      <select aria-label={t.competition} value={mode} onChange={(e) => setMode(e.target.value)}><option value="competition">{t.competition}</option><option value="training">{t.training}</option></select>
-      <button disabled={busy}>{t.generate}</button><p>{t.pool}: {catalog?.pool?.map((item) => `${item.type}: ${item.count}`).join(' · ')}. {t.importHint}</p>
-    </form>}
+    {judge && <IscCreate language={language} accessKey={key} onCreated={async (id) => { await refreshCatalog(); selectTournament(id); await refreshEvent(id); }} />}
     <label className="tournament-selector">{t.choose}<select disabled={busy} value={selected ?? ''} onChange={(e) => selectTournament(e.target.value)}>
-      <option value="" disabled>{t.choose}</option>{catalog?.tournaments.map((item) => <option key={item.id} value={item.id}>{item.displayTitle} · {t[item.mode]}{item.status === 'draft' ? ` · ${t.draft}` : ''}</option>)}</select></label>
+      <option value="" disabled>{t.choose}</option>{catalog?.tournaments.map((item) => <option key={item.id} value={item.id}>{item.displayTitle} · {item.isc ? iscText.title : t[item.mode]}{item.isc ? ` · ${item.isc.announced ? iscText.announced : iscText.draft}` : item.status === 'draft' ? ` · ${t.draft}` : ''}</option>)}</select></label>
     {!event ? <p>{catalog?.tournaments.length ? t.loading : t.noEvents}</p> : <>
-      <section className="tournament-panel"><div className="tournament-event-heading"><div className="tournament-set-brand"><img src={academyLogo} alt="ML Academy" /><div><h2>{event.displayTitle}</h2><p>{t[event.mode]} · 120 min</p></div></div>
-        <div className="tournament-downloads"><button disabled={busy} onClick={() => pdf('problems')}>{t.problems}</button>
+      <section className="tournament-panel"><div className="tournament-event-heading"><div className="tournament-set-brand"><img src={academyLogo} alt="ML Academy" /><div><h2>{event.displayTitle}</h2><p>{event.isc ? iscText.title : t[event.mode]} · 120 min</p></div></div>
+        <div className="tournament-downloads">{(judge || !event.isc || event.isc.problemsAvailable) && <button disabled={busy || event.puzzles.length !== 6} onClick={() => pdf('problems')}>{t.problems}</button>}
           {(judge || event.solutionsPublic) && <button disabled={busy} onClick={() => pdf('solutions')}>{t.solutions}</button>}
           {(judge || event.resultsPublic) && <button disabled={busy} onClick={() => pdf('results')}>{t.resultsPdf}</button>}</div></div>
-        <p>{t.ready}</p>
-        {!judge && !event.solutionsPublic && <p className="tournament-note">{t.unavailable}</p>}
+        {(!event.isc || event.puzzles.length > 0) && <p>{t.ready}</p>}
+        {!judge && !event.isc && !event.solutionsPublic && <p className="tournament-note">{t.unavailable}</p>}
       </section>
-      {judge && <section className="tournament-panel"><h2>{t.settings}</h2><label>{t.tournamentTitle}<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={140} /></label>
-        <label className="tournament-check"><input type="checkbox" checked={reviewed} onChange={(e) => setReviewed(e.target.checked)} />{t.review}</label>
-        <label className="tournament-check"><input type="checkbox" checked={solutionsPublic} onChange={(e) => setSolutionsPublic(e.target.checked)} />{t.publishSolutions}</label>
-        <label className="tournament-check"><input type="checkbox" checked={resultsPublic} onChange={(e) => setResultsPublic(e.target.checked)} />{t.publishResults}</label>
-        <div className="tournament-downloads"><button disabled={busy} onClick={() => saveSettings()}>{t.saveSettings}</button>
-          <button disabled={busy || (event.mode === 'competition' && event.status === 'draft' && !reviewed)} onClick={() => saveSettings(event.status === 'draft' ? 'published' : 'draft')}>{event.status === 'draft' ? t.publish : t.hide}</button></div>
+      {event.isc && <IscEvent event={event} language={language} accessKey={key} accountUser={accountUser} now={now - offset} onChanged={refreshEvent} onArm={armIsc} onRegistrationChanged={setIscRegistered} />}
+      {judge && (!event.isc || (!event.isc.armed && now - offset < event.isc.startsAt && event.puzzles.length === 6)) && <section className="tournament-panel"><h2>{t.settings}</h2><label>{t.tournamentTitle}<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={140} /></label>
+        <label className="tournament-check"><input type="checkbox" checked={reviewed} onChange={(e) => setReviewed(e.target.checked)} />{event.isc ? iscText.review : t.review}</label>
+        {!event.isc && <label className="tournament-check"><input type="checkbox" checked={solutionsPublic} onChange={(e) => setSolutionsPublic(e.target.checked)} />{t.publishSolutions}</label>}
+        {!event.isc && <label className="tournament-check"><input type="checkbox" checked={resultsPublic} onChange={(e) => setResultsPublic(e.target.checked)} />{t.publishResults}</label>}
+        <div className="tournament-downloads"><button disabled={busy} onClick={() => saveSettings()}>{event.isc ? iscText.save : t.saveSettings}</button>
+          {!event.isc && <button disabled={busy || (event.mode === 'competition' && event.status === 'draft' && !reviewed)} onClick={() => saveSettings(event.status === 'draft' ? 'published' : 'draft')}>{event.status === 'draft' ? t.publish : t.hide}</button>}</div>
         <p className="tournament-note">{t.usage}</p>
       </section>}
-      {!judge && <section className="tournament-panel">
-        {!session ? <form className="tournament-start" onSubmit={start}>{accountsEnabled ? <p>{accountUser ? accountUser.username : interfaceText(language, 'Norėdami spręsti, prisijunkite.', 'Log in to start solving.')}</p> : <label>{t.name}<input value={name} onChange={(e) => setName(e.target.value)} minLength={2} maxLength={40} required /></label>}<button disabled={busy || (accountsEnabled && !accountUser)}>{t.start}</button></form>
+      {!judge && (!event.isc || event.isc.problemsAvailable) && <section className="tournament-panel">
+        {!session ? <form className="tournament-start" onSubmit={start}>{accountsEnabled ? <p>{accountUser ? accountUser.username : interfaceText(language, 'Norėdami spręsti, prisijunkite.', 'Log in to start solving.')}</p> : <label>{t.name}<input value={name} onChange={(e) => setName(e.target.value)} minLength={2} maxLength={40} required /></label>}<button disabled={busy || (accountsEnabled && !accountUser) || (event.isc && (!iscRegistered || now - offset >= event.isc.endsAt))}>{t.start}</button></form>
           : <div className="tournament-clock"><strong>{session.name}</strong><span>{t.remaining}: {remainingTime(session.deadline - (now - offset))}</span>{session.submittedAt && <p role="status">{t.submitted}</p>}{expired && !session.submittedAt && <p>{t.deadline}</p>}
             {(session.submittedAt || expired) && <button type="button" onClick={switchPlayer}>{t.switchPlayer}</button>}</div>}
       </section>}
@@ -247,7 +264,7 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
         </div>
         {(judge || event.solutionsPublic) && <div className="tournament-source"><strong>{puzzle.authors.join(' · ')}</strong><p>{puzzle.source} {puzzle.year} · <a href={puzzle.sourceUrl} target="_blank" rel="noopener noreferrer">YACPDB #{puzzle.id}</a></p>
           <details><summary>{judge ? t.originalSolution : interfaceText(language, 'Sprendimas', 'Solution')}</summary>{judge ? <pre>{puzzle.solution}</pre> : <ScoredSolution text={puzzle.solutionDraft} />}</details></div>}
-        {judge && <><label>{t.draftSolution}<textarea className="tournament-solution-editor" rows={6} value={solutionDrafts[index]} onChange={(e) => setSolutionDrafts((drafts) => drafts.map((draft, i) => i === index ? e.target.value : draft))} maxLength={20000} /></label>
+        {judge && (!event.isc || (!event.isc.armed && now - offset < event.isc.startsAt)) && <><label>{t.draftSolution}<textarea className="tournament-solution-editor" rows={6} value={solutionDrafts[index]} onChange={(e) => setSolutionDrafts((drafts) => drafts.map((draft, i) => i === index ? e.target.value : draft))} maxLength={20000} /></label>
           <p className="tournament-note">{t.draftHelp}</p>
           {puzzle.draftWarnings?.length > 0 && <p className="tournament-draft-warning">{t.draftReview}</p>}
           <ScoredSolution text={solutionDrafts[index]} />
@@ -261,6 +278,7 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
         <p>{t.emailNotice}</p><div className="tournament-downloads"><button disabled={busy || expired || Boolean(session.submittedAt)}>{t.send}</button>
           <button type="button" onClick={downloadText}>{t.textDownload}</button>{session.submittedAt && <button type="button" onClick={mail}>{t.mail}</button>}</div>
       </form>}
+      {judge && event.isc && now - offset >= event.isc.endsAt && <button disabled={busy} onClick={() => perform(async () => { await tournamentRequest('settings', { key, data: { id: selected, resultsPublic: !event.resultsPublic } }); await refreshEvent(); })}>{event.resultsPublic ? iscText.hideResults : iscText.publishResults}</button>}
       <section className="tournament-panel"><TournamentResults event={event} language={language} judge={judge}
         onEdit={(row) => setResult({ ...row, scores: row.scores.map((score) => score ?? '') })}
         onDelete={(resultId) => perform(async () => acceptEvent(await tournamentRequest('delete-result', { key, data: { tournamentId: selected, resultId } })))} /></section>
@@ -282,9 +300,9 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
     <section className="tournament-panel tournament-history" aria-label={t.history}>
       <h2>{t.history}</h2><p>{t.historyHint}</p>
       <div className="tournament-history__list">{catalog?.tournaments.map((item) => <article key={item.id} className={item.id === selected ? 'tournament-history__selected' : ''}>
-        <div><strong>{item.displayTitle}</strong><p>{t[item.mode]}{item.status === 'draft' ? ` · ${t.draft}` : ''}</p></div>
+        <div><strong>{item.displayTitle}</strong><p>{item.isc ? iscText.title : t[item.mode]}{item.isc ? ` · ${item.isc.announced ? iscText.announced : iscText.draft}` : item.status === 'draft' ? ` · ${t.draft}` : ''}</p></div>
         <div className="tournament-downloads"><button disabled={busy} type="button" onClick={() => { selectTournament(item.id); document.querySelector('.tournament-selector')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>{t.openSet}</button>
-          <button disabled={busy} type="button" onClick={() => pdf('problems', item.id)}>{t.problems}</button>
+          {(judge || !item.isc || item.isc.problemsAvailable) && <button disabled={busy} type="button" onClick={() => pdf('problems', item.id)}>{t.problems}</button>}
           {Boolean(judge || item.solutionsPublic) && <button disabled={busy} type="button" onClick={() => pdf('solutions', item.id)}>{t.solutions}</button>}
           {Boolean(judge || item.resultsPublic) && <button disabled={busy} type="button" onClick={() => pdf('results', item.id)}>{t.resultsPdf}</button>}
           {!judge && !item.resultsPublic && <small>{t.results}: {t.notReleased}</small>}

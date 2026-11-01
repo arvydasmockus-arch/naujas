@@ -232,6 +232,60 @@ test('pending verification queue is acknowledged without D1 queries', async () =
   assert.equal(acknowledged, true);
 });
 
+test('Worker ISC routes protect drafts and PDFs, require registration, and enforce the shared CET deadline', async (t) => {
+  let now = Date.parse('2026-11-02T09:00:00Z');
+  t.mock.method(Date, 'now', () => now);
+  const messages = [];
+  const { db, request } = setup({ ACCOUNTS_ENABLED: 'true', AUTH_SECRET: 'test-secret-with-at-least-32-characters',
+    BREVO_API_KEY: 'test-only', EMAIL_FROM: 'sender@example.test', SEND_VERIFICATION: async (message) => messages.push(message) });
+  try {
+    for (const entry of JSON.parse(readFileSync(new URL('./fixtures/tournamentEntries.json', import.meta.url), 'utf8'))) {
+      const puzzle = parseTournamentEntry(entry, '2026-10-09T00:00:00Z');
+      db.prepare('INSERT INTO tournament_pool VALUES(?,?,?,?,?,?)').run(puzzle.id, puzzle.type, JSON.stringify(entry), JSON.stringify(puzzle), puzzle.positionHash, puzzle.usageCheckedAt);
+    }
+    const create = await request('/api/tournaments/isc/create', { date: '2026-11-08' });
+    assert.equal(create.status, 200); const { id } = await create.json();
+    assert.equal((await request('/api/tournaments/event?id=' + id, undefined, false)).status, 404);
+    assert.equal((await request('/api/tournaments/isc/generate', { id })).status, 200);
+    assert.equal((await request('/api/tournaments/isc/announce', { id, announced: true })).status, 200);
+    assert.equal((await (await request('/api/tournaments/event?id=' + id, undefined, false)).json()).puzzles.length, 0);
+    for (const kind of ['problems', 'solutions', 'results']) assert.equal((await request(`/api/tournaments/pdf?id=${id}&kind=${kind}`, undefined, false)).status, 400);
+    // Binary assets are stubbed in this Worker routing fixture; real PDF exports have their own tests.
+    for (const kind of ['problems', 'solutions']) db.prepare('INSERT INTO isc_pdfs VALUES(?,?,0,?)').run(id, kind, Buffer.from('%PDF-test').toString('base64'));
+    assert.equal((await request('/api/tournaments/isc/arm', { id, reviewed: true })).status, 200);
+    assert.equal((await request('/api/tournaments/settings', { id, solutionDrafts: Array(6).fill('x') })).status, 400);
+    const signup = await (await request('/api/accounts/register', { username: 'ISC Player', email: 'isc@example.test', password: '1234' }, false)).json();
+    const login = await (await request('/api/accounts/verify', { challengeId: signup.challengeId, code: messages[0].code }, false)).json();
+    assert.equal((await request('/api/tournaments/isc/register', { id }, false, login.token)).status, 200);
+    const publicDetails = await (await request(`/api/tournaments/isc/details?id=${id}`, undefined, false)).json();
+    assert.equal(publicDetails.participants[0].username, 'ISC Player');
+    assert.ok(!JSON.stringify(publicDetails).includes('@'));
+    assert.equal((await request('/api/tournaments/start', { id }, false, login.token)).status, 400);
+    now = Date.parse('2026-11-08T10:45:00Z');
+    const start = await request('/api/tournaments/start', { id, name: 'forged' }, false, login.token);
+    assert.equal(start.status, 200); const session = await start.json();
+    assert.equal(session.name, 'ISC Player'); assert.equal(session.deadline, Date.parse('2026-11-08T12:00:00Z'));
+    const active = await (await request('/api/tournaments/event?id=' + id, undefined, false)).json();
+    assert.equal(active.puzzles.length, 6); assert.equal(active.puzzles[0].solutionDraft, undefined);
+    now = Date.parse('2026-11-08T12:00:01Z');
+    assert.equal((await request('/api/tournaments/submit', { id, sessionId: session.id, answers: Array(6).fill('test') }, false, login.token)).status, 400);
+    assert.equal((await request(`/api/tournaments/pdf?id=${id}&kind=solutions`, undefined, false)).status, 400);
+    now = Date.parse('2026-11-08T13:00:00Z');
+    assert.equal((await (await request('/api/tournaments/event?id=' + id, undefined, false)).json()).solutionsPublic, true);
+  } finally { db.close(); }
+});
+
+test('ISC minute trigger never invokes daily generators, including midnight and 08:00', async () => {
+  for (const time of ['2026-11-01T22:00:00Z', '2026-11-02T06:00:00Z', '2026-11-02T09:00:00Z']) {
+    const queries = [];
+    await worker.scheduled({ cron: '* * * * *', scheduledTime: Date.parse(time) }, { DB: { prepare(sql) {
+      queries.push(sql); return { bind() { return this; }, async all() { return { results: [] }; } };
+    } } });
+    assert.equal(queries.length, 2);
+    assert.ok(queries.every((sql) => /FROM isc_(jobs|mail)/.test(sql)));
+  }
+});
+
 
 test('deployed worker routes bind authenticated names and protect session ownership with CORS', async () => {
   const mail = [];

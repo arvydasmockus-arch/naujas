@@ -16,8 +16,14 @@
     }
   ],
   "queues": {
-    "producers": [{ "binding": "PUZZLE_VERIFY_QUEUE", "queue": "ml-academy-verify" }],
-    "consumers": [{ "queue": "ml-academy-verify", "max_batch_size": 1, "max_retries": 3 }]
+    "producers": [
+      { "binding": "PUZZLE_VERIFY_QUEUE", "queue": "ml-academy-verify" },
+      { "binding": "ISC_MAIL_QUEUE", "queue": "ml-academy-isc-mail" }
+    ],
+    "consumers": [
+      { "queue": "ml-academy-verify", "max_batch_size": 1, "max_retries": 3 },
+      { "queue": "ml-academy-isc-mail", "max_batch_size": 1, "max_retries": 3 }
+    ]
   },
-  "triggers": { "crons": ["0 21,22 * * *", "0 5,6 * * *"] }
+  "triggers": { "crons": ["0 21,22 * * *", "0 5,6 * * *", "* * * * *"] }
 }

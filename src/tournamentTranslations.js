@@ -1,3 +1,4 @@
+import { iscTranslations } from './iscTranslations.js';
 import { russianLabels } from './russianTranslations.js';
 export const tournamentTranslations = {
   en: {
@@ -63,3 +64,7 @@ export const tournamentTranslations = {
 };
 
 tournamentTranslations.ru = russianLabels(tournamentTranslations.en);
+
+for (const language of ['lt', 'en', 'ru']) {
+  for (const key of ['title', 'subtitle', 'schedule']) tournamentTranslations[language][key] = iscTranslations[language][key];
+}

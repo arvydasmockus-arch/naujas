@@ -1,3 +1,4 @@
+import { iscApi, guardIsc, runIscSchedule, frozenIscPdf } from './iscTraining.mjs';
 import { accountApi, authorizeGameRequest, recordAccountActivity } from './accountAuth.mjs';
 import { d1Adapter } from './d1Adapter.mjs';
 import { forumApi } from './forumApi.mjs';
@@ -36,10 +37,14 @@ function isJudge(req) {
   const expected = Buffer.from(judgeKey);
   return supplied.length === expected.length && timingSafeEqual(supplied, expected);
 }
-function weekly() {
-  try { tournaments.ensureWeekly(); } catch (error) { console.log('Weekly tournament:', error.message); }
-}
-weekly();
+const iscDependencies = {
+  async generate(id) {
+    await guardIsc(accountEnv.DB, id, 'generate');
+    const event = tournaments.get(id, true);
+    return tournaments.generate({ targetId: id, mode: 'competition', title: event.title, date: event.date });
+  },
+  event: (id) => tournaments.get(id, true), pdf: tournamentPdf,
+};
 const production = process.argv.includes('--production') || process.env.NODE_ENV === 'production';
 const vite = production ? null : await (await import('vite')).createServer({ server: { middlewareMode: true }, appType: 'spa' });
 const website = production ? staticSite(fileURLToPath(new URL('../dist/', import.meta.url))) : vite.middlewares;
@@ -65,6 +70,10 @@ const server = createServer(async (req, res) => {
     }
     if (url.pathname.startsWith('/api/forum/')) {
       const response = await forumApi(authRequest, accountEnv, isJudge(req));
+      res.statusCode = response.status; res.end(await response.text()); return;
+    }
+    if (url.pathname.startsWith('/api/tournaments/isc/')) {
+      const response = await iscApi(authRequest, accountEnv, isJudge(req), iscDependencies);
       res.statusCode = response.status; res.end(await response.text()); return;
     }
     const authorized = await authorizeGameRequest(authRequest, accountEnv);
@@ -124,9 +133,11 @@ const server = createServer(async (req, res) => {
       else if (req.method === 'GET' && action === 'pdf') {
         const event = tournaments.get(url.searchParams.get('id'), judge);
         const kind = url.searchParams.get('kind');
+        if (!judge && event.isc && !event.isc.problemsAvailable) throw new Error('ISC training has not started yet.');
         if (kind === 'solutions' && !judge && !event.solutionsPublic) throw new Error('Solutions have not been published.');
         if (kind === 'results' && !judge && !event.resultsPublic) throw new Error('Results have not been published.');
-        const pdf = await tournamentPdf(event, kind);
+        const pdf = event.isc?.armed && ['problems', 'solutions'].includes(kind)
+          ? Buffer.from((await frozenIscPdf(accountEnv.DB, event.id, kind)).pdf, 'base64') : await tournamentPdf(event, kind);
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="ML-Academy-No-${event.number}-${event.date}-${kind}.pdf"`);
         res.end(pdf); return;
@@ -134,16 +145,25 @@ const server = createServer(async (req, res) => {
         const data = await body(req);
         if (action === 'judge/login') result = { authenticated: true };
         else if (action === 'generate') result = tournaments.generate(data);
-        else if (action === 'settings') result = tournaments.settings(data.id, data);
+        else if (action === 'settings') {
+          const event = tournaments.get(data.id, true);
+          if (event.isc) {
+            if (data.title !== undefined || data.scoringNotes !== undefined || data.solutionDrafts !== undefined) await guardIsc(accountEnv.DB, data.id, 'settings');
+            if (data.status !== undefined && data.status !== event.status) throw new Error('Use the ISC announcement and start controls.');
+          }
+          result = tournaments.settings(data.id, data);
+        }
         else if (action === 'result') result = tournaments.saveResult(data.tournamentId, data.result);
-        else if (action === 'replace') result = tournaments.replaceProblem(data.id, data.ordinal);
-        else if (action === 'delete') result = tournaments.deleteTournament(data.id);
+        else if (action === 'replace') { await guardIsc(accountEnv.DB, data.id, 'replace'); result = tournaments.replaceProblem(data.id, data.ordinal); }
+        else if (action === 'delete') { await guardIsc(accountEnv.DB, data.id, 'delete'); result = tournaments.deleteTournament(data.id); }
         else if (action === 'delete-result') result = tournaments.deleteResult(data.tournamentId, data.resultId);
         else if (action === 'start') {
-          result = tournaments.start(data.id, data.name);
+          const isc = await guardIsc(accountEnv.DB, data.id, 'start', req.accountUser?.id);
+          result = tournaments.start(data.id, data.name, isc?.endsAt);
           recordAnalytics(req, { section: 'training', action: 'start', mode: tournaments.get(data.id).mode });
         }
         else if (action === 'submit') {
+          await guardIsc(accountEnv.DB, data.id, 'submit', req.accountUser?.id);
           result = tournaments.submit(data.id, data.sessionId, data.answers);
           recordAnalytics(req, { section: 'training', action: 'submit', mode: tournaments.get(data.id).mode });
         }
@@ -186,12 +206,12 @@ server.listen(port, '0.0.0.0', () => {
   }
 });
 server.on('error', async (error) => {
-  console.error(error.message); clearInterval(rotate); clearInterval(reserveTimer); clearInterval(weeklyTimer);
+  console.error(error.message); clearInterval(rotate); clearInterval(reserveTimer); clearInterval(iscTimer);
   await vite?.close(); game.close(); process.exitCode = 1;
 });
 const rotate = setInterval(() => game.ensureCalendar().catch((error) => console.error('Daily generation:', error.message)), 60000);
 const reserveTimer = setInterval(prepareReserve, 3600000);
-const weeklyTimer = setInterval(weekly, 60000);
-async function stop() { clearInterval(rotate); clearInterval(reserveTimer); clearInterval(weeklyTimer); verifier?.kill(); await vite?.close(); server.close(); game.close(); }
+const iscTimer = setInterval(() => runIscSchedule(accountEnv, iscDependencies).catch((error) => console.error('ISC schedule:', error.message)), 60000);
+async function stop() { clearInterval(rotate); clearInterval(reserveTimer); clearInterval(iscTimer); verifier?.kill(); await vite?.close(); server.close(); game.close(); }
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);

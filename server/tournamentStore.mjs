@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { iscState } from './iscTraining.mjs';
 import { randomUUID } from 'node:crypto';
 import { tournamentTypes, latestSaturday, rankResults, oldEnough, parseTournamentEntry } from './tournamentTools.mjs';
 import { normalizePlayer } from './gameStore.mjs';
@@ -41,6 +43,7 @@ export class TournamentStore {
       db.prepare("INSERT INTO metadata(key,value) VALUES('tournament_next_number',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(JSON.stringify(next));
       db.exec('COMMIT');
     } catch (error) { db.exec('ROLLBACK'); throw error; }
+    db.exec(readFileSync(new URL('../cloudflare/migrations/0015_isc_training.sql', import.meta.url), 'utf8'));
   }
   pool() { return this.db.prepare('SELECT type,COUNT(*) AS count FROM tournament_pool GROUP BY type').all(); }
   eligible(candidate) {
@@ -48,7 +51,7 @@ export class TournamentStore {
     const raw = this.db.prepare('SELECT raw,checked_at FROM tournament_pool WHERE id=?').get(puzzle.id);
     return raw && parseTournamentEntry(JSON.parse(raw.raw), raw.checked_at) !== null;
   }
-  generate({ mode = 'training', title = '', date = latestSaturday(this.clock()), weekly = false } = {}) {
+  generate({ mode = 'training', title = '', date = latestSaturday(this.clock()), weekly = false, targetId = null } = {}) {
     if (!['training', 'competition'].includes(mode)) throw new Error('Invalid tournament mode.');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(date))) throw new Error('Invalid date.');
     const selected = []; const hashes = new Set();
@@ -66,14 +69,16 @@ export class TournamentStore {
     }
     if (selected.filter((puzzle) => puzzle.whiteCount + puzzle.blackCount > 15).length < 4)
       throw new Error('Not enough dense positions: at least 4 of 6 problems must have more than 15 pieces. Extend the pool.');
-    const id = randomUUID();
+    const id = targetId || randomUUID();
     const cleanTitle = typeof title === 'string' ? title.trim().slice(0, 140) : '';
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const number = JSON.parse(this.db.prepare("SELECT value FROM metadata WHERE key='tournament_next_number'").get().value);
+      if (!targetId) {
       this.db.prepare('INSERT INTO tournaments(id,title,date,mode,status,created_at,weekly,number) VALUES(?,?,?,?,?,?,?,?)')
         .run(id, cleanTitle || defaultTitle, date, mode, mode === 'training' ? 'published' : 'draft', this.clock(), Number(weekly), number);
       this.db.prepare("UPDATE metadata SET value=? WHERE key='tournament_next_number'").run(JSON.stringify(number + 1));
+      }
       const save = this.db.prepare('INSERT INTO tournament_problems(tournament_id,ordinal,puzzle,position_hash) VALUES(?,?,?,?)');
       selected.forEach((puzzle, index) => save.run(id, index, JSON.stringify(puzzle), puzzle.positionHash));
       this.db.exec('COMMIT');
@@ -87,16 +92,21 @@ export class TournamentStore {
     this.generate({ date, weekly: true, mode: 'training' });
   }
   list(judge = false) {
-    return { tournaments: this.db.prepare(`SELECT id,number,title,date,mode,status,solutions_public AS solutionsPublic,
-      results_public AS resultsPublic FROM tournaments ${judge ? '' : "WHERE status='published'"} ORDER BY date DESC,created_at DESC`).all().map(namedEvent),
-      pool: judge ? this.pool() : undefined, timezone: 'Europe/Vilnius', weeklyHour: 10, serverNow: this.clock() };
+    const tournaments = this.db.prepare(`SELECT t.*,t.solutions_public AS solutionsPublic,t.results_public AS resultsPublic,
+      i.starts_at,i.announced,i.armed,i.generate_at FROM tournaments t LEFT JOIN isc_trainings i ON i.tournament_id=t.id
+      ${judge ? '' : "WHERE (i.tournament_id IS NULL AND t.status='published') OR i.announced=1"} ORDER BY t.date DESC,t.created_at DESC`).all()
+      .map((row) => { const isc = iscState(row, this.clock(), judge); return { ...namedEvent(row), isc,
+        solutionsPublic: isc ? isc.solutionsAvailable : Boolean(row.solutionsPublic),
+        resultsPublic: Boolean(row.resultsPublic && (!isc || this.clock() >= isc.endsAt)) }; });
+    return { tournaments, pool: judge ? this.pool() : undefined, timezone: 'Europe/Berlin', serverNow: this.clock() };
   }
   get(id, judge = false) {
-    const row = this.db.prepare('SELECT * FROM tournaments WHERE id=?').get(id);
-    if (!row || (!judge && row.status !== 'published')) throw new Error('Tournament not found.');
-    const showSolutions = judge || Boolean(row.solutions_public);
+    const row = this.db.prepare('SELECT t.*,i.starts_at,i.announced,i.armed,i.generate_at FROM tournaments t LEFT JOIN isc_trainings i ON i.tournament_id=t.id WHERE t.id=?').get(id);
+    if (!row || (!judge && (row.starts_at != null ? !row.announced : row.status !== 'published'))) throw new Error('Tournament not found.');
+    const isc = iscState(row, this.clock(), judge);
+    const showSolutions = judge || (isc ? isc.solutionsAvailable : Boolean(row.solutions_public));
     const stored = this.db.prepare('SELECT * FROM tournament_problems WHERE tournament_id=? ORDER BY ordinal').all(id);
-    const puzzles = stored.map((item) => {
+    const puzzles = (!judge && isc && !isc.problemsAvailable ? [] : stored).map((item) => {
       const puzzle = JSON.parse(item.puzzle);
       const draft = showSolutions ? solutionDraft(puzzle) : null;
       return showSolutions ? { ...puzzle, ordinal: item.ordinal, scoringNotes: item.scoring_notes,
@@ -104,7 +114,7 @@ export class TournamentStore {
         ordinal: item.ordinal, fen: puzzle.fen, type: puzzle.type, stipulation: puzzle.stipulation,
         solutions: puzzle.solutions, whiteCount: puzzle.whiteCount, blackCount: puzzle.blackCount };
     });
-    const results = judge || row.results_public ? rankResults(this.db.prepare('SELECT * FROM tournament_results WHERE tournament_id=?').all(id)
+    const results = judge || (row.results_public && (!isc || this.clock() >= isc.endsAt)) ? rankResults(this.db.prepare('SELECT * FROM tournament_results WHERE tournament_id=?').all(id)
       .map((item) => {
         const parsed = { ...item, scores: JSON.parse(item.scores) };
         if (!judge) delete parsed.notes;
@@ -113,11 +123,13 @@ export class TournamentStore {
     const submissions = judge ? this.db.prepare('SELECT * FROM tournament_sessions WHERE tournament_id=? AND submitted_at IS NOT NULL ORDER BY submitted_at').all(id)
       .map((item) => ({ ...item, answers: JSON.parse(item.answers), minutes: Math.min(120, (item.submitted_at - item.started_at) / 60000) })) : undefined;
     return { id, number: row.number, title: row.title, displayTitle: namedEvent(row).displayTitle, date: row.date, mode: row.mode, status: row.status,
-      solutionsPublic: Boolean(row.solutions_public), resultsPublic: Boolean(row.results_public),
+      isc, solutionsPublic: isc ? isc.solutionsAvailable : Boolean(row.solutions_public), resultsPublic: Boolean(row.results_public && (!isc || this.clock() >= isc.endsAt)),
       durationMinutes: 120, puzzles, results, submissions, serverNow: this.clock() };
   }
   settings(id, data) {
     const event = this.get(id, true);
+    const contentEdit = Boolean(event.isc && (data.title !== undefined || data.scoringNotes !== undefined || data.solutionDrafts !== undefined));
+    if (contentEdit && (event.isc.armed || this.clock() >= event.isc.startsAt)) throw new Error('Disarm ISC training before editing its problems or deleting it.');
     if (data.title !== undefined && (!data.title.trim() || data.title.length > 140)) throw new Error('Enter a title (max. 140 characters).');
     if (data.status !== undefined && !['draft', 'published'].includes(data.status)) throw new Error('Invalid status.');
     if (event.mode === 'competition' && data.status === 'published' && event.status !== 'published' && !data.judgeReviewed)
@@ -137,6 +149,7 @@ export class TournamentStore {
       const save = this.db.prepare('UPDATE tournament_problems SET solution_draft=? WHERE tournament_id=? AND ordinal=?');
       data.solutionDrafts.forEach((draft, ordinal) => save.run(draft, id, ordinal));
     }
+    if (contentEdit) this.db.prepare('UPDATE isc_trainings SET revision=revision+1 WHERE tournament_id=?').run(id);
     return this.get(id, true);
   }
   saveResult(id, data) {
@@ -157,6 +170,7 @@ export class TournamentStore {
   }
   replaceProblem(id, ordinal) {
     const event = this.get(id, true);
+    if (event.isc && (event.isc.armed || this.clock() >= event.isc.startsAt)) throw new Error('Disarm ISC training before editing its problems or deleting it.');
     if (this.db.prepare('SELECT COUNT(*) AS n FROM tournament_sessions WHERE tournament_id=?').get(id).n
       || this.db.prepare('SELECT COUNT(*) AS n FROM tournament_results WHERE tournament_id=?').get(id).n)
       throw new Error('Problems cannot be replaced after a player has started or results have been recorded.');
@@ -174,6 +188,7 @@ export class TournamentStore {
     if (!chosen) throw new Error('No unused candidate matching the density requirement.');
     this.db.prepare('UPDATE tournament_problems SET puzzle=?,position_hash=?,scoring_notes=?,solution_draft=? WHERE tournament_id=? AND ordinal=?')
       .run(chosen.puzzle, chosen.position_hash, '', '', id, ordinal);
+    if (event.isc) this.db.prepare('UPDATE isc_trainings SET revision=revision+1 WHERE tournament_id=?').run(id);
     return this.get(id, true);
   }
   deleteTournament(id) {
@@ -198,13 +213,13 @@ export class TournamentStore {
     this.db.prepare('DELETE FROM tournament_results WHERE id=? AND tournament_id=?').run(resultId, id);
     return this.get(id, true);
   }
-  start(id, name) {
+  start(id, name, deadline) {
     this.get(id);
     const player = normalizePlayer(name, this.db);
     this.db.prepare('INSERT OR IGNORE INTO tournament_sessions(id,tournament_id,player_id,name,started_at) VALUES(?,?,?,?,?)')
       .run(randomUUID(), id, player.id, player.name, this.clock());
     const session = this.db.prepare('SELECT * FROM tournament_sessions WHERE tournament_id=? AND player_id=?').get(id, player.id);
-    return { id: session.id, name: session.name, startedAt: session.started_at, deadline: session.started_at + 7200000,
+    return { id: session.id, name: session.name, startedAt: session.started_at, deadline: deadline ?? session.started_at + 7200000,
       submittedAt: session.submitted_at, answers: session.answers ? JSON.parse(session.answers) : undefined, serverNow: this.clock() };
   }
   submit(id, sessionId, answers) {

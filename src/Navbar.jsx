@@ -8,7 +8,7 @@ function Navbar({ activePage, onNavigate, language = 'lt', onLanguageChange, acc
   const navigationItems = [
     { label: 'Matplus', page: 'solving' },
     { label: '3 × #2', page: 'sprint' },
-    { label: text('Atviri turnyrai', 'Open Tournaments'), page: 'training' },
+    { label: text('ISC treniruotė', 'ISC Training'), page: 'training' },
   ];
 
   return (

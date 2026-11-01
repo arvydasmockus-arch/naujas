@@ -1,3 +1,4 @@
+import { iscTranslations } from '../src/iscTranslations.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { accountTranslations, accountErrorText } from '../src/accountTranslations.js';
@@ -15,7 +16,7 @@ test('Russian translations cover every public dictionary key including chess pie
       else if (/[A-Za-z]/.test(value)) assert.notEqual(russian[key], value, `${path}.${key} must be translated`);
     }
   }
-  for (const [name, dictionary] of Object.entries({ accountTranslations, sprintTranslations, solvingTranslations, tournamentTranslations, forumTranslations })) {
+  for (const [name, dictionary] of Object.entries({ accountTranslations, sprintTranslations, solvingTranslations, tournamentTranslations, forumTranslations, iscTranslations })) {
     assert.deepEqual(Object.keys(dictionary.lt).sort(), Object.keys(dictionary.en).sort(), `${name}: Lithuanian and English keys match`);
     compare(dictionary.en, dictionary.ru, name);
   }

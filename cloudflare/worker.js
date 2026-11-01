@@ -1,3 +1,5 @@
+import { Buffer } from 'node:buffer';
+import { iscApi, iscState, guardIsc, runIscSchedule, frozenIscPdf, deliverIscMail } from '../server/iscTraining.mjs';
 import { drawSprintRows } from '../server/sprintDraw.mjs';
 import { forumApi } from '../server/forumApi.mjs';
 import { accountApi, accountsEnabled, authorizeGameRequest, recordAccountActivity } from '../server/accountAuth.mjs';
@@ -50,11 +52,12 @@ async function namedEvent(row) {
 }
 
 async function getEvent(db, id, judge = false) {
-  const row = await db.prepare('SELECT * FROM tournaments WHERE id = ?').bind(id).first();
-  if (!row || (!judge && row.status !== 'published')) throw new Error('Tournament not found.');
-  const showSolutions = judge || Boolean(row.solutions_public);
+  const row = await db.prepare('SELECT t.*,i.starts_at,i.announced,i.armed,i.generate_at FROM tournaments t LEFT JOIN isc_trainings i ON i.tournament_id=t.id WHERE t.id = ?').bind(id).first();
+  if (!row || (!judge && (row.starts_at != null ? !row.announced : row.status !== 'published'))) throw new Error('Tournament not found.');
+  const isc = iscState(row, Date.now(), judge);
+  const showSolutions = judge || (isc ? isc.solutionsAvailable : Boolean(row.solutions_public));
   const stored = await db.prepare('SELECT * FROM tournament_problems WHERE tournament_id = ? ORDER BY ordinal').bind(id).all();
-  const puzzles = (stored.results ?? []).map((item) => {
+  const puzzles = (!judge && isc && !isc.problemsAvailable ? [] : stored.results ?? []).map((item) => {
     const puzzle = JSON.parse(item.puzzle);
     if (!showSolutions) return { ordinal: item.ordinal, fen: puzzle.fen, type: puzzle.type, stipulation: puzzle.stipulation,
       solutions: puzzle.solutions, whiteCount: puzzle.whiteCount, blackCount: puzzle.blackCount };
@@ -62,7 +65,7 @@ async function getEvent(db, id, judge = false) {
     return { ...puzzle, ordinal: item.ordinal, scoringNotes: item.scoring_notes,
       solutionDraft: item.solution_draft || draft.text, draftWarnings: judge && !item.solution_draft ? draft.warnings : [] };
   });
-  const resultRows = judge || row.results_public
+  const resultRows = judge || (row.results_public && (!isc || Date.now() >= isc.endsAt))
     ? await db.prepare('SELECT * FROM tournament_results WHERE tournament_id = ?').bind(id).all()
     : { results: [] };
   const results = rankResults((resultRows.results ?? []).map((item) => {
@@ -76,7 +79,7 @@ async function getEvent(db, id, judge = false) {
     submissions = (sessions.results ?? []).map((item) => ({ ...item, answers: JSON.parse(item.answers), minutes: Math.min(120, (item.submitted_at - item.started_at) / 60000) }));
   }
   return { id, number: row.number, title: row.title, displayTitle: (await namedEvent(row)).displayTitle, date: row.date,
-    mode: row.mode, status: row.status, solutionsPublic: Boolean(row.solutions_public), resultsPublic: Boolean(row.results_public),
+    mode: row.mode, status: row.status, isc, solutionsPublic: isc ? isc.solutionsAvailable : Boolean(row.solutions_public), resultsPublic: Boolean(row.results_public && (!isc || Date.now() >= isc.endsAt)),
     durationMinutes: 120, puzzles, results, ...(judge ? { submissions } : {}), serverNow: Date.now() };
 }
 
@@ -122,15 +125,15 @@ async function generateTournament(db, data) {
   }
   if (selected.filter((puzzle) => puzzle.whiteCount + puzzle.blackCount > 15).length < 4)
     throw new Error('At least four problems must have more than 15 pieces.');
-  const id = crypto.randomUUID();
+  const id = data.targetId || crypto.randomUUID();
   const title = typeof data.title === 'string' ? data.title.trim().slice(0, 140) : '';
   const meta = await db.prepare("SELECT value FROM metadata WHERE key = 'tournament_next_number'").first();
   const number = meta ? JSON.parse(meta.value) : 1;
   const statements = [
-    db.prepare(`INSERT INTO tournaments(id, title, date, mode, status, created_at, weekly, number)
+    ...(data.targetId ? [] : [db.prepare(`INSERT INTO tournaments(id, title, date, mode, status, created_at, weekly, number)
       VALUES(?, ?, ?, ?, ?, ?, ?, ?)`).bind(id, title || DEFAULT_TITLE, date, mode, mode === 'training' ? 'published' : 'draft', Date.now(), Number(weekly), number),
     db.prepare(`INSERT INTO metadata(key, value) VALUES('tournament_next_number', ?)
-      ON CONFLICT(key) DO UPDATE SET value = excluded.value`).bind(JSON.stringify(number + 1)),
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value`).bind(JSON.stringify(number + 1))]),
     ...selected.map((puzzle, ordinal) => db.prepare(`INSERT INTO tournament_problems(tournament_id, ordinal, puzzle, position_hash)
       VALUES(?, ?, ?, ?)`).bind(id, ordinal, JSON.stringify(puzzle), puzzle.positionHash)),
   ];
@@ -795,20 +798,40 @@ async function sprintApi(request, url, env) {
   } catch (error) { return json({ error: error.message }, 400); }
 }
 
+function iscDependencies(env) {
+  return {
+    async generate(id) {
+      await guardIsc(env.DB, id, 'generate');
+      const event = await getEvent(env.DB, id, true);
+      return generateTournament(env.DB, { targetId: id, mode: 'competition', title: event.title, date: event.date });
+    },
+    event: (id) => getEvent(env.DB, id, true),
+    pdf: (event, kind) => tournamentPdf(event, kind, pdfAssets, PDFDocumentBrowser),
+  };
+}
+
 async function tournamentApi(request, url, env) {
   const db = env.DB;
   const action = url.pathname.slice('/api/tournaments/'.length);
   const judge = isJudge(request, env);
+  if (action.startsWith('isc/')) return iscApi(request, env, judge, iscDependencies(env));
   const privateActions = ['generate', 'settings', 'result', 'delete-result', 'delete', 'replace', 'judge/login'].includes(action);
   if ((privateActions || url.searchParams.get('judge') === '1') && !judge) return json({ error: 'Judge access required.' }, 401);
 
   if (request.method === 'GET' && action === 'catalog') {
-    const rows = await db.prepare(`SELECT id, number, title, date, mode, status, solutions_public AS solutionsPublic,
-      results_public AS resultsPublic, created_at FROM tournaments ${judge ? '' : "WHERE status = 'published'"} ORDER BY date DESC, created_at DESC`).all();
-    const tournaments = await Promise.all((rows.results ?? []).map(namedEvent));
+    const rows = await db.prepare(`SELECT t.id,t.number,t.title,t.date,t.mode,t.status,t.solutions_public AS solutionsPublic,
+      t.results_public AS resultsPublic,t.created_at,i.starts_at,i.announced,i.armed,i.generate_at
+      FROM tournaments t LEFT JOIN isc_trainings i ON i.tournament_id=t.id
+      ${judge ? '' : "WHERE (i.tournament_id IS NULL AND t.status='published') OR i.announced=1"} ORDER BY t.date DESC,t.created_at DESC`).all();
+    const tournaments = await Promise.all((rows.results ?? []).map(async (row) => {
+      const isc = iscState(row, Date.now(), judge);
+      const named = await namedEvent(row);
+      return { ...named, isc, solutionsPublic: isc ? isc.solutionsAvailable : Boolean(row.solutionsPublic),
+        resultsPublic: Boolean(row.resultsPublic && (!isc || Date.now() >= isc.endsAt)) };
+    }));
     let pool;
     if (judge) pool = (await db.prepare('SELECT type, COUNT(*) AS count FROM tournament_pool GROUP BY type').all()).results ?? [];
-    return json({ tournaments, ...(judge ? { pool } : {}), timezone: 'UTC', weeklyHour: 10, serverNow: Date.now() });
+    return json({ tournaments, ...(judge ? { pool } : {}), timezone: 'Europe/Berlin', serverNow: Date.now() });
   }
   if (request.method === 'GET' && action === 'event') {
     try { return json(await getEvent(db, url.searchParams.get('id'), judge)); }
@@ -818,9 +841,12 @@ async function tournamentApi(request, url, env) {
     try {
       const event = await getEvent(db, url.searchParams.get('id'), judge);
       const kind = url.searchParams.get('kind');
+      if (!judge && event.isc && !event.isc.problemsAvailable) throw new Error('ISC training has not started yet.');
       if (kind === 'solutions' && !judge && !event.solutionsPublic) throw new Error('Solutions have not been published.');
       if (kind === 'results' && !judge && !event.resultsPublic) throw new Error('Results have not been published.');
-      const pdf = await tournamentPdf(event, kind, pdfAssets, PDFDocumentBrowser);
+      const pdf = event.isc?.armed && ['problems', 'solutions'].includes(kind)
+        ? Buffer.from((await frozenIscPdf(db, event.id, kind)).pdf, 'base64')
+        : await tournamentPdf(event, kind, pdfAssets, PDFDocumentBrowser);
       return new Response(pdf, { headers: { 'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="ML-Academy-No-${event.number}-${event.date}-${kind}.pdf"`,
         'Cache-Control': 'no-store' } });
@@ -834,16 +860,18 @@ async function tournamentApi(request, url, env) {
     if (action === 'judge/login') return json({ authenticated: true });
     if (action === 'generate') return json(await generateTournament(db, data));
     if (action === 'start') {
+      const isc = await guardIsc(db, data.id, 'start', env.ACCOUNT?.id);
       await getEvent(db, data.id);
       const player = await playerIdentity(data.name, db);
       await db.prepare('INSERT OR IGNORE INTO tournament_sessions(id, tournament_id, player_id, name, started_at) VALUES(?, ?, ?, ?, ?)')
         .bind(crypto.randomUUID(), data.id, player.id, player.name, Date.now()).run();
       const session = await db.prepare('SELECT * FROM tournament_sessions WHERE tournament_id = ? AND player_id = ?').bind(data.id, player.id).first();
       try { await recordAnalytics(request, env, { section: 'training', action: 'start', mode: (await getEvent(db, data.id)).mode }); } catch (error) { console.log('Analytics:', error.message); }
-      return json({ id: session.id, name: session.name, startedAt: session.started_at, deadline: session.started_at + 7200000,
+      return json({ id: session.id, name: session.name, startedAt: session.started_at, deadline: isc?.endsAt ?? session.started_at + 7200000,
         submittedAt: session.submitted_at, ...(session.answers ? { answers: JSON.parse(session.answers) } : {}), serverNow: Date.now() });
     }
     if (action === 'submit') {
+      await guardIsc(db, data.id, 'submit', env.ACCOUNT?.id);
       await getEvent(db, data.id);
       const session = await db.prepare('SELECT * FROM tournament_sessions WHERE tournament_id = ? AND id = ?').bind(data.id, data.sessionId).first();
       if (!session) throw new Error('Start the session first.');
@@ -874,6 +902,11 @@ async function tournamentApi(request, url, env) {
     }
     if (action === 'settings') {
       const event = await getEvent(db, data.id, true);
+      if (event.isc) {
+        const changesContent = data.title !== undefined || data.scoringNotes !== undefined || data.solutionDrafts !== undefined;
+        if (changesContent) await guardIsc(db, data.id, 'settings');
+        if (data.status !== undefined && data.status !== event.status) throw new Error('Use the ISC announcement and start controls.');
+      }
       if (data.title !== undefined && (typeof data.title !== 'string' || !data.title.trim() || data.title.length > 140)) throw new Error('Enter a title (max. 140 characters).');
       if (data.status !== undefined && !['draft', 'published'].includes(data.status)) throw new Error('Invalid status.');
       if (event.mode === 'competition' && data.status === 'published' && event.status !== 'published' && !data.judgeReviewed)
@@ -881,11 +914,16 @@ async function tournamentApi(request, url, env) {
       if (data.scoringNotes && (!Array.isArray(data.scoringNotes) || data.scoringNotes.length !== 6 || data.scoringNotes.some((note) => typeof note !== 'string' || note.length > 4000))) throw new Error('Invalid scoring notes.');
       if (data.solutionDrafts && (!Array.isArray(data.solutionDrafts) || data.solutionDrafts.length !== 6 || data.solutionDrafts.some((draft) => typeof draft !== 'string' || draft.length > 20000
         || [...draft.matchAll(/\[(\d+(?:[.,]\d+)?)\]/g)].some((match) => Number(match[1].replace(',', '.')) > 5)))) throw new Error('Invalid solution draft or score (maximum 5).');
-      const statements = [db.prepare(`UPDATE tournaments SET title = ?, status = ?, solutions_public = ?, results_public = ? WHERE id = ?`)
-        .bind(data.title?.trim() ?? event.title, data.status ?? event.status, Number(data.solutionsPublic ?? event.solutionsPublic), Number(data.resultsPublic ?? event.resultsPublic), data.id)];
-      if (data.scoringNotes) data.scoringNotes.forEach((note, ordinal) => statements.push(db.prepare('UPDATE tournament_problems SET scoring_notes = ? WHERE tournament_id = ? AND ordinal = ?').bind(note, data.id, ordinal)));
-      if (data.solutionDrafts) data.solutionDrafts.forEach((draft, ordinal) => statements.push(db.prepare('UPDATE tournament_problems SET solution_draft = ? WHERE tournament_id = ? AND ordinal = ?').bind(draft, data.id, ordinal)));
-      await db.batch(statements);
+      const contentEdit = Boolean(event.isc && (data.title !== undefined || data.scoringNotes !== undefined || data.solutionDrafts !== undefined));
+      const editable = contentEdit ? ' AND NOT EXISTS(SELECT 1 FROM isc_trainings i WHERE i.tournament_id=? AND (i.armed=1 OR i.starts_at<=?))' : '';
+      const editParams = contentEdit ? [data.id, Date.now()] : [];
+      const statements = [db.prepare(`UPDATE tournaments SET title = ?, status = ?, solutions_public = ?, results_public = ? WHERE id = ?${editable}`)
+        .bind(data.title?.trim() ?? event.title, data.status ?? event.status, Number(data.solutionsPublic ?? event.solutionsPublic), Number(data.resultsPublic ?? event.resultsPublic), data.id, ...editParams)];
+      if (data.scoringNotes) data.scoringNotes.forEach((note, ordinal) => statements.push(db.prepare('UPDATE tournament_problems SET scoring_notes = ? WHERE tournament_id = ? AND ordinal = ?' + editable).bind(note, data.id, ordinal, ...editParams)));
+      if (data.solutionDrafts) data.solutionDrafts.forEach((draft, ordinal) => statements.push(db.prepare('UPDATE tournament_problems SET solution_draft = ? WHERE tournament_id = ? AND ordinal = ?' + editable).bind(draft, data.id, ordinal, ...editParams)));
+      if (contentEdit) statements.push(db.prepare('UPDATE isc_trainings SET revision=revision+1 WHERE tournament_id=? AND armed=0 AND starts_at>?').bind(data.id, Date.now()));
+      const saved = await db.batch(statements);
+      if (contentEdit && !saved[0].meta.changes) throw new Error('ISC training changed. Refresh and prepare the PDFs again.');
       return json(await getEvent(db, data.id, true));
     }
     if (action === 'delete-result') {
@@ -894,6 +932,7 @@ async function tournamentApi(request, url, env) {
       return json(await getEvent(db, data.tournamentId, true));
     }
     if (action === 'delete') {
+      await guardIsc(db, data.id, 'delete');
       const event = await getEvent(db, data.id, true);
       await db.batch([
         db.prepare('DELETE FROM tournament_sessions WHERE tournament_id = ?').bind(data.id),
@@ -905,6 +944,7 @@ async function tournamentApi(request, url, env) {
       return json({ deleted: true, id: data.id });
     }
     if (action === 'replace') {
+      await guardIsc(db, data.id, 'replace');
       const event = await getEvent(db, data.id, true);
       const [sessions, results] = await Promise.all([
         db.prepare('SELECT COUNT(*) AS n FROM tournament_sessions WHERE tournament_id = ?').bind(data.id).first(),
@@ -925,8 +965,13 @@ async function tournamentApi(request, url, env) {
       const otherDense = event.puzzles.filter((puzzle) => puzzle.ordinal !== data.ordinal && puzzle.whiteCount + puzzle.blackCount > 15).length;
       const chosen = ordered.find((row) => otherDense + Number(count(row) > 15) >= 4);
       if (!chosen) throw new Error('No unused candidate matches the tournament requirements.');
-      await db.prepare(`UPDATE tournament_problems SET puzzle = ?, position_hash = ?, scoring_notes = '', solution_draft = ''
-        WHERE tournament_id = ? AND ordinal = ?`).bind(chosen.puzzle, chosen.position_hash, data.id, data.ordinal).run();
+      const saved = await db.batch([
+        db.prepare(`UPDATE tournament_problems SET puzzle = ?, position_hash = ?, scoring_notes = '', solution_draft = ''
+          WHERE tournament_id = ? AND ordinal = ? AND NOT EXISTS(SELECT 1 FROM isc_trainings i WHERE i.tournament_id=? AND (i.armed=1 OR i.starts_at<=?))`)
+          .bind(chosen.puzzle, chosen.position_hash, data.id, data.ordinal, data.id, Date.now()),
+        db.prepare('UPDATE isc_trainings SET revision=revision+1 WHERE tournament_id=? AND armed=0 AND starts_at>?').bind(data.id, Date.now()),
+      ]);
+      if (!saved[0].meta.changes) throw new Error('ISC training changed. Refresh and prepare the PDFs again.');
       return json(await getEvent(db, data.id, true));
     }
     return json({ error: 'This Cloudflare API action is not implemented yet.' }, 501);
@@ -941,6 +986,11 @@ export default {
     if (request.method === 'GET' && url.pathname === '/healthz') return json({ ok: true, service: 'ml-academy-api' }, 200, headers);
     if (url.pathname.startsWith('/api/forum/')) {
       const response = await forumApi(request, env, isJudge(request, env));
+      for (const [key, value] of headers) response.headers.set(key, value);
+      return response;
+    }
+    if (url.pathname.startsWith('/api/tournaments/isc/')) {
+      const response = await iscApi(request, env, isJudge(request, env), iscDependencies(env));
       for (const [key, value] of headers) response.headers.set(key, value);
       return response;
     }
@@ -996,6 +1046,10 @@ export default {
   },
   async scheduled(controller, env) {
     const timestamp = controller.scheduledTime ?? Date.now();
+    if (controller.cron === '* * * * *') {
+      await runIscSchedule(env, iscDependencies(env), timestamp);
+      return;
+    }
     const localHour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Vilnius', hour: '2-digit', hourCycle: 'h23' }).format(timestamp));
     // UTC candidates cover Vilnius summer/winter time; retry missing sets at 08:00.
     if (localHour === 0 || localHour === 8) {
@@ -1004,7 +1058,18 @@ export default {
       try { await ensureSprintDay(env.DB, date); } catch (error) { console.log('Sprint generation is waiting for eligible puzzles:', error.message); }
     }
   },
-  async queue(batch) {
+  async queue(batch, env) {
+    if (batch.queue === 'ml-academy-isc-mail') {
+      for (const message of batch.messages) {
+        try {
+          if (message.body?.type === 'isc-mail' && typeof message.body.id === 'string' && Number.isFinite(message.body.lease)) {
+            await deliverIscMail(env, message.body.id, message.body.lease);
+          }
+          message.ack();
+        } catch { message.retry(); }
+      }
+      return;
+    }
     // Discard pending verification work without querying D1.
     batch.ackAll();
   },

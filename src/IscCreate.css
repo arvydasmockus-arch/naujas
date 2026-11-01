@@ -1,0 +1,3 @@
+.isc-create h2 { margin-top: 0; }
+.isc-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; }
+.isc-create button { margin-top: 16px; }
