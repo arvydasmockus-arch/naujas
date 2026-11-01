@@ -1,6 +1,6 @@
 export const iscTranslations = {
   lt: {
-    title: 'Turnyrai', subtitle: '6 uždaviniai · 2 valandos · bendras startas',
+    title: 'Turnyrai', subtitle: '6 uždaviniai · 2 valandos · bendras startas', preparing: 'Ruošiami PDF ir patvirtinamas startas…',
     schedule: '',
     create: 'Sukurti turnyrą', name: 'Turnyro pavadinimas', date: 'Turnyro data',
     generation: 'Uždavinių generavimas', manual: 'Rankiniu būdu', scheduled: 'Nustatytu laiku', generationAt: 'Generavimo laikas',
@@ -25,7 +25,7 @@ export const iscTranslations = {
     draft: 'Teisėjo juodraštis', announced: 'Registracija paskelbta', publishResults: 'Paskelbti rezultatus', hideResults: 'Paslėpti rezultatus',
   },
   en: {
-    title: 'Tournaments', subtitle: '6 problems · 2 hours · a common start',
+    title: 'Tournaments', subtitle: '6 problems · 2 hours · a common start', preparing: 'Preparing PDFs and approving the start…',
     schedule: '',
     create: 'Create tournament', name: 'Tournament name', date: 'Tournament date', generation: 'Problem generation', manual: 'Manually', scheduled: 'At a scheduled time', generationAt: 'Generation time',
     generationHint: 'Enter the generation date and time in your device’s time zone. The set remains a judge-only draft.',
@@ -43,7 +43,7 @@ export const iscTranslations = {
     draft: 'Judge-only draft', announced: 'Registration announced', publishResults: 'Publish results', hideResults: 'Hide results',
   },
   ru: {
-    title: 'Турниры', subtitle: '6 задач · 2 часа · общий старт',
+    title: 'Турниры', subtitle: '6 задач · 2 часа · общий старт', preparing: 'Подготовка PDF и подтверждение старта…',
     schedule: 'В выбранные воскресенья в 11:00 CET / CEST. Решение до 13:00, ответы с 14:00.',
     create: 'Создать турнир', name: 'Название турнира', date: 'Дата турнира', generation: 'Подбор задач', manual: 'Вручную', scheduled: 'В заданное время', generationAt: 'Время подбора',
     generationHint: 'Введите дату и время подбора в часовом поясе вашего устройства. Набор останется черновиком судьи.',
