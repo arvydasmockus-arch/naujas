@@ -808,7 +808,7 @@ function iscDependencies(env) {
       return generateTournament(env.DB, { targetId: id, mode: 'competition', title: event.title, date: event.date });
     },
     event: (id) => getEvent(env.DB, id, true),
-    pdf: (event, kind) => tournamentPdf(event, kind, pdfAssets, PDFDocumentBrowser),
+    pdf: (event, kind, language = 'en') => tournamentPdf(event, kind, { ...pdfAssets, font: pdfAssets.font }, PDFDocumentBrowser, language),
   };
 }
 
@@ -848,7 +848,7 @@ async function tournamentApi(request, url, env) {
       if (kind === 'results' && !judge && !event.resultsPublic) throw new Error('Results have not been published.');
       const pdf = event.isc?.armed && ['problems', 'solutions'].includes(kind)
         ? Buffer.from((await frozenIscPdf(db, event.id, kind)).pdf, 'base64')
-        : await tournamentPdf(event, kind, pdfAssets, PDFDocumentBrowser);
+        : await tournamentPdf(event, kind, pdfAssets, PDFDocumentBrowser, url.searchParams.get('language') === 'lt' ? 'lt' : 'en');
       return new Response(pdf, { headers: { 'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="ML-Academy-${event.isc ? event.date : `No-${event.number}-${event.date}`}-${kind}.pdf"`,
         'Cache-Control': 'no-store' } });

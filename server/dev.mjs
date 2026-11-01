@@ -43,7 +43,7 @@ const iscDependencies = {
     const event = tournaments.get(id, true);
     return tournaments.generate({ targetId: id, mode: 'competition', title: event.title, date: event.date });
   },
-  event: (id) => tournaments.get(id, true), pdf: tournamentPdf,
+  event: (id) => tournaments.get(id, true), pdf: (event, kind, language = 'en') => tournamentPdf(event, kind, {}, undefined, language),
 };
 const production = process.argv.includes('--production') || process.env.NODE_ENV === 'production';
 const vite = production ? null : await (await import('vite')).createServer({ server: { middlewareMode: true }, appType: 'spa' });
@@ -137,7 +137,7 @@ const server = createServer(async (req, res) => {
         if (kind === 'solutions' && !judge && !event.solutionsPublic) throw new Error('Solutions have not been published.');
         if (kind === 'results' && !judge && !event.resultsPublic) throw new Error('Results have not been published.');
         const pdf = event.isc?.armed && ['problems', 'solutions'].includes(kind)
-          ? Buffer.from((await frozenIscPdf(accountEnv.DB, event.id, kind)).pdf, 'base64') : await tournamentPdf(event, kind);
+          ? Buffer.from((await frozenIscPdf(accountEnv.DB, event.id, kind)).pdf, 'base64') : await tournamentPdf(event, kind, {}, undefined, url.searchParams.get('language') === 'lt' ? 'lt' : 'en');
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="ML-Academy-${event.isc ? event.date : `No-${event.number}-${event.date}`}-${kind}.pdf"`);
         res.end(pdf); return;

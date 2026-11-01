@@ -13,8 +13,8 @@ export async function tournamentRequest(action, { key = '', signal, data, params
   if (!response.ok) throw new Error(result.error || 'Request failed.');
   return result;
 }
-export async function downloadTournamentPdf(id, kind, key = '') {
-  const response = await fetch(`${API_BASE_URL}/api/tournaments/pdf?${new URLSearchParams({ id, kind })}`, {
+export async function downloadTournamentPdf(id, kind, key = '', language = 'en') {
+  const response = await fetch(`${API_BASE_URL}/api/tournaments/pdf?${new URLSearchParams({ id, kind, language })}`, {
     headers: { ...accountHeaders(), ...(key ? { Authorization: `Bearer ${key}` } : {}) },
   });
   if (!response.ok) { const data = await response.json(); throw new Error(data.error); }

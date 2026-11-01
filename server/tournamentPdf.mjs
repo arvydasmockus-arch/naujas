@@ -1,5 +1,5 @@
 import SVGtoPDF from 'svg-to-pdfkit';
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { Chess } from 'chess.js';
 import { solutionDraft } from './solutionDraft.mjs';
 function solutionLines(doc, text, width, fontSize) {
@@ -36,10 +36,9 @@ function scoredText(doc, text, x, y, width, height, number) {
   });
 }
 
-function fonts(doc) {
-  const paths = ['C:/Windows/Fonts/arial.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'];
-  const regular = paths.find(existsSync);
-  if (regular) doc.registerFont('ML', regular).font('ML');
+function fonts(doc, embeddedFont) {
+  const regular = embeddedFont ?? readFileSync(new URL('./Lato-Regular.ttf', import.meta.url));
+  doc.registerFont('ML', regular).font('ML');
 }
 function board(doc, fen, x, y, size, pieceAssets) {
   const square = size / 8;
@@ -71,40 +70,53 @@ function heading(doc, event, subtitle, centered = false, logoAsset) {
   doc.fillColor('#111111').fontSize(12).text(event.displayTitle ?? event.title, 124, 19, { width, height: 31, align: 'center', ellipsis: true });
   doc.fontSize(9).text(`${subtitle} · 120 minutes`, 124, 54, { width, align: 'center' });
 }
-function caption(doc, puzzle, x, y, width) {
+function caption(doc, puzzle, x, y, width, labels) {
   doc.fillColor('#111111').fontSize(10).text(puzzle.stipulation, x, y, { width });
   doc.text(`(${puzzle.whiteCount} + ${puzzle.blackCount})`, x, y, { width, align: 'right' });
-  if (puzzle.solutions) doc.fontSize(9).text(`${puzzle.solutions} solution${puzzle.solutions === 1 ? '' : 's'}`, x, y + 13, { width, align: 'center' });
+  if (puzzle.solutions) doc.fontSize(9).text(`${puzzle.solutions} ${puzzle.solutions === 1 ? labels.solution : labels.solutions}`, x, y + 13, { width, align: 'center' });
 }
-export async function tournamentPdf(event, kind, assets = {}, PDFDocumentType) {
+export async function tournamentPdf(event, kind, assets = {}, PDFDocumentType, language = 'en') {
+  const labels = language === 'lt' ? {
+    problems: 'Uždaviniai', solutions: 'Sprendimai', results: 'Individualūs rezultatai',
+    rank: 'Vieta', name: 'Vardas', category: 'Kat.', country: 'Šalis', rating: 'Reitingas', title: 'Titulas',
+    total: 'Iš viso /30', minutes: 'Min.', send: 'Sprendimus raštu siųskite arvydas.mockus@gmail.com.',
+    solution: 'sprendinys', solutionsPlural: 'sprendiniai',
+    scoring: 'Vieta pagal taškus mažėjančia tvarka, tada pagal laiką didėjančia tvarka. Taškus rankiniu būdu įvedė teisėjas. Tai nėra oficialus reitingo skaičiavimas.',
+  } : {
+    problems: 'Problems', solutions: 'Solutions', results: 'Individual results',
+    rank: 'Rank', name: 'Name', category: 'Cat.', country: 'Country', rating: 'Rating', title: 'Title',
+    total: 'Total /30', minutes: 'Min.', send: 'Send written solutions to arvydas.mockus@gmail.com.',
+    solution: 'solution', solutionsPlural: 'solutions',
+    scoring: 'Rank: points descending, then time ascending. Scores entered manually by the judge. This is not an official rating calculation.',
+  };
   const PDFDocument = PDFDocumentType ?? (await import('pdfkit')).default;
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', layout: kind === 'results' ? 'landscape' : 'portrait', margin: kind === 'problems' ? 14 : 28,
       info: { Title: `${event.displayTitle ?? event.title} — ${kind}`, Author: 'ML Academy' } });
     const chunks = []; doc.on('data', (chunk) => chunks.push(chunk)); doc.on('end', () => resolve(Buffer.concat(chunks))); doc.on('error', reject);
     try {
-      fonts(doc);
+      fonts(doc, assets.font);
       if (kind === 'problems') {
-        heading(doc, event, 'Problems', true, assets.logo);
+        heading(doc, event, labels.problems, true, assets.logo);
         event.puzzles.forEach((puzzle, index) => {
           const size = 206, gap = 24, left = (doc.page.width - size * 2 - gap) / 2;
           const x = left + (index % 2) * (size + gap), y = 104 + Math.floor(index / 2) * 238;
           doc.fillColor('#111111').fontSize(12).text(`${index + 1}.`, x, y - 16, { width: size, align: 'center' });
           board(doc, puzzle.fen, x, y, size, assets.pieces);
-          caption(doc, puzzle, x, y + size + 3, size);
+          caption(doc, puzzle, x, y + size + 3, size, { solution: labels.solution, solutions: labels.solutionsPlural });
         });
-        doc.fontSize(8).fillColor('#555555').text('Send written solutions to arvydas.mockus@gmail.com.', 20, 818, { width: doc.page.width - 40, align: 'center' });
+        doc.fontSize(8).fillColor('#555555').text(labels.send, 20, 818, { width: doc.page.width - 40, align: 'center' });
       } else if (kind === 'solutions') {
         event.puzzles.forEach((puzzle, index) => {
           if (index % 3 === 0) {
             if (index) doc.addPage();
-            heading(doc, event, 'Solutions', true, assets.logo);
+            heading(doc, event, labels.solutions, true, assets.logo);
           }
           const top = 104 + index % 3 * 232, size = 166, textX = 214;
           const textWidth = doc.page.width - textX - 28;
           doc.fillColor('#111111').fontSize(12).text(`${index + 1}.`, 28, top, { width: size, align: 'center' });
           board(doc, puzzle.fen, 28, top + 20, size, assets.pieces);
-          caption(doc, puzzle, 28, top + 190, size);
+          caption(doc, puzzle, 28, top + 190, size, { solution: labels.solution, solutions: labels.solutionsPlural });
           const attribution = `${puzzle.authors.join(' · ')}\n${puzzle.source} ${puzzle.year} · YACPDB ${puzzle.id}`;
           doc.fillColor('#555555').fontSize(8.5).text(attribution, textX, top + 20, { width: textWidth, height: 29, ellipsis: true });
           const text = [puzzle.solutionDraft || solutionDraft(puzzle).text, puzzle.scoringNotes].filter(Boolean).join('\n\n');
@@ -115,10 +127,10 @@ export async function tournamentPdf(event, kind, assets = {}, PDFDocumentType) {
         const columns = [28, 52, 245, 288, 322, 374, 415, 451, 487, 523, 559, 595, 631, 695, 753, 814];
         let y;
         function tableHeader() {
-          heading(doc, event, 'Individual results', false, assets.logo);
+          heading(doc, event, labels.results, false, assets.logo);
           y = 84;
-          const labels = ['Rank', 'Name', 'Cat.', 'Country', 'Rating', 'Title', ...event.puzzles.map((puzzle, i) => `${i + 1}. ${puzzle.stipulation}`), 'Total /30', 'Min.', ''];
-          labels.slice(0, 14).forEach((label, i) => {
+          const columnsText = [labels.rank, labels.name, labels.category, labels.country, labels.rating, labels.title, ...event.puzzles.map((puzzle, i) => `${i + 1}. ${puzzle.stipulation}`), labels.total, labels.minutes, ''];
+          columnsText.slice(0, 14).forEach((label, i) => {
             const width = columns[i + 1] - columns[i];
             doc.rect(columns[i], y, width, 30).fillAndStroke('#edf4e9', '#bbbbbb');
             doc.fillColor('#111111').fontSize(8).text(label, columns[i] + 3, y + 8, { width: width - 6, align: i === 1 ? 'left' : 'center' });
@@ -136,7 +148,7 @@ export async function tournamentPdf(event, kind, assets = {}, PDFDocumentType) {
           });
           y += 24;
         }
-        doc.fontSize(8).text('Rank: points descending, then time ascending. Scores entered manually by the judge. This is not an official rating calculation.', 28, 554, { width: 780 });
+        doc.fontSize(8).text(labels.scoring, 28, 554, { width: 780 });
       } else throw new Error('Unknown PDF type.');
       doc.end();
     } catch (error) { reject(error); }

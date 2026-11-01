@@ -1,5 +1,6 @@
 export const iscTranslations = {
   lt: {
+    pdfLanguage: 'PDF kalba', english: 'Angl\u0173', lithuanian: 'Lietuvi\u0173',
     title: 'Turnyrai', subtitle: '6 uždaviniai · 2 valandos · bendras startas', preparing: 'Ruošiami PDF ir patvirtinamas startas…',
     schedule: '',
     create: 'Sukurti turnyrą', name: 'Turnyro pavadinimas', date: 'Turnyro data',
@@ -25,6 +26,7 @@ export const iscTranslations = {
     draft: 'Teisėjo juodraštis', announced: 'Registracija paskelbta', publishResults: 'Paskelbti rezultatus', hideResults: 'Paslėpti rezultatus',
   },
   en: {
+    pdfLanguage: 'PDF language', english: 'English', lithuanian: 'Lithuanian',
     title: 'Tournaments', subtitle: '6 problems · 2 hours · a common start', preparing: 'Preparing PDFs and approving the start…',
     schedule: '',
     create: 'Create tournament', name: 'Tournament name', date: 'Tournament date', generation: 'Problem generation', manual: 'Manually', scheduled: 'At a scheduled time', generationAt: 'Generation time',
@@ -43,6 +45,7 @@ export const iscTranslations = {
     draft: 'Judge-only draft', announced: 'Registration announced', publishResults: 'Publish results', hideResults: 'Hide results',
   },
   ru: {
+    pdfLanguage: '\u042f\u0437\u044b\u043a PDF', english: '\u0410\u043d\u0433\u043b\u0438\u0439\u0441\u043a\u0438\u0439', lithuanian: '\u041b\u0438\u0442\u043e\u0432\u0441\u043a\u0438\u0439',
     title: 'Турниры', subtitle: '6 задач · 2 часа · общий старт', preparing: 'Подготовка PDF и подтверждение старта…',
     schedule: 'В выбранные воскресенья в 11:00 CET / CEST. Решение до 13:00, ответы с 14:00.',
     create: 'Создать турнир', name: 'Название турнира', date: 'Дата турнира', generation: 'Подбор задач', manual: 'Вручную', scheduled: 'В заданное время', generationAt: 'Время подбора',

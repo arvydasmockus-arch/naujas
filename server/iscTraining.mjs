@@ -127,9 +127,10 @@ export async function iscApi(request, env, judge, dependencies) {
     } else if (action === 'prepare') {
       await guardIsc(db, data.id, 'settings');
       if (!['problems', 'solutions'].includes(data.kind)) error('Invalid PDF kind.');
+      const language = data.language === 'lt' ? 'lt' : 'en';
       const event = await dependencies.event(data.id);
       if (event.puzzles.length !== 6) error('Generate and review all six ISC problems first.');
-      const content = Buffer.from(await dependencies.pdf(event, data.kind)).toString('base64');
+      const content = Buffer.from(await dependencies.pdf(event, data.kind, language)).toString('base64');
       if (content.length > 1500000) error('ISC PDF is too large.');
       const saved = await db.prepare(`INSERT INTO isc_pdfs(tournament_id,kind,revision,content)
         SELECT tournament_id,?,revision,? FROM isc_trainings WHERE tournament_id=? AND revision=? AND armed=0 AND starts_at>?

@@ -1,5 +1,6 @@
 import { Buffer } from 'node:buffer';
 import logo from './assets/ml-academy-logo.bin';
+import font from './assets/fonts/Lato-Regular.bin';
 import bB from './assets/bB.txt';
 import bK from './assets/bK.txt';
 import bN from './assets/bN.txt';
@@ -15,5 +16,6 @@ import wR from './assets/wR.txt';
 
 export const pdfAssets = {
   logo: Buffer.from(logo),
+  font: Buffer.from(font),
   pieces: { bB, bK, bN, bP, bQ, bR, wB, wK, wN, wP, wQ, wR },
 };
