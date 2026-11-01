@@ -8,4 +8,5 @@
 .isc-participants button { margin: 8px 12px 0 0; }
 .isc-status p { overflow-wrap: anywhere; }
 .isc-status span { display: block; color: #a2322b; }
+.isc-review-check { margin: 16px 0; }
 @media (max-width: 640px) { .isc-timetable { grid-template-columns: 1fr; gap: 16px; } }

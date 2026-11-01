@@ -50,10 +50,11 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
   const storageKey = `ml-tournament-${accountUser ? `${accountUser.id}-` : ''}${selected}`;
   const expired = session ? now - offset >= session.deadline : false;
 
-  const acceptEvent = useCallback((data) => {
+  const acceptEvent = useCallback((data, { resetReview = true } = {}) => {
     setOffset(Date.now() - data.serverNow);
     setEvent(data); setTitle(data.title); setSolutionsPublic(data.solutionsPublic); setResultsPublic(data.resultsPublic);
-    setScoringNotes(data.puzzles.map((puzzle) => puzzle.scoringNotes ?? '')); setReviewed(false);
+    setScoringNotes(data.puzzles.map((puzzle) => puzzle.scoringNotes ?? ''));
+    if (resetReview) setReviewed(false);
     setSolutionDrafts(data.puzzles.map((puzzle) => puzzle.solutionDraft ?? ''));
   }, []);
   const refreshCatalog = useCallback(async (signal) => {
@@ -130,7 +131,7 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
   function saveSettings(status = event.status) {
     perform(async () => {
       const data = await tournamentRequest('settings', { key, data: { id: selected, title, status, judgeReviewed: reviewed, solutionsPublic, resultsPublic, scoringNotes, solutionDrafts } });
-      acceptEvent(data); await refreshCatalog();
+      acceptEvent(data, { resetReview: false }); await refreshCatalog();
     });
   }
   function replaceProblem(ordinal) {
@@ -239,9 +240,9 @@ function TournamentPlatform({ language = 'en', accountUser = null, accountsEnabl
         {(!event.isc || event.puzzles.length > 0) && <p>{t.ready}</p>}
         {!judge && !event.isc && !event.solutionsPublic && <p className="tournament-note">{t.unavailable}</p>}
       </section>
-      {event.isc && <IscEvent event={event} language={language} accessKey={key} accountUser={accountUser} now={now - offset} onChanged={refreshEvent} onArm={armIsc} onRegistrationChanged={setIscRegistered} />}
+      {event.isc && <IscEvent event={event} language={language} accessKey={key} accountUser={accountUser} now={now - offset} reviewed={reviewed} onReviewChange={setReviewed} onChanged={refreshEvent} onArm={armIsc} onRegistrationChanged={setIscRegistered} />}
       {judge && (!event.isc || (!event.isc.armed && now - offset < event.isc.startsAt && event.puzzles.length === 6)) && <section className="tournament-panel"><h2>{t.settings}</h2><label>{t.tournamentTitle}<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={140} /></label>
-        <label className="tournament-check"><input type="checkbox" checked={reviewed} onChange={(e) => setReviewed(e.target.checked)} />{event.isc ? iscText.review : t.review}</label>
+        {!event.isc && <label className="tournament-check"><input type="checkbox" checked={reviewed} onChange={(e) => setReviewed(e.target.checked)} />{t.review}</label>}
         {!event.isc && <label className="tournament-check"><input type="checkbox" checked={solutionsPublic} onChange={(e) => setSolutionsPublic(e.target.checked)} />{t.publishSolutions}</label>}
         {!event.isc && <label className="tournament-check"><input type="checkbox" checked={resultsPublic} onChange={(e) => setResultsPublic(e.target.checked)} />{t.publishResults}</label>}
         <div className="tournament-downloads"><button disabled={busy} onClick={() => saveSettings()}>{event.isc ? iscText.save : t.saveSettings}</button>

@@ -9,7 +9,7 @@ function iscDate(timestamp, language, timeZone = 'Europe/Berlin') {
   return new Intl.DateTimeFormat(locale(language), { dateStyle: 'medium', timeStyle: 'short', ...(timeZone ? { timeZone } : {}) }).format(timestamp);
 }
 
-export function IscEvent({ event, language, accessKey, accountUser, now, onChanged, onArm, onRegistrationChanged }) {
+export function IscEvent({ event, language, accessKey, accountUser, now, reviewed, onReviewChange, onChanged, onArm, onRegistrationChanged }) {
   const t = iscTranslations[language]; const judge = Boolean(accessKey);
   const [details, setDetails] = useState(null); const [busy, setBusy] = useState(false); const [error, setError] = useState('');
   const before = now < event.isc.startsAt;
@@ -41,11 +41,12 @@ export function IscEvent({ event, language, accessKey, accountUser, now, onChang
       <p>{event.isc.armed ? t.armed : t.notArmed}</p>
       {details?.emailReady === false && <p className="tournament-page__error">{t.emailMissing}</p>}
       {event.isc.generateAt && <p>{t.generationAt}: {iscDate(event.isc.generateAt, language, null)}</p>}
+      {judge && before && !event.isc.armed && event.puzzles.length === 6 && <label className="tournament-check isc-review-check"><input type="checkbox" checked={reviewed} onChange={(e) => onReviewChange(e.target.checked)} />{t.review}</label>}
       {before && <div className="tournament-downloads">
         <button disabled={busy || event.isc.armed} onClick={() => action('announce', { announced: !event.isc.announced })}>{event.isc.announced ? t.hide : t.announce}</button>
         {!event.puzzles.length && <button disabled={busy} onClick={() => action('generate')}>{t.generate}</button>}
         {event.isc.armed ? <button disabled={busy} onClick={() => action('disarm')}>{t.disarm}</button> :
-          <button disabled={busy || event.puzzles.length !== 6 || !event.isc.announced || details?.emailReady === false} onClick={onArm}>{t.arm}</button>}
+          <button disabled={busy || event.puzzles.length !== 6 || !event.isc.announced || details?.emailReady === false || !reviewed} onClick={onArm}>{t.arm}</button>}
       </div>}
       <div className="isc-status"><h3>{t.jobs}</h3>{details?.jobs?.map((job) => <p key={job.kind}>{kinds[job.kind]} · {t[job.status] || job.status} · {iscDate(job.runAt, language, null)}{job.error && <span role="alert">{localizedError(job.error, language)}</span>}</p>)}
         <h3>{t.mail}</h3>{details?.mail?.map((row) => <p key={`${row.kind}-${row.status}`}>{kinds[row.kind]} · {t[row.status] || row.status}: {row.count}{row.error && <span role="alert">{localizedError(row.error, language)}</span>}</p>)}
