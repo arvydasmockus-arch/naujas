@@ -213,7 +213,10 @@ export default function PositionLab({ language = 'en' }) {
   }
   function applyFen(value, showError = true) {
     try {
-      const imported = new Chess(value.trim());
+      const trimmedFen = value.trim();
+      const fields = trimmedFen.split(/\s+/);
+      const completeFen = fields.length === 1 ? `${trimmedFen} w - - 0 1` : trimmedFen;
+      const imported = new Chess(completeFen);
       const importedPieces = Object.fromEntries(imported.board().flatMap((row, rank) => row.map((piece, file) =>
         piece ? [files[file] + (8 - rank), piece.color + piece.type.toUpperCase()] : null).filter(Boolean)));
       const [, , castling, enPassant, halfmove, fullmove] = imported.fen().split(' ');
