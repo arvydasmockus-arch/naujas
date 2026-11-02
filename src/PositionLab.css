@@ -33,18 +33,18 @@
 .position-lab__controls h2 { margin:0; }
 .position-lab__controls-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
 .position-lab__engine-toggle { padding:6px 9px; border:1px solid #d9d6df; border-radius:7px; background:#f7f6f9; color:#302d36; font:inherit; font-size:12px; cursor:pointer; }
-.position-lab__engine-toggle:hover { border-color:#9f84d7; background:#f0ebf8; }
+.position-lab__engine-toggle:hover { border-color:#83c895; background:#eff8f1; }
 .position-lab__engine-toggle.is-active { border-color:#b8d9c5; background:#eff8f1; color:#23643c; }
 .position-lab__card h2 { margin:0 0 13px; font-size:clamp(13px,1.3vw,16px); }
 .position-lab__piece-row { display:grid; grid-template-columns:1fr; gap:2px; margin:0; }
 .position-lab__piece-row button { display:grid; place-items:center; width:var(--piece-size); height:var(--piece-size); min-width:0; padding:1px; border:0; border-radius:0; background:transparent; cursor:grab; }
 .position-lab__piece-row button:hover { background:transparent; filter:brightness(.88); }
-.position-lab__piece-row button.is-active { background:transparent; filter:drop-shadow(0 0 3px #8a6ac1); }
+.position-lab__piece-row button.is-active { background:transparent; filter:drop-shadow(0 0 3px #36c86e); }
 .position-lab__piece-row img { width:100%; height:100%; object-fit:contain; }
 .position-lab__erase,.position-lab__buttons button,.position-lab__turn button { padding:clamp(5px,.7vw,8px) clamp(6px,.85vw,10px); border:1px solid #d9d6df; border-radius:7px; background:#f7f6f9; color:#302d36; font:inherit; font-size:clamp(12px,1.1vw,16px); cursor:pointer; }
 .position-lab__erase { width:100%; margin-top:8px; }
-.position-lab__erase:hover,.position-lab__buttons button:hover,.position-lab__turn button:hover { border-color:#9f84d7; background:#f0ebf8; }
-.position-lab__erase.is-active,.position-lab__turn button.is-active { background:#e9e0f7; border-color:#8a6ac1; color:#35264d; }
+.position-lab__erase:hover,.position-lab__buttons button:hover,.position-lab__turn button:hover { border-color:#83c895; background:#eff8f1; }
+.position-lab__erase.is-active,.position-lab__turn button.is-active { background:#e2f3e6; border-color:#4f9c63; color:#285d35; }
 .position-lab__turn { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:10px; }
 .position-lab__buttons { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
 .position-lab__buttons button:last-child { grid-column:1/-1; }
@@ -63,7 +63,7 @@
 .position-lab__line-moves { min-width:0; color:#25232b; line-height:1.5; white-space:nowrap; overflow-x:auto; scrollbar-width:thin; }
 .position-lab__move-number { color:#777381; }
 .position-lab__move-button { padding:1px 2px; border:0; border-radius:3px; background:transparent; color:inherit; font:inherit; cursor:pointer; }
-.position-lab__move-button:hover,.position-lab__move-button:focus-visible { background:#e9e0f7; color:#35264d; outline:none; }
+.position-lab__move-button:hover,.position-lab__move-button:focus-visible { background:#e2f3e6; color:#285d35; outline:none; }
 .position-lab__score { min-height:34px; color:#c9aaff; font-size:22px; font-weight:700; }
 .position-lab__result p { margin:8px 0 0; color:#4e4b55; line-height:1.45; }
 .position-lab__pv { color:#bcb5c9; word-spacing:4px; }
@@ -75,7 +75,7 @@
 .position-lab__fen-controls { display:flex; flex:1; gap:5px; min-width:0; }
 .position-lab__fen-controls input { flex:1; width:100%; min-width:0; padding:5px 6px; border:1px solid #d5d2dc; border-radius:5px; background:#fff; color:#25232b; font:11px/1.2 monospace; }
 .position-lab__fen-controls button { flex:0 0 28px; padding:3px; border:1px solid #d5d2dc; border-radius:5px; background:#f7f6f9; color:#302d36; font:14px/1 sans-serif; cursor:pointer; }
-.position-lab__fen-controls button:hover { border-color:#9f84d7; background:#f0ebf8; }
+.position-lab__fen-controls button:hover { border-color:#83c895; background:#eff8f1; }
 .position-lab__fen-panel > p { flex:1 0 100%; margin:0; color:#a12b38; font-size:12px; }
 @media (max-width:1200px) {
   .position-lab { width:min(100% - 32px,1320px); margin-top:20px; }
