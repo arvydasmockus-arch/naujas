@@ -58,6 +58,7 @@ export default function PositionLab({ language = 'en' }) {
   const [fenError, setFenError] = useState('');
   const [fenMetadata, setFenMetadata] = useState(null);
   const [problemSolution, setProblemSolution] = useState({ state: 'idle', groups: null });
+  const [stipulation, setStipulation] = useState('#2');
   const [activeAnswerPhases, setActiveAnswerPhases] = useState(['play', 'tries', 'setPlay']);
   const popeyeWorker = useRef(null);
   const worker = useRef(null);
@@ -73,28 +74,29 @@ export default function PositionLab({ language = 'en' }) {
 
   function solveProblem() {
     popeyeWorker.current?.terminate();
-    setProblemSolution({ state: 'loading', groups: null, fen });
-    setActiveAnswerPhases(['play', 'tries', 'setPlay']);
-    const solver = new Worker(new URL('./mateSolverWorker.js', import.meta.url), { type: 'module' });
+    const currentStipulation = stipulation.trim().toLowerCase().replace(/^([hs])(?=\d)/, '$1#');
+    setProblemSolution({ state: 'loading', groups: null, fen, stipulation: currentStipulation });
+    setActiveAnswerPhases(currentStipulation.startsWith('#') ? ['play', 'tries', 'setPlay'] : ['play']);
+    const solver = new Worker(new URL('./popeyeWorker.js', import.meta.url), { type: 'module' });
     popeyeWorker.current = solver;
     solver.onmessage = ({ data }) => {
       if (data.type === 'solution') {
-        setProblemSolution({ state: 'done', groups: data.groups, fen });
+        setProblemSolution({ state: 'done', groups: data.groups, raw: data.raw, fen, stipulation: data.stipulation });
         solver.terminate();
         if (popeyeWorker.current === solver) popeyeWorker.current = null;
       }
       if (data.type === 'error') {
-        setProblemSolution({ state: 'error', groups: null, error: data.message, fen });
+        setProblemSolution({ state: 'error', groups: null, error: data.message, fen, stipulation: currentStipulation });
         solver.terminate();
         if (popeyeWorker.current === solver) popeyeWorker.current = null;
       }
     };
     solver.onerror = (event) => {
-      setProblemSolution({ state: 'error', groups: null, error: event.message || 'Problem solver failed.', fen });
+      setProblemSolution({ state: 'error', groups: null, error: event.message || 'Problem solver failed.', fen, stipulation: currentStipulation });
       solver.terminate();
       if (popeyeWorker.current === solver) popeyeWorker.current = null;
     };
-    solver.postMessage({ type: 'solve', fen });
+    solver.postMessage({ type: 'solve', fen, stipulation: currentStipulation, wasmUrl: import.meta.env.BASE_URL + 'popeye/py.wasm' });
   }
 
   useEffect(() => { engineTimeoutLabelRef.current = engineTimeoutLabel; }, [engineTimeoutLabel]);
@@ -242,7 +244,9 @@ export default function PositionLab({ language = 'en' }) {
   const lines = engineEnabled ? Object.entries(analysis.lines || {}).map(([number, line]) => ({ number: Number(number), ...line })).filter((line) => line.number <= lineCount).sort((a, b) => a.number - b.number) : [];
   const scoreLabel = (line) => line.mate !== null ? '#' + line.mate : (line.score > 0 ? '+' : '') + line.score.toFixed(2);
   const displayedState = !engineEnabled ? 'disabled' : !game ? 'invalid' : game.isCheckmate() ? 'checkmate' : game.isStalemate() ? 'stalemate' : analysis.state;
-  const popeyeAnswers = problemSolution.fen === fen ? problemSolution.groups : null;
+  const currentStipulation = stipulation.trim().toLowerCase().replace(/^([hs])(?=\d)/, '$1#');
+  const popeyeAnswers = problemSolution.fen === fen && problemSolution.stipulation === currentStipulation ? problemSolution.groups : null;
+  const isDirectMate = currentStipulation.startsWith('#');
   function toggleAnswerPhase(phase) {
     setActiveAnswerPhases((active) => active.includes(phase)
       ? active.length === 1 ? active : active.filter((item) => item !== phase)
@@ -351,20 +355,23 @@ export default function PositionLab({ language = 'en' }) {
     </div>
     <section className="position-lab__card position-lab__problem-solver">
       <div className="position-lab__analysis-heading">
-        <button type="button" className="position-lab__solve-button" onClick={solveProblem} disabled={problemSolution.state === 'loading' && problemSolution.fen === fen}>
-          {problemSolution.state === 'loading' && problemSolution.fen === fen ? (language === 'lt' ? 'Sprendžiama…' : 'Solving…') : (language === 'lt' ? 'Rodyti atsakymus' : 'Show answers')}
+        <label className="position-lab__stipulation">{language === 'lt' ? 'Uždavinio sąlyga' : language === 'ru' ? 'Условие задачи' : 'Stipulation'}
+          <input type="text" maxLength="6" value={stipulation} placeholder="#2, h3, s3" onChange={(event) => setStipulation(event.target.value)} />
+        </label>
+        <button type="button" className="position-lab__solve-button" onClick={solveProblem} disabled={problemSolution.state === 'loading' && problemSolution.fen === fen && problemSolution.stipulation === currentStipulation}>
+          {problemSolution.state === 'loading' && problemSolution.fen === fen && problemSolution.stipulation === currentStipulation ? (language === 'lt' ? 'Sprendžiama…' : 'Solving…') : (language === 'lt' ? 'Rodyti atsakymus' : 'Show answers')}
         </button>
       </div>
-      {problemSolution.fen === fen && problemSolution.state === 'loading' && <p>{language === 'lt' ? 'Sprendžiama…' : 'Solving…'}</p>}
-      {problemSolution.fen === fen && problemSolution.state === 'error' && <p className="position-lab__answer-warning">{problemSolution.error}</p>}
+      {problemSolution.fen === fen && problemSolution.stipulation === currentStipulation && problemSolution.state === 'loading' && <p>{language === 'lt' ? 'Sprendžiama su Popeye…' : 'Solving with Popeye…'}</p>}
+      {problemSolution.fen === fen && problemSolution.stipulation === currentStipulation && problemSolution.state === 'error' && <p className="position-lab__answer-warning">{problemSolution.error}</p>}
       {popeyeAnswers && <>
-        <div className="position-lab__answer-tabs" role="group" aria-label={language === 'lt' ? 'Rodyti atsakymus' : 'Show answers'}>
+        {isDirectMate && <div className="position-lab__answer-tabs" role="group" aria-label={language === 'lt' ? 'Rodyti atsakymus' : 'Show answers'}>
           {[["play", "Key"], ["tries", "Try"], ["setPlay", "Set"]].map(([phase, label]) => <button type="button" aria-pressed={activeAnswerPhases.includes(phase)} className={activeAnswerPhases.includes(phase) ? 'is-active' : ''} key={phase} onClick={() => toggleAnswerPhase(phase)}>
             <span className="position-lab__answer-check">{activeAnswerPhases.includes(phase) ? '✓' : ''}</span>{label}<span className="position-lab__answer-count">{popeyeAnswers[phase].length}</span>
           </button>)}
-        </div>
+        </div>}
         <div className="position-lab__answer-groups" aria-live="polite">
-          {[["play", "Key"], ["tries", "Try"], ["setPlay", "Set"]].filter(([phase]) => activeAnswerPhases.includes(phase)).map(([phase, label]) => <section className={'position-lab__answer-group position-lab__answer-group--' + phase} key={phase}>
+          {[["play", "Key"], ["tries", "Try"], ["setPlay", "Set"]].filter(([phase]) => isDirectMate ? activeAnswerPhases.includes(phase) : phase === 'play' || popeyeAnswers[phase].length > 0).map(([phase, label]) => <section className={'position-lab__answer-group position-lab__answer-group--' + phase} key={phase}>
             <h3>{label}</h3>
             {popeyeAnswers[phase].length ? <pre>{popeyeAnswers[phase].map((line, index) => {
               const isRootMove = /^\s*1\.(?!\.)/.test(line);

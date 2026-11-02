@@ -1,0 +1,1 @@
+﻿Popeye chess problem solver. Browser WebAssembly build obtained from MuTsunTsai/fen-tool (https://github.com/MuTsunTsai/fen-tool/tree/main/lib/popeye). Popeye source: https://github.com/thomas-maeder/popeye. Distributed under GNU GPL v3 or later; see COPYING. FEN Tool source project: https://github.com/MuTsunTsai/fen-tool.

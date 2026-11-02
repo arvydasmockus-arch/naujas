@@ -52,8 +52,12 @@
 .position-lab__problem-solver { margin:0 0 14px; border-color:#dedbe3; background:#fff; color:#25232b; }
 .position-lab__problem-solver h2 { margin:0; color:#25232b; }
 .position-lab__problem-solver p { margin:0; color:#686571; font-size:12px; }
+.position-lab__problem-solver .position-lab__analysis-heading { justify-content:flex-start; }
+.position-lab__problem-solver .position-lab__solve-button { order:-1; }
 .position-lab__solve-button { padding:7px 11px; border:1px solid #32834b; border-radius:7px; background:#e7f5ea; color:#225c33; font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
 .position-lab__solve-button:disabled { opacity:.65; cursor:wait; }
+.position-lab__stipulation { display:inline-flex; align-items:center; gap:8px; color:#37313f; font-size:13px; font-weight:650; }
+.position-lab__stipulation input { width:68px; padding:6px 8px; border:1px solid #d9d6df; border-radius:7px; background:#fff; color:#25232b; font:inherit; font-variant-numeric:tabular-nums; }
 .position-lab__answer-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 14px; padding-bottom:12px; border-bottom:1px solid #e8e5ed; }
 .position-lab__answer-tabs button { display:inline-flex; align-items:center; gap:8px; min-height:38px; padding:7px 12px; border:1px solid #d9d6df; border-radius:8px; background:#fff; color:#514d5b; font:inherit; font-size:13px; font-weight:650; cursor:pointer; transition:background .15s,border-color .15s,color .15s,box-shadow .15s; }
 .position-lab__answer-tabs button:hover { border-color:#a89ac4; background:#f8f6fb; }
