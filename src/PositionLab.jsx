@@ -57,10 +57,45 @@ export default function PositionLab({ language = 'en' }) {
   const [fenDraft, setFenDraft] = useState(null);
   const [fenError, setFenError] = useState('');
   const [fenMetadata, setFenMetadata] = useState(null);
+  const [problemSolution, setProblemSolution] = useState({ state: 'idle', groups: null });
+  const [activeAnswerPhases, setActiveAnswerPhases] = useState(['play']);
+  const popeyeWorker = useRef(null);
   const worker = useRef(null);
   const engineEnabledRef = useRef(true);
   const fen = useMemo(() => toFen(pieces, turn, fenMetadata), [pieces, turn, fenMetadata]);
   const game = useMemo(() => { try { return new Chess(fen); } catch { return null; } }, [fen]);
+
+  useEffect(() => {
+    popeyeWorker.current?.terminate();
+    popeyeWorker.current = null;
+  }, [fen]);
+  useEffect(() => () => popeyeWorker.current?.terminate(), []);
+
+  function solveProblem() {
+    popeyeWorker.current?.terminate();
+    setProblemSolution({ state: 'loading', groups: null, fen });
+    setActiveAnswerPhases(['play']);
+    const solver = new Worker(new URL('./mateSolverWorker.js', import.meta.url), { type: 'module' });
+    popeyeWorker.current = solver;
+    solver.onmessage = ({ data }) => {
+      if (data.type === 'solution') {
+        setProblemSolution({ state: 'done', groups: data.groups, fen });
+        solver.terminate();
+        if (popeyeWorker.current === solver) popeyeWorker.current = null;
+      }
+      if (data.type === 'error') {
+        setProblemSolution({ state: 'error', groups: null, error: data.message, fen });
+        solver.terminate();
+        if (popeyeWorker.current === solver) popeyeWorker.current = null;
+      }
+    };
+    solver.onerror = (event) => {
+      setProblemSolution({ state: 'error', groups: null, error: event.message || 'Problem solver failed.', fen });
+      solver.terminate();
+      if (popeyeWorker.current === solver) popeyeWorker.current = null;
+    };
+    solver.postMessage({ type: 'solve', fen });
+  }
 
   useEffect(() => { engineTimeoutLabelRef.current = engineTimeoutLabel; }, [engineTimeoutLabel]);
 
@@ -207,6 +242,12 @@ export default function PositionLab({ language = 'en' }) {
   const lines = engineEnabled ? Object.entries(analysis.lines || {}).map(([number, line]) => ({ number: Number(number), ...line })).filter((line) => line.number <= lineCount).sort((a, b) => a.number - b.number) : [];
   const scoreLabel = (line) => line.mate !== null ? '#' + line.mate : (line.score > 0 ? '+' : '') + line.score.toFixed(2);
   const displayedState = !engineEnabled ? 'disabled' : !game ? 'invalid' : game.isCheckmate() ? 'checkmate' : game.isStalemate() ? 'stalemate' : analysis.state;
+  const popeyeAnswers = problemSolution.fen === fen ? problemSolution.groups : null;
+  function toggleAnswerPhase(phase) {
+    setActiveAnswerPhases((active) => active.includes(phase)
+      ? active.length === 1 ? active : active.filter((item) => item !== phase)
+      : [...active, phase]);
+  }
   async function copyPosition() {
     await navigator.clipboard?.writeText(fen);
     setCopied(true); window.setTimeout(() => setCopied(false), 1500);
@@ -308,5 +349,37 @@ export default function PositionLab({ language = 'en' }) {
           <p className="position-lab__depth">{language === 'lt' ? 'Gylis' : language === 'ru' ? 'Глубина' : 'Depth'}: {engineEnabled ? analysis.depth : 0}</p></section>
       </aside>
     </div>
+    <section className="position-lab__card position-lab__problem-solver">
+      <div className="position-lab__analysis-heading">
+        <button type="button" className="position-lab__solve-button" onClick={solveProblem} disabled={problemSolution.state === 'loading' && problemSolution.fen === fen}>
+          {problemSolution.state === 'loading' && problemSolution.fen === fen ? (language === 'lt' ? 'Sprendžiama…' : 'Solving…') : (language === 'lt' ? 'Rodyti atsakymus' : 'Show answers')}
+        </button>
+      </div>
+      {problemSolution.fen === fen && problemSolution.state === 'loading' && <p>{language === 'lt' ? 'Sprendžiama…' : 'Solving…'}</p>}
+      {problemSolution.fen === fen && problemSolution.state === 'error' && <p className="position-lab__answer-warning">{problemSolution.error}</p>}
+      {popeyeAnswers && <>
+        <div className="position-lab__answer-tabs" role="group" aria-label={language === 'lt' ? 'Rodyti atsakymus' : 'Show answers'}>
+          {[["play", "Key"], ["tries", "Try"], ["setPlay", "Set"]].map(([phase, label]) => <button type="button" aria-pressed={activeAnswerPhases.includes(phase)} className={activeAnswerPhases.includes(phase) ? 'is-active' : ''} key={phase} onClick={() => toggleAnswerPhase(phase)}>
+            <span className="position-lab__answer-check">{activeAnswerPhases.includes(phase) ? '✓' : ''}</span>{label}<span className="position-lab__answer-count">{popeyeAnswers[phase].length}</span>
+          </button>)}
+        </div>
+        <div className="position-lab__answer-groups" aria-live="polite">
+          {[["play", "Key"], ["tries", "Try"], ["setPlay", "Set"]].filter(([phase]) => activeAnswerPhases.includes(phase)).map(([phase, label]) => <section className={'position-lab__answer-group position-lab__answer-group--' + phase} key={phase}>
+            <h3>{label}</h3>
+            {popeyeAnswers[phase].length ? <pre>{popeyeAnswers[phase].map((line, index) => {
+              const isRootMove = /^\s*1\.(?!\.)/.test(line);
+              const className = phase === 'play' && isRootMove
+                ? 'position-lab__answer-line--key'
+                : phase === 'tries' && isRootMove && line.includes('?')
+                  ? 'position-lab__answer-line--try'
+                  : phase === 'tries' && /^\s*1\.\.\./.test(line) && line.includes('!')
+                    ? 'position-lab__answer-line--refutation'
+                    : '';
+              return <span className={className} key={index}>{line || ' '}</span>;
+            })}</pre> : <p>{language === 'lt' ? 'Šioje dalyje variantų nėra.' : 'No variations in this section.'}</p>}
+          </section>)}
+        </div>
+      </>}
+    </section>
   </main>;
 }
