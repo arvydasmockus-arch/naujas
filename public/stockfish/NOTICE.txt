@@ -1,9 +1,8 @@
-Stockfish.js
-Copyright (C) 2004-2026 The Stockfish developers
-Browser build maintained by Lichess.
+﻿Stockfish.js 19.0.1 (Stockfish 19)
+Browser build: lite, single-threaded WebAssembly.
+Copyright (C) Stockfish developers and Stockfish.js contributors.
 
 License: GNU General Public License version 3 (GPL-3.0).
-License text: https://github.com/lichess-org/stockfish.js/blob/master/Copying.txt
-Source code: https://github.com/lichess-org/stockfish.js
-
-This browser build exposes the UCI protocol through Web Worker messages.
+License text: https://github.com/nmrugg/stockfish.js/blob/v19.0.1/Copying.txt
+Source: https://github.com/nmrugg/stockfish.js/releases/tag/v19.0.1
+Official Stockfish source: https://github.com/official-stockfish/Stockfish
