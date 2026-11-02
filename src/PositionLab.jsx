@@ -205,7 +205,7 @@ export default function PositionLab({ language = 'en' }) {
     } catch { /* Ignore a stale or illegal variation move. */ }
   }
   const lines = engineEnabled ? Object.entries(analysis.lines || {}).map(([number, line]) => ({ number: Number(number), ...line })).filter((line) => line.number <= lineCount).sort((a, b) => a.number - b.number) : [];
-  const scoreLabel = (line) => line.mate !== null ? t.mate + (line.mate ? ' #' + line.mate : '') : (line.score > 0 ? '+' : '') + line.score.toFixed(2);
+  const scoreLabel = (line) => line.mate !== null ? '#' + line.mate : (line.score > 0 ? '+' : '') + line.score.toFixed(2);
   const displayedState = !engineEnabled ? 'disabled' : !game ? 'invalid' : game.isCheckmate() ? 'checkmate' : game.isStalemate() ? 'stalemate' : analysis.state;
   async function copyPosition() {
     await navigator.clipboard?.writeText(fen);
