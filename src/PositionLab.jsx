@@ -133,9 +133,15 @@ export default function PositionLab({ language = 'en' }) {
       }
       return;
     }
+    if (selected?.type === 'piece') {
+      setPieces((old) => ({ ...old, [square]: selected.code }));
+      setFenMetadata(null);
+      setFenDraft(null);
+      setFenError('');
+      return;
+    }
     if (!selected) { if (pieces[square]) setSelected({ type: 'board', square }); return; }
-    if (selected.type === 'piece') setPieces((old) => ({ ...old, [square]: selected.code }));
-    else if (selected.square !== square) setPieces((old) => { const next = { ...old, [square]: old[selected.square] }; delete next[selected.square]; return next; });
+    if (selected.square !== square) setPieces((old) => { const next = { ...old, [square]: old[selected.square] }; delete next[selected.square]; return next; });
     else { setSelected(null); return; }
     setFenMetadata(null);
     setFenDraft(null);
