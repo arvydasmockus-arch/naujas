@@ -39,6 +39,9 @@ function toFen(pieces, turn, metadata = null) {
 
 export default function PositionLab({ language = 'en' }) {
   const t = copy[language] || copy.en;
+  const restartLabel = language === 'lt' ? 'Paleisti variklį iš naujo' : language === 'ru' ? 'Перезапустить движок' : 'Restart engine';
+  const engineTimeoutLabel = language === 'lt' ? 'Variklis neatsako. Paleiskite jį iš naujo.' : language === 'ru' ? 'Движок не отвечает. Перезапустите его.' : 'Engine is not responding. Restart it.';
+  const engineTimeoutLabelRef = useRef(engineTimeoutLabel);
   const [pieces, setPieces] = useState(initialPieces);
   const [turn, setTurn] = useState('w');
   const [selected, setSelected] = useState(null);
@@ -47,6 +50,7 @@ export default function PositionLab({ language = 'en' }) {
   const [engineName, setEngineName] = useState('Stockfish');
   const [engineEnabled, setEngineEnabled] = useState(true);
   const [engineError, setEngineError] = useState('');
+  const [engineRestart, setEngineRestart] = useState(0);
   const [lineCount, setLineCount] = useState(5);
   const [analysis, setAnalysis] = useState({ state: 'loading', lines: {}, depth: 0 });
   const [copied, setCopied] = useState(false);
@@ -58,13 +62,21 @@ export default function PositionLab({ language = 'en' }) {
   const fen = useMemo(() => toFen(pieces, turn, fenMetadata), [pieces, turn, fenMetadata]);
   const game = useMemo(() => { try { return new Chess(fen); } catch { return null; } }, [fen]);
 
+  useEffect(() => { engineTimeoutLabelRef.current = engineTimeoutLabel; }, [engineTimeoutLabel]);
+
   useEffect(() => {
+    let active = true;
     const engine = new Worker(import.meta.env.BASE_URL + 'stockfish/stockfish.js');
     worker.current = engine;
+    const startupTimeout = window.setTimeout(() => {
+      if (!active) return;
+      setEngineError(engineTimeoutLabelRef.current);
+      setAnalysis({ state: 'error', lines: {}, depth: 0 });
+    }, 20000);
     engine.onmessage = ({ data }) => {
-      if (typeof data !== 'string') return;
+      if (!active || typeof data !== 'string') return;
       const line = data;
-      if (line === 'uciok') setReady(true);
+      if (line === 'uciok') { window.clearTimeout(startupTimeout); setReady(true); }
       if (line.startsWith('id name ')) setEngineName(line.slice(8));
       if (line.startsWith('info ')) {
         if (!engineEnabledRef.current) return;
@@ -78,12 +90,19 @@ export default function PositionLab({ language = 'en' }) {
       if (line.startsWith('bestmove ') && engineEnabledRef.current) setAnalysis((old) => ({ ...old, state: 'done', best: line.split(/\s+/)[1] }));
     };
     engine.onerror = (event) => {
+      if (!active) return;
+      window.clearTimeout(startupTimeout);
       setEngineError(event.message || 'Stockfish worker failed to load.');
       setAnalysis((old) => ({ ...old, state: 'error' }));
     };
     engine.postMessage('uci');
-    return () => engine.terminate();
-  }, []);
+    return () => {
+      active = false;
+      window.clearTimeout(startupTimeout);
+      if (worker.current === engine) worker.current = null;
+      engine.terminate();
+    };
+  }, [engineRestart]);
 
   useEffect(() => {
     const allowPieceDrop = (event) => {
@@ -224,6 +243,20 @@ export default function PositionLab({ language = 'en' }) {
     const enabled = !engineEnabledRef.current;
     engineEnabledRef.current = enabled;
     setEngineEnabled(enabled);
+    if (enabled) {
+      setReady(false);
+      setEngineError('');
+      setAnalysis({ state: 'loading', lines: {}, depth: 0 });
+      setEngineRestart((count) => count + 1);
+    }
+  }
+  function restartEngine() {
+    engineEnabledRef.current = true;
+    setEngineEnabled(true);
+    setReady(false);
+    setEngineError('');
+    setAnalysis({ state: 'loading', lines: {}, depth: 0 });
+    setEngineRestart((count) => count + 1);
   }
 
   return <main className="position-lab">
@@ -265,7 +298,7 @@ export default function PositionLab({ language = 'en' }) {
         })}</div>)}<button className={'position-lab__erase' + (selected?.type === 'erase' ? ' is-active' : '')} type="button" onClick={() => setSelected({ type: 'erase' })}>⌫ {t.erase}</button></section>
         <section className="position-lab__card position-lab__controls"><h2>{t.title}</h2><div className="position-lab__turn"><button className={turn === 'w' ? 'is-active' : ''} onClick={() => { setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.white}</button><button className={turn === 'b' ? 'is-active' : ''} onClick={() => { setTurn('b'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.black}</button></div>
           <div className="position-lab__buttons"><button type="button" onClick={() => { setPieces(initialPieces()); setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.start}</button><button type="button" onClick={() => { setPieces({}); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.clear}</button><button type="button" onClick={() => setFlipped((value) => !value)}>{t.flip}</button></div></section>
-        <section className="position-lab__card position-lab__result"><div className="position-lab__analysis-heading"><div className="position-lab__analysis-title"><h2>{language === 'lt' ? 'Geriausios linijos' : language === 'ru' ? 'Лучшие варианты' : 'Best lines'}</h2><button type="button" className={'position-lab__engine-toggle' + (engineEnabled ? ' is-active' : '')} aria-pressed={engineEnabled} onClick={toggleEngine}>{engineEnabled ? t.disableEngine : t.enableEngine}</button></div><div className="position-lab__analysis-options"><span className="position-lab__engine-version">{engineName}</span><label>{language === 'lt' ? 'Rodyti linijas' : language === 'ru' ? 'Показывать линий' : 'Show lines'}<select value={lineCount} onChange={(event) => setLineCount(Number(event.target.value))}>{[1, 2, 3, 4, 5].map((count) => <option key={count} value={count}>{count}</option>)}</select></label></div></div>
+        <section className="position-lab__card position-lab__result"><div className="position-lab__analysis-heading"><div className="position-lab__analysis-title"><h2>{language === 'lt' ? 'Geriausios linijos' : language === 'ru' ? 'Лучшие варианты' : 'Best lines'}</h2><button type="button" className={'position-lab__engine-toggle' + (engineEnabled ? ' is-active' : '')} aria-pressed={engineEnabled} onClick={toggleEngine}>{engineEnabled ? t.disableEngine : t.enableEngine}</button><button type="button" className="position-lab__engine-toggle" onClick={restartEngine}>{restartLabel}</button></div><div className="position-lab__analysis-options"><span className="position-lab__engine-version">{engineName}</span><label>{language === 'lt' ? 'Rodyti linijas' : language === 'ru' ? 'Показывать линий' : 'Show lines'}<select value={lineCount} onChange={(event) => setLineCount(Number(event.target.value))}>{[1, 2, 3, 4, 5].map((count) => <option key={count} value={count}>{count}</option>)}</select></label></div></div>
           {displayedState === 'disabled' && <p>{t.engineOff}</p>}{displayedState === 'loading' && <p>{t.loading}</p>}{displayedState === 'invalid' && <p>{t.invalid}</p>}{displayedState === 'error' && <p>{engineError || 'Stockfish error'}</p>}{displayedState === 'checkmate' && <p>{t.checkmate}</p>}{displayedState === 'stalemate' && <p>{t.stalemate}</p>}
           <div className="position-lab__lines">{lines.map((line) => <div className="position-lab__line" key={line.number}><span className="position-lab__line-number">{line.number}.</span><strong>{scoreLabel(line)}</strong><span className="position-lab__line-moves">{sanMoves(line.pv).map((move, index) => <span key={index}>{move.prefix && <span className="position-lab__move-number">{move.prefix} </span>}<button type="button" className="position-lab__move-button" title={t.showPosition} onClick={() => showVariationPosition(line.pv, index)}>{move.san}</button>{' '}</span>)}</span></div>)}</div>
           {displayedState === 'analyzing' && lines.length === 0 && <p>{t.loading}</p>}{displayedState === 'done' && lines.length > 0 && lines.every((line) => line.mate === null) && <p className="position-lab__no-mate">{t.noMate}</p>}
