@@ -1,6 +1,6 @@
 import { accountHeaders } from './accountApi';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '' : 'https://ml-academy-api.arvydasmockus.workers.dev')).replace(/\/+$/, '');
+import { API_BASE_URL } from './apiBaseUrl';
 
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}/api/solving/${path}`, {

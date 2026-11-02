@@ -9,6 +9,7 @@ function Navbar({ activePage, onNavigate, language = 'lt', onLanguageChange, acc
     { label: 'Matplus', page: 'solving' },
     { label: '3 × #2', page: 'sprint' },
     { label: text('Atviri turnyrai', 'Open Tournaments'), page: 'training' },
+    { label: text('Pozicijų analizė', 'Position analysis'), page: 'positionlab' },
   ];
 
   return (

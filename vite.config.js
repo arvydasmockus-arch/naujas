@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  worker: { format: 'es' },
   server: {
     proxy: { '/api/accounts': 'http://127.0.0.1:5174', '/api/analytics': 'http://127.0.0.1:5174', '/api/sprint': 'http://127.0.0.1:5174', '/api/solving': 'http://127.0.0.1:5174', '/api/tournaments': 'http://127.0.0.1:5174' },
     fs: { deny: ['.env', '.env.*', '*.{crt,pem}', '**/.git/**', '**/data/**'] },

@@ -1,5 +1,5 @@
 import { accountHeaders } from './accountApi';
-const base = (import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '' : 'https://ml-academy-api.arvydasmockus.workers.dev')).replace(/\/+$/, '');
+import { API_BASE_URL as base } from './apiBaseUrl';
 export async function forumRequest(action, data, judgeKey = '', signal) {
   const response = await fetch(`${base}/api/forum/${action}`, {
     method: data === undefined ? 'GET' : 'POST', cache: 'no-store', signal,
