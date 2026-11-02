@@ -58,7 +58,7 @@ export default function PositionLab({ language = 'en' }) {
   const [fenError, setFenError] = useState('');
   const [fenMetadata, setFenMetadata] = useState(null);
   const [problemSolution, setProblemSolution] = useState({ state: 'idle', groups: null });
-  const [activeAnswerPhases, setActiveAnswerPhases] = useState(['play']);
+  const [activeAnswerPhases, setActiveAnswerPhases] = useState(['play', 'tries', 'setPlay']);
   const popeyeWorker = useRef(null);
   const worker = useRef(null);
   const engineEnabledRef = useRef(true);
@@ -74,7 +74,7 @@ export default function PositionLab({ language = 'en' }) {
   function solveProblem() {
     popeyeWorker.current?.terminate();
     setProblemSolution({ state: 'loading', groups: null, fen });
-    setActiveAnswerPhases(['play']);
+    setActiveAnswerPhases(['play', 'tries', 'setPlay']);
     const solver = new Worker(new URL('./mateSolverWorker.js', import.meta.url), { type: 'module' });
     popeyeWorker.current = solver;
     solver.onmessage = ({ data }) => {
