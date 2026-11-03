@@ -43,7 +43,7 @@ export function parsePopeyeOutput(output, stipulation = '#2') {
     }
 
     if (inSetPlay) {
-      if (/^\s*1\.\.\./.test(line) || /^\s+2\./.test(line)) groups.setPlay.push(line);
+      if (/^\s*\d+\.(?:\.\.)?/.test(line)) groups.setPlay.push(line);
       continue;
     }
 

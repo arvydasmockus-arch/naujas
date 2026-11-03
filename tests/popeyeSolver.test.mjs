@@ -43,7 +43,7 @@ test('Popeye input translates FEN knights to Popeye knight notation and accepts 
   assert.throws(() => buildPopeyeInput(fen, '#0'), /between 1 and 99/);
 });
 
-test('selfmate refutations stay with the try they refute while helpmate starts with Black', () => {
+test('selfmate refutations stay with their try and helpmate set play stays separate from Black keys', () => {
   const selfmate = parsePopeyeOutput([
     '1...a2-a3',
     '  2.b2-b3',
@@ -61,11 +61,18 @@ test('selfmate refutations stay with the try they refute while helpmate starts w
   assert.deepEqual(normalized(selfmate.setPlay), normalized(['1...a2-a3', '2.b2-b3']));
 
   const helpmate = parsePopeyeOutput([
-    '1 (Set play Time = 0.00 sec)',
-    '1...a2-a3',
-    '  2.b2-b3 #',
+    '  1.a2-a3 !',
+    '    1...b2-b3',
+    '      2.c2-c3 #',
+    '2 (Black key move Time = 0.01 sec)',
+    '  1...d2-d3 !',
+    '    2.e2-e3 #',
+    '3 (White key variant Time = 0.02 sec)',
+    '  1.Sf1-g3 !',
+    '    1...Re1-f1 +',
   ].join('\n'), 'h3');
-  assert.deepEqual(normalized(helpmate.play), normalized(['1...a2-a3', '2.b2-b3 #']));
+  assert.deepEqual(normalized(helpmate.play), normalized(['1...d2-d3 !', '2.e2-e3 #', '1.Sf1-g3 !', '1...Re1-f1 +']));
+  assert.deepEqual(normalized(helpmate.setPlay), normalized(['1.a2-a3 !', '1...b2-b3', '2.c2-c3 #']));
 });
 
 test('Popeye WASM returns the Olive Key, Try and Set for the supplied #2 position', async () => {
