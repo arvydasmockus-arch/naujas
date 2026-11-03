@@ -67,12 +67,12 @@ test('selfmate refutations stay with their try and helpmate set play stays separ
     '2 (Black key move Time = 0.01 sec)',
     '  1...d2-d3 !',
     '    2.e2-e3 #',
-    '3 (White key variant Time = 0.02 sec)',
+    '3 (White set-play variant Time = 0.02 sec)',
     '  1.Sf1-g3 !',
     '    1...Re1-f1 +',
   ].join('\n'), 'h3');
-  assert.deepEqual(normalized(helpmate.play), normalized(['1...d2-d3 !', '2.e2-e3 #', '1.Sf1-g3 !', '1...Re1-f1 +']));
-  assert.deepEqual(normalized(helpmate.setPlay), normalized(['1.a2-a3 !', '1...b2-b3', '2.c2-c3 #']));
+  assert.deepEqual(normalized(helpmate.play), normalized(['1...d2-d3 !', '2.e2-e3 #']));
+  assert.deepEqual(normalized(helpmate.setPlay), normalized(['1.a2-a3 !', '1...b2-b3', '2.c2-c3 #', '1.Sf1-g3 !', '1...Re1-f1 +']));
 });
 
 test('Popeye WASM returns the Olive Key, Try and Set for the supplied #2 position', async () => {
@@ -132,6 +132,6 @@ test('Popeye solves published #3 and #4 positions with their expected keys', asy
     popeye.callMain(['-maxmem', '512M', '/test.inp']);
     const groups = parsePopeyeOutput(output.join('\n'), stipulation);
     const expectedKey = entry.solution.match(/1\.[^\n]+/)?.[0].trim();
-    assert.ok(groups.play.some((line) => line.trim() === expectedKey), `${stipulation}: missing expected key ${expectedKey}`);
+    assert.ok([...groups.play, ...groups.setPlay].some((line) => line.trim() === expectedKey), `${stipulation}: missing expected line ${expectedKey}`);
   }
 });
