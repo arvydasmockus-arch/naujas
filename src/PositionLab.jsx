@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import './PositionLab.css';
 
@@ -66,6 +66,7 @@ export default function PositionLab({ language = 'en' }) {
   const engineEnabledRef = useRef(true);
   const fen = useMemo(() => toFen(pieces, turn, fenMetadata), [pieces, turn, fenMetadata]);
   const game = useMemo(() => { try { return new Chess(fen); } catch { return null; } }, [fen]);
+  const currentStipulation = stipulation.trim().toLowerCase().replace(/^([hs])(?=\d)/, '$1#');
 
   useEffect(() => {
     popeyeWorker.current?.terminate();
@@ -73,7 +74,7 @@ export default function PositionLab({ language = 'en' }) {
   }, [fen]);
   useEffect(() => () => popeyeWorker.current?.terminate(), []);
 
-  function solveProblem() {
+  const solveProblem = useCallback(() => {
     popeyeWorker.current?.terminate();
     const currentStipulation = stipulation.trim().toLowerCase().replace(/^([hs])(?=\d)/, '$1#');
     setAnswerPlayback(false);
@@ -99,7 +100,13 @@ export default function PositionLab({ language = 'en' }) {
       if (popeyeWorker.current === solver) popeyeWorker.current = null;
     };
     solver.postMessage({ type: 'solve', fen, stipulation: currentStipulation, wasmUrl: import.meta.env.BASE_URL + 'popeye/py.wasm' });
-  }
+  }, [fen, stipulation]);
+
+  useEffect(() => {
+    if (!/^h#\d+$/.test(currentStipulation)) return undefined;
+    const timer = window.setTimeout(solveProblem, 250);
+    return () => window.clearTimeout(timer);
+  }, [currentStipulation, solveProblem]);
 
   useEffect(() => { engineTimeoutLabelRef.current = engineTimeoutLabel; }, [engineTimeoutLabel]);
 
@@ -266,7 +273,6 @@ export default function PositionLab({ language = 'en' }) {
   const lines = engineEnabled ? Object.entries(analysis.lines || {}).map(([number, line]) => ({ number: Number(number), ...line })).filter((line) => line.number <= lineCount).sort((a, b) => a.number - b.number) : [];
   const scoreLabel = (line) => line.mate !== null ? '#' + line.mate : (line.score > 0 ? '+' : '') + line.score.toFixed(2);
   const displayedState = !engineEnabled ? 'disabled' : !game ? 'invalid' : game.isCheckmate() ? 'checkmate' : game.isStalemate() ? 'stalemate' : analysis.state;
-  const currentStipulation = stipulation.trim().toLowerCase().replace(/^([hs])(?=\d)/, '$1#');
   const popeyeAnswers = (problemSolution.fen === fen || answerPlayback) && problemSolution.stipulation === currentStipulation ? problemSolution.groups : null;
   const isDirectMate = currentStipulation.startsWith('#');
   function toggleAnswerPhase(phase) {
