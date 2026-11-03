@@ -49,9 +49,9 @@ export function parsePopeyeOutput(output, stipulation = '#2') {
 
     const whiteRoot = /^\s*1\.(?!\.)/.test(line);
     const blackRoot = /^\s*1\.\.\./.test(line);
-    if (whiteRoot && type === 'h#') {
+    if (type === 'h#' && blackRoot && !activePhase) {
       activePhase = 'setPlay';
-    } else if (whiteRoot || (blackRoot && type === 'h#' && !activePhase)) {
+    } else if (whiteRoot) {
       activePhase = line.includes('?') ? 'tries' : line.includes('!') || type !== '#' ? 'play' : null;
     }
     if (activePhase && (/^\s*\d+\./.test(line) || /^\s*but\s*$/.test(line) || /threat:/.test(line))) groups[activePhase].push(line);

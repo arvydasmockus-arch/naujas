@@ -43,7 +43,7 @@ test('Popeye input translates FEN knights to Popeye knight notation and accepts 
   assert.throws(() => buildPopeyeInput(fen, '#0'), /between 1 and 99/);
 });
 
-test('selfmate refutations stay with their try and helpmate set play stays separate from Black keys', () => {
+test('selfmate refutations stay with their try and helpmate set lines stay separate from white keys', () => {
   const selfmate = parsePopeyeOutput([
     '1...a2-a3',
     '  2.b2-b3',
@@ -64,15 +64,30 @@ test('selfmate refutations stay with their try and helpmate set play stays separ
     '  1.a2-a3 !',
     '    1...b2-b3',
     '      2.c2-c3 #',
-    '2 (Black key move Time = 0.01 sec)',
+    '2 (Black set line Time = 0.01 sec)',
     '  1...d2-d3 !',
     '    2.e2-e3 #',
-    '3 (White set-play variant Time = 0.02 sec)',
+    '3 (White key move Time = 0.02 sec)',
     '  1.Sf1-g3 !',
     '    1...Re1-f1 +',
   ].join('\n'), 'h3');
-  assert.deepEqual(normalized(helpmate.play), normalized(['1...d2-d3 !', '2.e2-e3 #']));
-  assert.deepEqual(normalized(helpmate.setPlay), normalized(['1.a2-a3 !', '1...b2-b3', '2.c2-c3 #', '1.Sf1-g3 !', '1...Re1-f1 +']));
+  assert.deepEqual(normalized(helpmate.play), normalized(['1.Sf1-g3 !', '1...Re1-f1 +']));
+  assert.deepEqual(normalized(helpmate.setPlay), normalized(['1.a2-a3 !', '1...b2-b3', '2.c2-c3 #', '1...d2-d3 !', '2.e2-e3 #']));
+});
+
+test('the supplied h#2 position puts six black-started set lines before its white-started key', async () => {
+  globalThis.self = { location: { href: 'http://localhost/popeyeWorker.js' } };
+  const output = [];
+  const wasmBinary = fs.readFileSync(new URL('../public/popeye/py.wasm', import.meta.url));
+  const popeye = await createPopeye({ noInitialRun: true, wasmBinary, print: (line) => output.push(line), printErr: (line) => output.push(line) });
+  popeye.FS.writeFile('/test-h2-set.inp', `BeginProblem\n${buildPopeyeInput('B4B1b/8/8/4P3/8/4kn2/7R/K7 w - - 0 1', 'h2')}\nEndProblem`);
+  popeye.callMain(['-maxmem', '512M', '/test-h2-set.inp']);
+  const groups = parsePopeyeOutput(output.join('\n'), 'h2');
+
+  assert.equal(groups.setPlay.length, 6);
+  assert.ok(groups.setPlay.every((line) => /^\s*1\.\.\.Rh2-d2/.test(line)));
+  assert.ok(groups.setPlay.some((line) => line.includes('2.Sf3-e1 Bf8-h6 #')));
+  assert.deepEqual(groups.play.map((line) => line.trim()), ['1.Sf3-d4 Rh2-d2   2.Sd4-b5 Bf8-h6 #']);
 });
 
 test('Popeye WASM returns the Olive Key, Try and Set for the supplied #2 position', async () => {
@@ -132,6 +147,6 @@ test('Popeye solves published #3 and #4 positions with their expected keys', asy
     popeye.callMain(['-maxmem', '512M', '/test.inp']);
     const groups = parsePopeyeOutput(output.join('\n'), stipulation);
     const expectedKey = entry.solution.match(/1\.[^\n]+/)?.[0].trim();
-    assert.ok([...groups.play, ...groups.setPlay].some((line) => line.trim() === expectedKey), `${stipulation}: missing expected line ${expectedKey}`);
+    assert.ok(groups.play.some((line) => line.trim() === expectedKey), `${stipulation}: missing expected key ${expectedKey}`);
   }
 });
