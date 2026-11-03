@@ -74,6 +74,8 @@
 .position-lab__answer-group h3 { margin:0 0 10px; color:#37313f; font-size:15px; font-weight:700; letter-spacing:.01em; }
 .position-lab__answer-group pre { margin:0; padding:0 0 0 clamp(8px,1.3vw,20px); overflow-x:auto; color:#24212a; font:14px/1.8 ui-monospace,Consolas,monospace; white-space:pre; tab-size:4; }
 .position-lab__answer-group pre > span { display:block; min-height:1.8em; }
+.position-lab__answer-move { padding:0; border:0; border-radius:3px; background:transparent; color:inherit; font:inherit; font-weight:inherit; cursor:pointer; }
+.position-lab__answer-move:hover,.position-lab__answer-move:focus-visible { background:#e8f2e9; color:#155d2a; text-decoration:underline; outline:none; }
 .position-lab__answer-line--key { color:#164d26; font-weight:900; text-shadow:0 0 .01px currentColor; }
 .position-lab__answer-line--try { color:#664000; font-weight:900; text-shadow:0 0 .01px currentColor; }
 .position-lab__answer-line--refutation { color:#16733a; font-weight:900; text-shadow:0 0 .01px currentColor; }

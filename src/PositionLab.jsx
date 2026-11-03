@@ -58,6 +58,7 @@ export default function PositionLab({ language = 'en' }) {
   const [fenError, setFenError] = useState('');
   const [fenMetadata, setFenMetadata] = useState(null);
   const [problemSolution, setProblemSolution] = useState({ state: 'idle', groups: null });
+  const [answerPlayback, setAnswerPlayback] = useState(false);
   const [stipulation, setStipulation] = useState('#2');
   const [activeAnswerPhases, setActiveAnswerPhases] = useState(['play', 'tries', 'setPlay']);
   const popeyeWorker = useRef(null);
@@ -75,6 +76,7 @@ export default function PositionLab({ language = 'en' }) {
   function solveProblem() {
     popeyeWorker.current?.terminate();
     const currentStipulation = stipulation.trim().toLowerCase().replace(/^([hs])(?=\d)/, '$1#');
+    setAnswerPlayback(false);
     setProblemSolution({ state: 'loading', groups: null, fen, stipulation: currentStipulation });
     setActiveAnswerPhases(currentStipulation.startsWith('#') ? ['play', 'tries', 'setPlay'] : ['play']);
     const solver = new Worker(new URL('./popeyeWorker.js', import.meta.url), { type: 'module' });
@@ -222,6 +224,35 @@ export default function PositionLab({ language = 'en' }) {
       return { uci, prefix, san };
     });
   };
+  function showPositionOnBoard(position) {
+    const nextPieces = Object.fromEntries(position.board().flatMap((row, rank) => row.map((piece, file) =>
+      piece ? [files[file] + (8 - rank), piece.color + piece.type.toUpperCase()] : null).filter(Boolean)));
+    const [, , castling, enPassant, halfmove, fullmove] = position.fen().split(' ');
+    setPieces(nextPieces);
+    setTurn(position.turn());
+    setFenMetadata({ castling, enPassant, halfmove, fullmove });
+    setFenDraft(null);
+    setFenError('');
+    setSelected(null);
+    setAnalysis({ state: 'analyzing', lines: {}, depth: 0 });
+  }
+  function playAnswerMove(notation, line) {
+    const match = notation.match(/^([KQRBSN]?)([a-h][1-8])[-*x]([a-h][1-8])(?:=?([QRBSN]))?$/);
+    if (!match) return;
+    const sideToMove = /^\s*\d+\.\.\./.test(line) ? 'b' : 'w';
+    try {
+      let position = new Chess(fen);
+      if (/^\s*1\.(?!\.)/.test(line)) position = new Chess(problemSolution.fen);
+      if (position.turn() !== sideToMove) {
+        const fields = position.fen().split(' ');
+        fields[1] = sideToMove;
+        position = new Chess(fields.join(' '));
+      }
+      position.move({ from: match[2], to: match[3], ...(match[4] ? { promotion: match[4] === 'S' ? 'n' : match[4].toLowerCase() } : {}) });
+      setAnswerPlayback(true);
+      showPositionOnBoard(position);
+    } catch { /* Ignore a move that does not fit the current variation. */ }
+  }
   function showVariationPosition(uciLine, selectedIndex) {
     try {
       const position = new Chess(fen);
@@ -229,23 +260,14 @@ export default function PositionLab({ language = 'en' }) {
       for (const uci of moves) {
         position.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), ...(uci[4] ? { promotion: uci[4] } : {}) });
       }
-      const nextPieces = Object.fromEntries(position.board().flatMap((row, rank) => row.map((piece, file) =>
-        piece ? [files[file] + (8 - rank), piece.color + piece.type.toUpperCase()] : null).filter(Boolean)));
-      const [, , castling, enPassant, halfmove, fullmove] = position.fen().split(' ');
-      setPieces(nextPieces);
-      setTurn(position.turn());
-      setFenMetadata({ castling, enPassant, halfmove, fullmove });
-      setFenDraft(null);
-      setFenError('');
-      setSelected(null);
-      setAnalysis({ state: 'analyzing', lines: {}, depth: 0 });
+      showPositionOnBoard(position);
     } catch { /* Ignore a stale or illegal variation move. */ }
   }
   const lines = engineEnabled ? Object.entries(analysis.lines || {}).map(([number, line]) => ({ number: Number(number), ...line })).filter((line) => line.number <= lineCount).sort((a, b) => a.number - b.number) : [];
   const scoreLabel = (line) => line.mate !== null ? '#' + line.mate : (line.score > 0 ? '+' : '') + line.score.toFixed(2);
   const displayedState = !engineEnabled ? 'disabled' : !game ? 'invalid' : game.isCheckmate() ? 'checkmate' : game.isStalemate() ? 'stalemate' : analysis.state;
   const currentStipulation = stipulation.trim().toLowerCase().replace(/^([hs])(?=\d)/, '$1#');
-  const popeyeAnswers = problemSolution.fen === fen && problemSolution.stipulation === currentStipulation ? problemSolution.groups : null;
+  const popeyeAnswers = (problemSolution.fen === fen || answerPlayback) && problemSolution.stipulation === currentStipulation ? problemSolution.groups : null;
   const isDirectMate = currentStipulation.startsWith('#');
   function toggleAnswerPhase(phase) {
     setActiveAnswerPhases((active) => active.includes(phase)
@@ -382,7 +404,9 @@ export default function PositionLab({ language = 'en' }) {
                   : phase === 'tries' && /^\s*1\.\.\./.test(line) && line.includes('!')
                     ? 'position-lab__answer-line--refutation'
                     : '';
-              return <span className={className} key={index}>{line || ' '}</span>;
+              return <span className={className} key={index}>{line ? line.split(/([KQRBSN]?[a-h][1-8][-*x][a-h][1-8](?:=?[QRBSN])?)/g).map((part, partIndex) => /^[KQRBSN]?[a-h][1-8][-*x][a-h][1-8](?:=?[QRBSN])?$/.test(part)
+                ? <button type="button" className="position-lab__answer-move" key={partIndex} title={language === 'lt' ? 'Rodyti ėjimą lentoje' : 'Show move on board'} onClick={() => playAnswerMove(part, line)}>{part}</button>
+                : <span key={partIndex}>{part}</span>) : ' '}</span>;
             })}</pre> : <p>{language === 'lt' ? 'Šioje dalyje variantų nėra.' : 'No variations in this section.'}</p>}
           </section>)}
         </div>
