@@ -6,6 +6,7 @@ import wasmUrl from 'onnxruntime-web/ort-wasm-simd-threaded.wasm?url';
 import wasmMjsUrl from 'onnxruntime-web/ort-wasm-simd-threaded.mjs?url';
 import { positionArchiveRequest } from './positionArchiveApi.js';
 import { exportOliveCollection } from './lib/oliveExport.js';
+import { scanHatchedBoard } from './lib/hatchedBoardScan.js';
 import './PositionLab.css';
 
 const pieceImages = Object.fromEntries(Object.entries(import.meta.glob('./assets/chess/*.svg', { eager: true, query: '?url', import: 'default' }))
@@ -170,34 +171,6 @@ async function softenedBitmap(source) {
 
 async function recognizeImageRegion(source, recognizer) {
   const primary = await recognizer.recognize(source);
-  let centeredCandidate;
-  if (primary?.corners) {
-    const { x0, y0, x1, y1 } = primary.corners;
-    const side = Math.min(source.width, source.height);
-    const extendsPastImage = x0 < 0 || y0 < 0 || x1 > source.width || y1 > source.height;
-    const nearlyFillsImage = Math.max(x1 - x0, y1 - y0) >= side * 0.8;
-    if (extendsPastImage && nearlyFillsImage) {
-      const left = Math.round((source.width - side) / 2);
-      const top = Math.round((source.height - side) / 2);
-      const centeredBitmap = await createImageBitmap(source, left, top, side, side);
-      try {
-        centeredCandidate = await recognizer.recognize(centeredBitmap);
-        if (centeredCandidate) {
-          centeredCandidate = {
-            ...centeredCandidate,
-            corners: {
-              x0: centeredCandidate.corners.x0 + left,
-              y0: centeredCandidate.corners.y0 + top,
-              x1: centeredCandidate.corners.x1 + left,
-              y1: centeredCandidate.corners.y1 + top,
-            },
-          };
-        }
-      } finally {
-        centeredBitmap.close();
-      }
-    }
-  }
   const filtered = await medianFilteredBitmap(source);
   let alternate;
   try {
@@ -257,10 +230,24 @@ async function recognizeImageRegion(source, recognizer) {
     || alternate.meanConfidence > primary.meanConfidence
     || (alternate.meanConfidence === primary.meanConfidence && alternate.minConfidence > primary.minConfidence));
   let best = bestExisting ? alternate : primary;
-  if (centeredCandidate?.plausible && (!best?.plausible
-    || centeredCandidate.meanConfidence > best.meanConfidence
-    || (centeredCandidate.meanConfidence === best.meanConfidence && centeredCandidate.minConfidence > best.minConfidence))) {
-    best = centeredCandidate;
+  const minDimension = Math.min(source.width, source.height);
+  if (best?.corners && minDimension >= 180 && Math.max(source.width, source.height) <= 1000) {
+    const { x0, y0, x1, y1 } = best.corners;
+    const width = x1 - x0;
+    const height = y1 - y0;
+    const extendsPastImage = x0 < 0 || y0 < 0 || x1 > source.width || y1 > source.height;
+    const weakBoardBounds = Math.min(width, height) < minDimension * 0.82;
+    if (extendsPastImage || weakBoardBounds || !best.plausible || !best.reliable) {
+      const gridCandidate = await scanHatchedBoard(source, best.corners, {
+        modelUrl,
+        wasmPaths: { mjs: wasmMjsUrl, wasm: wasmUrl },
+      });
+      if (gridCandidate?.plausible && (!best?.plausible
+        || gridCandidate.meanConfidence > best.meanConfidence
+        || (gridCandidate.meanConfidence === best.meanConfidence && gridCandidate.minConfidence > best.minConfidence))) {
+        best = gridCandidate;
+      }
+    }
   }
   return best;
 }
