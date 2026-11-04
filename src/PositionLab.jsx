@@ -19,9 +19,9 @@ const copy = {
 };
 
 const archiveText = {
-  lt: { archive: 'Išsaugotos pozicijos', save: 'Išsaugoti poziciją', download: 'Atsisiųsti .olv', empty: 'Archyvas tuščias.', login: 'Prisijunkite, kad matytumėte ir saugotumėte savo privačias pozicijas.', remove: 'Ištrinti', close: 'Uždaryti', error: 'Archyvo klaida' },
-  en: { archive: 'Saved problems', save: 'Save position', download: 'Download .olv', empty: 'Your archive is empty.', login: 'Sign in to view and save your private positions.', remove: 'Delete', close: 'Close', error: 'Archive error' },
-  ru: { archive: 'Сохранённые задачи', save: 'Сохранить позицию', download: 'Скачать .olv', empty: 'Архив пуст.', login: 'Войдите, чтобы видеть и сохранять свои приватные позиции.', remove: 'Удалить', close: 'Закрыть', error: 'Ошибка архива' },
+  lt: { archive: 'Išsaugotos pozicijos', archiveShort: 'Archyvas', save: 'Išsaugoti poziciją', saveShort: 'Išsaugoti', download: 'Atsisiųsti .olv', empty: 'Archyvas tuščias.', login: 'Prisijunkite, kad matytumėte ir saugotumėte savo privačias pozicijas.', remove: 'Ištrinti', close: 'Uždaryti', error: 'Archyvo klaida' },
+  en: { archive: 'Saved problems', archiveShort: 'Saved problems', save: 'Save position', saveShort: 'Save', download: 'Download .olv', empty: 'Your archive is empty.', login: 'Sign in to view and save your private positions.', remove: 'Delete', close: 'Close', error: 'Archive error' },
+  ru: { archive: 'Сохранённые задачи', archiveShort: 'Архив', save: 'Сохранить позицию', saveShort: 'Сохранить', download: 'Скачать .olv', empty: 'Архив пуст.', login: 'Войдите, чтобы видеть и сохранять свои приватные позиции.', remove: 'Удалить', close: 'Закрыть', error: 'Ошибка архива' },
 };
 
 function toFen(pieces, turn, metadata = null) {
@@ -393,11 +393,9 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   }
 
   return <main className="position-lab">
-    <header className="position-lab__header"><div><h1>{t.title}</h1><p>{t.subtitle}</p></div><div className="position-lab__header-actions">
-      <button type="button" className="position-lab__archive-save" onClick={savePosition} disabled={!accountUser || archiveLoading}>{archiveLabels.save}</button>
-      <button type="button" className="position-lab__archive-toggle" aria-expanded={archiveOpen} aria-controls="position-lab-archive" onClick={() => setArchiveOpen((open) => !open)}>{archiveLabels.archive} ({visiblePositions.length})</button>
+    <header className="position-lab__header"><div className="position-lab__heading"><h1>{t.title}</h1><p>{t.subtitle}</p></div>
       <span className={'position-lab__engine' + (ready && engineEnabled ? ' is-ready' : '')} title={engineError}><i />{!engineEnabled ? t.engineOff : ready ? t.ready : (engineError || t.loading)}</span>
-    </div></header>
+    </header>
     {archiveOpen && <section id="position-lab-archive" className="position-lab__archive" role="dialog" aria-label={archiveLabels.archive}>
       <div className="position-lab__archive-heading"><h2>{archiveLabels.archive}</h2><div>
         <button type="button" onClick={downloadOlv} disabled={!visiblePositions.length}>{archiveLabels.download}</button>
@@ -463,7 +461,12 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
             onDragStart={(event) => event.dataTransfer.setData('text/plain', 'piece:' + code)}><img src={pieceImages[code]} alt={code} /></button>;
         })}</div>)}<button className={'position-lab__erase' + (selected?.type === 'erase' ? ' is-active' : '')} type="button" onClick={() => setSelected({ type: 'erase' })}>⌫ {t.erase}</button></section>
         <section className="position-lab__card position-lab__controls"><h2>{t.title}</h2><div className="position-lab__turn"><button className={turn === 'w' ? 'is-active' : ''} onClick={() => { setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.white}</button><button className={turn === 'b' ? 'is-active' : ''} onClick={() => { setTurn('b'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.black}</button></div>
-          <div className="position-lab__buttons"><button type="button" onClick={() => { setPieces(initialPieces()); setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.start}</button><button type="button" onClick={() => { setPieces({}); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.clear}</button><button type="button" onClick={() => setFlipped((value) => !value)}>{t.flip}</button></div></section>
+          <div className="position-lab__buttons"><button type="button" onClick={() => { setPieces(initialPieces()); setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.start}</button><button type="button" onClick={() => { setPieces({}); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.clear}</button></div>
+          <div className="position-lab__board-actions">
+            <button type="button" className="position-lab__flip-button" aria-label={t.flip} title={t.flip} onClick={() => setFlipped((value) => !value)}>⟳</button>
+            <button type="button" className="position-lab__archive-save" title={archiveLabels.save} onClick={savePosition} disabled={!accountUser || archiveLoading}>{archiveLabels.saveShort}</button>
+            <button type="button" className="position-lab__archive-toggle" title={archiveLabels.archive} aria-label={`${archiveLabels.archive}: ${visiblePositions.length}`} aria-expanded={archiveOpen} aria-controls="position-lab-archive" onClick={() => setArchiveOpen((open) => !open)}>{archiveLabels.archiveShort} ({visiblePositions.length})</button>
+          </div></section>
         <section className="position-lab__card position-lab__result"><div className="position-lab__analysis-heading"><div className="position-lab__analysis-title"><h2>{language === 'lt' ? 'Geriausios linijos' : language === 'ru' ? 'Лучшие варианты' : 'Best lines'}</h2><button type="button" className={'position-lab__engine-toggle' + (engineEnabled ? ' is-active' : '')} aria-pressed={engineEnabled} onClick={toggleEngine}>{engineEnabled ? t.disableEngine : t.enableEngine}</button><button type="button" className="position-lab__engine-toggle" onClick={restartEngine}>{restartLabel}</button></div><div className="position-lab__analysis-options"><span className="position-lab__engine-version">{engineName}</span><label>{language === 'lt' ? 'Rodyti linijas' : language === 'ru' ? 'Показывать линий' : 'Show lines'}<select value={lineCount} onChange={(event) => setLineCount(Number(event.target.value))}>{[1, 2, 3, 4, 5].map((count) => <option key={count} value={count}>{count}</option>)}</select></label></div></div>
           {displayedState === 'disabled' && <p>{t.engineOff}</p>}{displayedState === 'loading' && <p>{t.loading}</p>}{displayedState === 'invalid' && <p>{t.invalid}</p>}{displayedState === 'error' && <p>{engineError || 'Stockfish error'}</p>}{displayedState === 'checkmate' && <p>{t.checkmate}</p>}{displayedState === 'stalemate' && <p>{t.stalemate}</p>}
           <div className="position-lab__lines">{lines.map((line) => <div className="position-lab__line" key={line.number}><span className="position-lab__line-number">{line.number}.</span><strong>{scoreLabel(line)}</strong><span className="position-lab__line-moves">{sanMoves(line.pv).map((move, index) => <span key={index}>{move.prefix && <span className="position-lab__move-number">{move.prefix} </span>}<button type="button" className="position-lab__move-button" title={t.showPosition} onClick={() => showVariationPosition(line.pv, index)}>{move.san}</button>{' '}</span>)}</span></div>)}</div>
