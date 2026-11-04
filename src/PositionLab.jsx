@@ -203,6 +203,12 @@ async function scanHatchedRegion(source) {
 }
 
 async function recognizeImageRegion(source, recognizer) {
+  const minDimension = Math.min(source.width, source.height);
+  if (minDimension >= 180 && Math.max(source.width, source.height) <= 1000) {
+    const filteredGrid = await scanHatchedRegion(source);
+    if (filteredGrid?.plausible && filteredGrid.meanConfidence >= 0.82) return filteredGrid;
+  }
+
   const primary = await recognizer.recognize(source);
   let gridCandidate;
   if (needsGridRecovery(source, primary)) {
