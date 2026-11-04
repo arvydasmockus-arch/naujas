@@ -795,7 +795,26 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
     setImageImport({ status: 'scanning', items: [], selected: -1 });
     try {
       imageRecognizer.current ||= createRecognizer({ modelUrl, wasmPaths: { mjs: wasmMjsUrl, wasm: wasmUrl } });
-      const items = await recognizeImageBoards(file, imageRecognizer.current);
+      // Normalize every source (file, drop, or clipboard) to the same opaque
+      // PNG first. The recognizer otherwise treats transparent PNG pixels
+      // differently from the clipboard's white-backed image.
+      const bitmap = await createImageBitmap(file);
+      let normalized;
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error('Canvas 2d context unavailable');
+        context.fillStyle = '#fff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(bitmap, 0, 0);
+        normalized = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      } finally {
+        bitmap.close();
+      }
+      if (!normalized) throw new Error('Could not normalize image');
+      const items = await recognizeImageBoards(normalized, imageRecognizer.current);
       const selected = items.length ? 0 : -1;
       if (items[0]) applyFen(items[0].fen);
       setImageImport({ status: items.length ? 'done' : 'empty', items, selected });
@@ -824,19 +843,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   }
   async function scanClipboardImage(blob, type = 'image/png') {
     try {
-      const bitmap = await createImageBitmap(blob);
-      const canvas = document.createElement('canvas');
-      canvas.width = bitmap.width;
-      canvas.height = bitmap.height;
-      const context = canvas.getContext('2d');
-      if (!context) throw new Error('Canvas 2d context unavailable');
-      context.fillStyle = '#fff';
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(bitmap, 0, 0);
-      bitmap.close();
-      const png = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
-      if (!png) throw new Error('Could not normalize clipboard image');
-      await scanPositionImage(new File([png], 'clipboard-image.png', { type: 'image/png' }));
+      await scanPositionImage(blob);
     } catch (error) {
       console.warn(`Could not decode clipboard image (${type})`, error);
       setImageImport({ status: 'error', items: [], selected: -1, message: imageText.pasteDenied });
@@ -881,7 +888,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
       if (!blob) return;
       event.preventDefault();
       setImageImportOpen(true);
-      scanImageRef.current?.(new File([blob], 'clipboard-image.png', { type: blob.type || 'image/png' }));
+      scanImageRef.current?.(blob);
     }
     window.addEventListener('paste', onPasteImage);
     return () => window.removeEventListener('paste', onPasteImage);
