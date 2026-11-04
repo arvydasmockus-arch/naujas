@@ -10,6 +10,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "guide:pdf": "node scripts/generate-position-guide.mjs",
     "cloudflare:export": "node scripts/export-cloudflare-data.mjs",
     "cloudflare:export-tournaments": "node scripts/export-tournament-pool.mjs",
     "cloudflare:sync": "node scripts/sync-cloudflare-data.mjs",

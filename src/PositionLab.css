@@ -8,6 +8,8 @@
 .position-lab__heading { min-width:0; }
 .position-lab__header h1 { margin:0 0 6px; font-size:clamp(24px,3vw,34px); }
 .position-lab__header p { margin:0; color:#aaa6b5; font-size:clamp(13px,1.15vw,16px); }
+.position-lab__guide-link { display:inline-block; margin-top:7px; color:#b8d6b1; font-size:12px; text-decoration:underline; text-underline-offset:2px; }
+.position-lab__guide-link:hover { color:#e1f1dc; }
 .position-lab__engine { display:flex; align-items:center; gap:8px; color:#c2becb; font-size:14px; white-space:nowrap; }
 .position-lab__engine i { width:9px; height:9px; border-radius:50%; background:#d69a42; }
 .position-lab__engine.is-ready i { background:#38c878; box-shadow:0 0 10px #38c87888; }
@@ -157,10 +159,10 @@
 .position-lab__recognized-preview .position-lab__recognized-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); align-content:start; max-height:380px; padding:1px; overflow:auto; }
 .position-lab__recognized-preview .position-lab__recognized-list button { display:grid; justify-items:center; gap:7px; min-width:0; }
 .position-lab__recognized-card-title { color:#514d5b; font-size:11px; }
-.position-lab__recognized-board { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); width:min(100%,250px); aspect-ratio:1; overflow:hidden; border:1px solid #8d8992; }
-.position-lab__recognized-board > span { display:grid; place-items:center; min-width:0; min-height:0; background:#f0eee8; }
+.position-lab__recognized-board { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); grid-template-rows:repeat(8,minmax(0,1fr)); width:min(100%,250px); aspect-ratio:1; overflow:hidden; border:1px solid #8d8992; }
+.position-lab__recognized-board > span { display:grid; place-items:center; min-width:0; min-height:0; aspect-ratio:1; background:#f0eee8; }
 .position-lab__recognized-board > span.is-dark { background:#a9b5a2; }
-.position-lab__recognized-board img { display:block; width:100%; height:100%; object-fit:contain; }
+.position-lab__recognized-board img { display:block; width:88%; height:88%; object-fit:contain; }
 .position-lab__recognized-list { gap:8px; max-height:min(360px,45vh); }
 .position-lab__recognized-list button { padding:8px 10px; }
 .position-lab__recognized-list strong,.position-lab__recognized-list span,.position-lab__recognized-list em { font-size:12px; }
