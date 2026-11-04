@@ -295,6 +295,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const [localArchivePositions, setLocalArchivePositions] = useState(readLocalArchive);
   const [localArchiveError, setLocalArchiveError] = useState('');
   const [archiveOpen, setArchiveOpen] = useState(false);
+  const [judgePanelOpen, setJudgePanelOpen] = useState(false);
   const [sharedArchiveKey, setSharedArchiveKey] = useState('');
   const [sharedArchivePositions, setSharedArchivePositions] = useState(null);
   const [sharedArchiveSelectedUser, setSharedArchiveSelectedUser] = useState('');
@@ -308,6 +309,18 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const [imageImportOpen, setImageImportOpen] = useState(false);
   const [imagePreviewUrl, setImagePreviewUrl] = useState('');
   const [imagePreviewDetails, setImagePreviewDetails] = useState('');
+
+  useEffect(() => {
+    const openJudgePanel = (event) => {
+      if (event.altKey && event.shiftKey && event.code === 'KeyJ') {
+        event.preventDefault();
+        setArchiveOpen(true);
+        setJudgePanelOpen((open) => !open);
+      }
+    };
+    window.addEventListener('keydown', openJudgePanel);
+    return () => window.removeEventListener('keydown', openJudgePanel);
+  }, []);
   const popeyeWorker = useRef(null);
   const worker = useRef(null);
   const imageRecognizer = useRef(null);
@@ -812,7 +825,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
     {archiveOpen && <section id="position-lab-archive" className="position-lab__archive" role="dialog" aria-label={archiveLabels.archive}>
       <div className="position-lab__archive-heading"><h2>{archiveLabels.archive}</h2><div>
         <button type="button" onClick={downloadOlv} disabled={!visiblePositions.length}>{archiveLabels.download}</button>
-        <button type="button" className="position-lab__archive-close" onClick={() => setArchiveOpen(false)} aria-label={archiveLabels.close} title={archiveLabels.close}>×</button>
+      <button type="button" className="position-lab__archive-close" onClick={() => { setArchiveOpen(false); setJudgePanelOpen(false); }} aria-label={archiveLabels.close} title={archiveLabels.close}>×</button>
       </div></div>
       {!accountUser && <p>{language === 'lt' ? 'Pozicijos saugomos šioje naršyklėje.' : language === 'ru' ? 'Позиции сохраняются в этом браузере.' : 'Positions are saved in this browser.'}</p>}
       {archiveLoading && <p>{t.loading}</p>}
@@ -824,7 +837,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         </button>
         <button type="button" className="position-lab__archive-delete" aria-label={`${archiveLabels.remove} ${position.number}`} title={archiveLabels.remove} onClick={() => deletePosition(position)}>×</button>
       </li>)}</ol>}
-      <section className="position-lab__shared-archive">
+      {judgePanelOpen && <section className="position-lab__shared-archive">
         <h3>{language === 'lt' ? 'Bendras kūrėjų archyvas' : language === 'ru' ? 'Общий архив авторов' : 'Shared authors archive'}</h3>
         <p>{language === 'lt' ? 'Teisėjas gali peržiūrėti registruotų kūrėjų išsaugotas pozicijas.' : language === 'ru' ? 'Судья может просматривать сохранённые позиции авторов.' : 'The judge can review positions saved by registered authors.'}</p>
         <form onSubmit={loadSharedArchive}>
@@ -850,7 +863,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
             </button>
           </li>)}</ol> : <p>{language === 'lt' ? 'Pozicijų dar nėra.' : language === 'ru' ? 'Пока нет позиций.' : 'No saved positions yet.'}</p>}
         </>}
-      </section>
+      </section>}
     </section>}
     <div className="position-lab__layout">
       <div className="position-lab__board-panel"><section className="position-lab__board-wrap"><div className="position-lab__board">
