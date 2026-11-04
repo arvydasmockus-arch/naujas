@@ -445,6 +445,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
       </div></section>
         <section className="position-lab__fen-panel" aria-label="FEN">
           <label htmlFor="position-lab-fen">FEN</label>
+          <button type="button" className="position-lab__flip-button" aria-label={t.flip} title={t.flip} onClick={() => setFlipped((value) => !value)}>⟳</button>
           <div className="position-lab__fen-controls">
             <input id="position-lab-fen" type="text" value={fenDraft ?? fen.split(' ')[0]} placeholder={t.fenPlaceholder}
               aria-invalid={Boolean(fenError)} onChange={(event) => { setFenDraft(event.target.value); setFenError(''); }}
@@ -463,7 +464,6 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         <section className="position-lab__card position-lab__controls"><h2>{t.title}</h2><div className="position-lab__turn"><button className={turn === 'w' ? 'is-active' : ''} onClick={() => { setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.white}</button><button className={turn === 'b' ? 'is-active' : ''} onClick={() => { setTurn('b'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.black}</button></div>
           <div className="position-lab__buttons"><button type="button" onClick={() => { setPieces(initialPieces()); setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.start}</button><button type="button" onClick={() => { setPieces({}); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.clear}</button></div>
           <div className="position-lab__buttons position-lab__board-actions">
-            <button type="button" className="position-lab__flip-button" aria-label={t.flip} title={t.flip} onClick={() => setFlipped((value) => !value)}>⟳</button>
             <button type="button" title={archiveLabels.save} onClick={savePosition} disabled={!accountUser || archiveLoading}>{archiveLabels.saveShort}</button>
             <button type="button" className={visiblePositions.length ? 'position-lab__archive-toggle is-populated' : 'position-lab__archive-toggle'} title={archiveLabels.archive} aria-label={`${archiveLabels.archive}: ${visiblePositions.length}`} aria-expanded={archiveOpen} aria-controls="position-lab-archive" onClick={() => setArchiveOpen((open) => !open)}>{archiveLabels.archiveShort} ({visiblePositions.length})</button>
           </div></section>

@@ -48,9 +48,8 @@
 .position-lab__erase.is-active,.position-lab__turn button.is-active { background:#e2f3e6; border-color:#4f9c63; color:#285d35; }
 .position-lab__turn { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:10px; }
 .position-lab__buttons { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
-.position-lab__board-actions { display:grid; grid-template-columns:34px minmax(0,.8fr) minmax(0,1.2fr); gap:5px; margin-top:7px; }
+.position-lab__board-actions { grid-template-columns:1fr 1fr; margin-top:7px; }
 .position-lab__board-actions button { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.position-lab__board-actions .position-lab__flip-button { padding:2px; font-size:21px; line-height:1; }
 .position-lab__board-actions .position-lab__archive-toggle.is-populated,
 .position-lab__board-actions .position-lab__archive-toggle[aria-expanded="true"] { border-color:#4f9c63; background:#e2f3e6; color:#285d35; }
 .position-lab__result { grid-column:1/-1; grid-row:1; padding:8px 10px; border-color:#dedbe3; background:#fff; color:#25232b; }
@@ -109,6 +108,8 @@
 .position-lab__fen code { color:#e9e3f2; }
 .position-lab__fen-panel { display:flex; flex-wrap:wrap; align-items:center; gap:6px; min-width:0; padding:5px 7px; border:1px solid #dedbe3; border-radius:8px; background:#fff; color:#25232b; }
 .position-lab__fen-panel > label { flex:0 0 auto; color:#55515c; font-size:11px; font-weight:700; }
+.position-lab__fen-panel > .position-lab__flip-button { flex:0 0 25px; width:25px; height:25px; padding:2px; border:1px solid #d5d2dc; border-radius:5px; background:#f7f6f9; color:#302d36; font:19px/1 sans-serif; cursor:pointer; }
+.position-lab__fen-panel > .position-lab__flip-button:hover { border-color:#83c895; background:#eff8f1; }
 .position-lab__fen-controls { display:flex; flex:1; gap:5px; min-width:0; }
 .position-lab__fen-controls input { flex:1; width:100%; min-width:0; padding:5px 6px; border:1px solid #d5d2dc; border-radius:5px; background:#fff; color:#25232b; font:11px/1.2 monospace; }
 .position-lab__fen-controls button { flex:0 0 28px; padding:3px; border:1px solid #d5d2dc; border-radius:5px; background:#f7f6f9; color:#302d36; font:14px/1 sans-serif; cursor:pointer; }
