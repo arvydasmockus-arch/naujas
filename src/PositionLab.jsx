@@ -127,6 +127,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const [stipulation, setStipulation] = useState('#2');
   const [activeAnswerPhases, setActiveAnswerPhases] = useState(['play', 'tries', 'setPlay']);
   const [imageImport, setImageImport] = useState({ status: 'idle', items: [], selected: -1 });
+  const [imageImportOpen, setImageImportOpen] = useState(false);
   const popeyeWorker = useRef(null);
   const worker = useRef(null);
   const imageRecognizer = useRef(null);
@@ -452,7 +453,10 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   function selectRecognizedPosition(index) {
     const item = imageImport.items[index];
     if (!item) return;
-    if (applyFen(item.fen)) setImageImport((current) => ({ ...current, selected: index }));
+    if (applyFen(item.fen)) {
+      setImageImport((current) => ({ ...current, selected: index }));
+      setImageImportOpen(false);
+    }
   }
   useEffect(() => {
     function onPasteImage(event) {
@@ -463,6 +467,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
       const blob = image.getAsFile();
       if (!blob) return;
       event.preventDefault();
+      setImageImportOpen(true);
       scanImageRef.current?.(new File([blob], 'clipboard-image.png', { type: blob.type || 'image/png' }));
     }
     window.addEventListener('paste', onPasteImage);
@@ -539,36 +544,6 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
           </button>;
         }))}
       </div></section>
-        <section className="position-lab__image-import" aria-label={imageText.title} onDragOver={(event) => event.preventDefault()} onDrop={(event) => {
-          event.preventDefault();
-          const file = [...event.dataTransfer.files].find((item) => item.type.startsWith('image/'));
-          if (file) scanPositionImage(file);
-        }}>
-          <input ref={imageInput} className="position-lab__image-input" type="file" accept="image/*" aria-label={imageText.button} onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (file) scanPositionImage(file);
-            event.target.value = '';
-          }} />
-          <div className="position-lab__image-import-heading"><strong>{imageText.title}</strong><button type="button" onClick={() => imageInput.current?.click()}>{imageText.button}</button></div>
-          {imageImport.status === 'idle' && <p>{imageText.help}</p>}
-          {imageImport.status === 'scanning' && <p role="status">{imageText.scanning}</p>}
-          {imageImport.status === 'empty' && <p role="status">{imageText.none}</p>}
-          {imageImport.status === 'error' && <p role="alert">{imageText.failed}</p>}
-          {imageImport.status === 'done' && <>
-            <p role="status">{imageText.found}: {imageImport.items.length}. {imageImport.items.length > 1 ? imageText.choose : imageText.ready}</p>
-            <div className="position-lab__recognized-list">{imageImport.items.map((item, index) => <button type="button" key={`${item.fen}-${index}`} className={imageImport.selected === index ? 'is-selected' : ''} onClick={() => selectRecognizedPosition(index)}>
-              <strong>{index + 1}.</strong><span>{Math.round(item.confidence * 100)}% {imageText.confidence}</span>{!item.reliable && <em>{imageText.check}</em>}
-            </button>)}</div>
-          </>}
-        </section>
-      </div>
-      <aside className="position-lab__side">
-        <div className="position-lab__piece-column">
-        <section className="position-lab__card position-lab__pieces"><h2>{t.pieces}</h2>{['w', 'b'].map((color) => <div className="position-lab__piece-row" key={color}>{['K', 'Q', 'R', 'B', 'N', 'P'].map((kind) => {
-          const code = color + kind;
-          return <button type="button" draggable key={code} aria-label={code} className={selected?.code === code ? 'is-active' : ''} onClick={() => setSelected({ type: 'piece', code })}
-            onDragStart={(event) => event.dataTransfer.setData('text/plain', 'piece:' + code)}><img src={pieceImages[code]} alt={code} /></button>;
-        })}</div>)}<button className={'position-lab__erase' + (selected?.type === 'erase' ? ' is-active' : '')} type="button" onClick={() => setSelected({ type: 'erase' })}>⌫ {t.erase}</button></section>
         <section className="position-lab__fen-panel" aria-label="FEN">
           <label htmlFor="position-lab-fen">FEN</label>
           <button type="button" className="position-lab__flip-button" aria-label={t.flip} title={t.flip} onClick={() => setFlipped((value) => !value)}>⟳</button>
@@ -580,8 +555,17 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
           </div>
           {fenError && <p role="alert">{fenError}</p>}
         </section>
+      </div>
+      <aside className="position-lab__side">
+        <div className="position-lab__piece-column">
+        <section className="position-lab__card position-lab__pieces"><h2>{t.pieces}</h2>{['w', 'b'].map((color) => <div className="position-lab__piece-row" key={color}>{['K', 'Q', 'R', 'B', 'N', 'P'].map((kind) => {
+          const code = color + kind;
+          return <button type="button" draggable key={code} aria-label={code} className={selected?.code === code ? 'is-active' : ''} onClick={() => setSelected({ type: 'piece', code })}
+            onDragStart={(event) => event.dataTransfer.setData('text/plain', 'piece:' + code)}><img src={pieceImages[code]} alt={code} /></button>;
+        })}</div>)}<button className={'position-lab__erase' + (selected?.type === 'erase' ? ' is-active' : '')} type="button" onClick={() => setSelected({ type: 'erase' })}>⌫ {t.erase}</button></section>
+
         </div>
-        <section className="position-lab__card position-lab__controls"><h2>{t.title}</h2><div className="position-lab__turn"><button className={turn === 'w' ? 'is-active' : ''} onClick={() => { setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.white}</button><button className={turn === 'b' ? 'is-active' : ''} onClick={() => { setTurn('b'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.black}</button></div>
+        <section className="position-lab__card position-lab__controls"><div className="position-lab__controls-heading"><h2>{t.title}</h2><button type="button" className="position-lab__ocr-trigger" title={imageText.title} aria-label={imageText.title} onClick={() => setImageImportOpen(true)}>OCR</button></div><div className="position-lab__turn"><button className={turn === 'w' ? 'is-active' : ''} onClick={() => { setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.white}</button><button className={turn === 'b' ? 'is-active' : ''} onClick={() => { setTurn('b'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.black}</button></div>
           <div className="position-lab__buttons"><button type="button" onClick={() => { setPieces(initialPieces()); setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.start}</button><button type="button" onClick={() => { setPieces({}); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.clear}</button></div>
           <div className="position-lab__buttons position-lab__board-actions">
             <button type="button" title={archiveLabels.save} onClick={savePosition} disabled={!accountUser || archiveLoading}>{archiveLabels.saveShort}</button>
@@ -594,6 +578,30 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
           <p className="position-lab__depth">{language === 'lt' ? 'Gylis' : language === 'ru' ? 'Глубина' : 'Depth'}: {engineEnabled ? analysis.depth : 0}</p></section>
       </aside>
     </div>
+    {imageImportOpen && <div className="position-lab__image-import-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setImageImportOpen(false); }}>
+      <section className="position-lab__image-import" role="dialog" aria-modal="true" aria-label={imageText.title} onDragOver={(event) => event.preventDefault()} onDrop={(event) => {
+        event.preventDefault();
+        const file = [...event.dataTransfer.files].find((item) => item.type.startsWith('image/'));
+        if (file) scanPositionImage(file);
+      }}>
+        <input ref={imageInput} className="position-lab__image-input" type="file" accept="image/*" aria-label={imageText.button} onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) scanPositionImage(file);
+          event.target.value = '';
+        }} />
+        <div className="position-lab__image-import-heading"><strong>{imageText.title}</strong><div><button type="button" onClick={() => imageInput.current?.click()}>{imageText.button}</button><button type="button" aria-label="Close" onClick={() => setImageImportOpen(false)}>×</button></div></div>
+        {imageImport.status === 'idle' && <p>{imageText.help}</p>}
+        {imageImport.status === 'scanning' && <p role="status">{imageText.scanning}</p>}
+        {imageImport.status === 'empty' && <p role="status">{imageText.none}</p>}
+        {imageImport.status === 'error' && <p role="alert">{imageText.failed}</p>}
+        {imageImport.status === 'done' && <>
+          <p role="status">{imageText.found}: {imageImport.items.length}. {imageImport.items.length > 1 ? imageText.choose : imageText.ready}</p>
+          <div className="position-lab__recognized-list">{imageImport.items.map((item, index) => <button type="button" key={`${item.fen}-${index}`} className={imageImport.selected === index ? 'is-selected' : ''} onClick={() => selectRecognizedPosition(index)}>
+            <strong>{index + 1}.</strong><span>{Math.round(item.confidence * 100)}% {imageText.confidence}</span>{!item.reliable && <em>{imageText.check}</em>}
+          </button>)}</div>
+        </>}
+      </section>
+    </div>}
     <section className="position-lab__card position-lab__problem-solver">
       <div className="position-lab__analysis-heading">
         <label className="position-lab__stipulation">{language === 'lt' ? 'Uždavinio sąlyga' : language === 'ru' ? 'Условие задачи' : 'Stipulation'}
