@@ -27,7 +27,7 @@ async function recognizeImageBoards(file, recognizer) {
     const region = pending.shift();
     scannedRegions += 1;
     try {
-      const result = await recognizer.recognize(region.bitmap);
+      const result = await recognizeImageRegion(region.bitmap, recognizer);
       if (!result?.plausible) continue;
 
       const { placement } = resolveOrientation(result.placement);
@@ -58,6 +58,90 @@ async function recognizeImageBoards(file, recognizer) {
   for (const region of pending) if (!region.root) region.bitmap.close();
   root.close();
   return found.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+async function medianFilteredBitmap(source) {
+  const scale = Math.min(1, 1600 / Math.max(source.width, source.height));
+  const width = Math.max(1, Math.round(source.width * scale));
+  const height = Math.max(1, Math.round(source.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  if (!context) throw new Error('Canvas 2d context unavailable');
+  context.fillStyle = '#fff';
+  context.fillRect(0, 0, width, height);
+  context.drawImage(source, 0, 0, width, height);
+
+  const image = context.getImageData(0, 0, width, height);
+  const input = image.data;
+  const output = new Uint8ClampedArray(input.length);
+  const redSamples = new Uint8Array(9);
+  const greenSamples = new Uint8Array(9);
+  const blueSamples = new Uint8Array(9);
+  const sortSamples = (samples) => {
+    for (let i = 1; i < samples.length; i += 1) {
+      const value = samples[i];
+      let j = i - 1;
+      while (j >= 0 && samples[j] > value) {
+        samples[j + 1] = samples[j];
+        j -= 1;
+      }
+      samples[j + 1] = value;
+    }
+  };
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      let index = 0;
+      for (let dy = -1; dy <= 1; dy += 1) {
+        const sampleY = Math.max(0, Math.min(height - 1, y + dy));
+        for (let dx = -1; dx <= 1; dx += 1) {
+          const sampleX = Math.max(0, Math.min(width - 1, x + dx));
+          const offset = (sampleY * width + sampleX) * 4;
+          redSamples[index] = input[offset];
+          greenSamples[index] = input[offset + 1];
+          blueSamples[index] = input[offset + 2];
+          index += 1;
+        }
+      }
+      sortSamples(redSamples);
+      sortSamples(greenSamples);
+      sortSamples(blueSamples);
+      const offset = (y * width + x) * 4;
+      output[offset] = redSamples[4];
+      output[offset + 1] = greenSamples[4];
+      output[offset + 2] = blueSamples[4];
+      output[offset + 3] = 255;
+    }
+  }
+  image.data.set(output);
+  context.putImageData(image, 0, 0);
+  return { bitmap: await createImageBitmap(canvas), scaleX: source.width / width, scaleY: source.height / height };
+}
+
+async function recognizeImageRegion(source, recognizer) {
+  const primary = await recognizer.recognize(source);
+  if (!primary || primary.reliable) return primary;
+
+  const filtered = await medianFilteredBitmap(source);
+  try {
+    const alternate = await recognizer.recognize(filtered.bitmap);
+    const improvesRead = alternate?.plausible && (!primary.plausible
+      || alternate.meanConfidence > primary.meanConfidence
+      || (alternate.meanConfidence === primary.meanConfidence && alternate.minConfidence > primary.minConfidence));
+    if (!improvesRead) return primary;
+    return {
+      ...alternate,
+      corners: {
+        x0: alternate.corners.x0 * filtered.scaleX,
+        y0: alternate.corners.y0 * filtered.scaleY,
+        x1: alternate.corners.x1 * filtered.scaleX,
+        y1: alternate.corners.y1 * filtered.scaleY,
+      },
+    };
+  } finally {
+    filtered.bitmap.close();
+  }
 }
 
 const initialPieces = () => {
