@@ -219,8 +219,19 @@ function pieceCount(placement) {
   return (placement || '').replace(/[1-8/]/g, '').length;
 }
 
-function gridRecoversRead(primary, candidate) {
-  return candidate?.plausible && (!primary?.plausible
+function isFullBoardRead(result, source) {
+  if (!result?.corners) return false;
+  const { x0, y0, x1, y1 } = result.corners;
+  const width = x1 - x0;
+  const height = y1 - y0;
+  const sourceMin = Math.min(source.width, source.height);
+  return Math.min(width, height) >= sourceMin * 0.82
+    && Math.min(width, height) / Math.max(width, height) >= 0.88;
+}
+
+function gridRecoversRead(primary, candidate, source) {
+  return candidate?.plausible && ((isFullBoardRead(candidate, source) && !isFullBoardRead(primary, source))
+    || !primary?.plausible
     || candidate.meanConfidence > primary.meanConfidence
     || (candidate.meanConfidence === primary.meanConfidence && candidate.minConfidence > primary.minConfidence)
     || (candidate.meanConfidence >= 0.78 && pieceCount(candidate.placement) >= pieceCount(primary?.placement) + 4));
@@ -250,7 +261,7 @@ async function recognizeImageRegion(source, recognizer) {
   const primary = await recognizer.recognize(source);
   if (needsGridRecovery(source, primary)) {
     gridCandidate ||= await scanHatchedRegion(source);
-    if (gridRecoversRead(primary, gridCandidate)) return gridCandidate;
+    if (gridRecoversRead(primary, gridCandidate, source)) return gridCandidate;
   }
 
   const filtered = await medianFilteredBitmap(source);
@@ -314,7 +325,7 @@ async function recognizeImageRegion(source, recognizer) {
   let best = bestExisting ? alternate : primary;
   if (needsGridRecovery(source, best)) {
     gridCandidate ||= await scanHatchedRegion(source);
-    if (gridRecoversRead(best, gridCandidate)) best = gridCandidate;
+    if (gridRecoversRead(best, gridCandidate, source)) best = gridCandidate;
   }
   return best;
 }
