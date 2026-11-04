@@ -134,6 +134,23 @@ async function medianFilteredBitmap(source, radius = 1) {
   return { bitmap: await createImageBitmap(canvas), scaleX: source.width / width, scaleY: source.height / height };
 }
 
+async function softenedBitmap(source) {
+  const scale = Math.min(1, 1600 / Math.max(source.width, source.height));
+  const width = Math.max(1, Math.round(source.width * scale));
+  const height = Math.max(1, Math.round(source.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Canvas 2d context unavailable');
+  context.fillStyle = '#fff';
+  context.fillRect(0, 0, width, height);
+  context.filter = 'blur(1.5px)';
+  context.drawImage(source, 0, 0, width, height);
+  context.filter = 'none';
+  return { bitmap: await createImageBitmap(canvas), scaleX: source.width / width, scaleY: source.height / height };
+}
+
 async function recognizeImageRegion(source, recognizer) {
   const primary = await recognizer.recognize(source);
   const filtered = await medianFilteredBitmap(source);
@@ -171,6 +188,25 @@ async function recognizeImageRegion(source, recognizer) {
         y1: alternate.corners.y1 * filtered.scaleY,
       },
     };
+  }
+  if (!alternate?.plausible) {
+    const softened = await softenedBitmap(source);
+    try {
+      alternate = await recognizer.recognize(softened.bitmap);
+      if (alternate?.plausible) {
+        alternate = {
+          ...alternate,
+          corners: {
+            x0: alternate.corners.x0 * softened.scaleX,
+            y0: alternate.corners.y0 * softened.scaleY,
+            x1: alternate.corners.x1 * softened.scaleX,
+            y1: alternate.corners.y1 * softened.scaleY,
+          },
+        };
+      }
+    } finally {
+      softened.bitmap.close();
+    }
   }
   const improvesRead = alternate?.plausible && (!primary?.plausible
     || alternate.meanConfidence > primary.meanConfidence
