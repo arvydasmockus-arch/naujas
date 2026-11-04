@@ -19,9 +19,9 @@ const copy = {
 };
 
 const archiveText = {
-  lt: { archive: 'Išsaugotos pozicijos', save: 'Išsaugoti poziciją', download: 'Atsisiųsti .olv', empty: 'Archyvas tuščias.', login: 'Prisijunkite, kad matytumėte ir saugotumėte savo privačias pozicijas.', remove: 'Ištrinti', error: 'Archyvo klaida' },
-  en: { archive: 'Saved problems', save: 'Save position', download: 'Download .olv', empty: 'Your archive is empty.', login: 'Sign in to view and save your private positions.', remove: 'Delete', error: 'Archive error' },
-  ru: { archive: 'Сохранённые задачи', save: 'Сохранить позицию', download: 'Скачать .olv', empty: 'Архив пуст.', login: 'Войдите, чтобы видеть и сохранять свои приватные позиции.', remove: 'Удалить', error: 'Ошибка архива' },
+  lt: { archive: 'Išsaugotos pozicijos', save: 'Išsaugoti poziciją', download: 'Atsisiųsti .olv', empty: 'Archyvas tuščias.', login: 'Prisijunkite, kad matytumėte ir saugotumėte savo privačias pozicijas.', remove: 'Ištrinti', close: 'Uždaryti', error: 'Archyvo klaida' },
+  en: { archive: 'Saved problems', save: 'Save position', download: 'Download .olv', empty: 'Your archive is empty.', login: 'Sign in to view and save your private positions.', remove: 'Delete', close: 'Close', error: 'Archive error' },
+  ru: { archive: 'Сохранённые задачи', save: 'Сохранить позицию', download: 'Скачать .olv', empty: 'Архив пуст.', login: 'Войдите, чтобы видеть и сохранять свои приватные позиции.', remove: 'Удалить', close: 'Закрыть', error: 'Ошибка архива' },
 };
 
 function toFen(pieces, turn, metadata = null) {
@@ -67,6 +67,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const [fenError, setFenError] = useState('');
   const [fenMetadata, setFenMetadata] = useState(null);
   const [archiveData, setArchiveData] = useState({ userId: null, positions: [], error: '' });
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const [problemSolution, setProblemSolution] = useState({ state: 'idle', groups: null });
   const [answerPlayback, setAnswerPlayback] = useState(false);
   const [stipulation, setStipulation] = useState('#2');
@@ -391,7 +392,27 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   }
 
   return <main className="position-lab">
-    <header className="position-lab__header"><div><h1>{t.title}</h1><p>{t.subtitle}</p></div><span className={'position-lab__engine' + (ready && engineEnabled ? ' is-ready' : '')} title={engineError}><i />{!engineEnabled ? t.engineOff : ready ? t.ready : (engineError || t.loading)}</span></header>
+    <header className="position-lab__header"><div><h1>{t.title}</h1><p>{t.subtitle}</p></div><div className="position-lab__header-actions">
+      <button type="button" className="position-lab__archive-toggle" aria-expanded={archiveOpen} aria-controls="position-lab-archive" onClick={() => setArchiveOpen((open) => !open)}>{archiveLabels.archive}</button>
+      <span className={'position-lab__engine' + (ready && engineEnabled ? ' is-ready' : '')} title={engineError}><i />{!engineEnabled ? t.engineOff : ready ? t.ready : (engineError || t.loading)}</span>
+    </div></header>
+    {archiveOpen && <section id="position-lab-archive" className="position-lab__archive" role="dialog" aria-label={archiveLabels.archive}>
+      <div className="position-lab__archive-heading"><h2>{archiveLabels.archive}</h2><div>
+        <button type="button" onClick={savePosition} disabled={!accountUser || archiveLoading}>{archiveLabels.save}</button>
+        <button type="button" onClick={downloadOlv} disabled={!visiblePositions.length}>{archiveLabels.download}</button>
+        <button type="button" className="position-lab__archive-close" onClick={() => setArchiveOpen(false)} aria-label={archiveLabels.close} title={archiveLabels.close}>×</button>
+      </div></div>
+      {!accountUser && <p>{archiveLabels.login}</p>}
+      {archiveLoading && <p>{t.loading}</p>}
+      {archiveError && <p className="position-lab__archive-error" role="alert">{archiveError}</p>}
+      {accountUser && !archiveLoading && !archiveError && visiblePositions.length === 0 && <p>{archiveLabels.empty}</p>}
+      {accountUser && visiblePositions.length > 0 && <ol className="position-lab__archive-list">{visiblePositions.map((position) => <li key={position.id}>
+        <button type="button" className="position-lab__archive-open" onClick={() => openSavedPosition(position)}>
+          <strong>{position.number}.</strong><span>{position.stipulation}</span><code>{position.fen.split(' ')[0]}</code>
+        </button>
+        <button type="button" className="position-lab__archive-delete" aria-label={`${archiveLabels.remove} ${position.number}`} title={archiveLabels.remove} onClick={() => deletePosition(position)}>×</button>
+      </li>)}</ol>}
+    </section>}
     <div className="position-lab__layout">
       <div className="position-lab__board-panel"><section className="position-lab__board-wrap"><div className="position-lab__board">
         {ranks.map((rank, r) => boardFiles.map((file, c) => {
@@ -432,22 +453,6 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
             <button type="button" title={t.copy} aria-label={t.copy} onClick={copyPosition}>{copied ? '✓' : '⧉'}</button>
           </div>
           {fenError && <p role="alert">{fenError}</p>}
-        </section>
-        <section className="position-lab__archive" aria-label={archiveLabels.archive}>
-          <div className="position-lab__archive-heading"><h2>{archiveLabels.archive}</h2><div>
-            <button type="button" onClick={savePosition} disabled={!accountUser || archiveLoading}>{archiveLabels.save}</button>
-            <button type="button" onClick={downloadOlv} disabled={!visiblePositions.length}>{archiveLabels.download}</button>
-          </div></div>
-          {!accountUser && <p>{archiveLabels.login}</p>}
-          {archiveLoading && <p>{t.loading}</p>}
-          {archiveError && <p className="position-lab__archive-error" role="alert">{archiveError}</p>}
-          {accountUser && !archiveLoading && !archiveError && visiblePositions.length === 0 && <p>{archiveLabels.empty}</p>}
-          {accountUser && visiblePositions.length > 0 && <ol className="position-lab__archive-list">{visiblePositions.map((position) => <li key={position.id}>
-            <button type="button" className="position-lab__archive-open" onClick={() => openSavedPosition(position)}>
-              <strong>{position.number}.</strong><span>{position.stipulation}</span><code>{position.fen.split(' ')[0]}</code>
-            </button>
-            <button type="button" className="position-lab__archive-delete" aria-label={`${archiveLabels.remove} ${position.number}`} title={archiveLabels.remove} onClick={() => deletePosition(position)}>×</button>
-          </li>)}</ol>}
         </section>
       </div>
       <aside className="position-lab__side">
