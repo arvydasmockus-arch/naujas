@@ -6,6 +6,9 @@
 }
 .position-lab__header { display:flex; align-items:center; justify-content:space-between; gap:20px; margin:0 0 22px; }
 .position-lab__header-actions { display:flex; align-items:center; justify-content:flex-end; gap:12px; }
+.position-lab__archive-save { padding:7px 10px; border:1px solid #398452; border-radius:7px; background:#e8f5eb; color:#225c33; font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+.position-lab__archive-save:hover:not(:disabled) { border-color:#28663d; background:#d8efde; }
+.position-lab__archive-save:disabled { opacity:.55; cursor:not-allowed; }
 .position-lab__archive-toggle { padding:7px 10px; border:1px solid #4a4657; border-radius:7px; background:#25232e; color:#f4f2f7; font:inherit; font-size:13px; cursor:pointer; }
 .position-lab__archive-toggle:hover,.position-lab__archive-toggle[aria-expanded="true"] { border-color:#83c895; background:#243329; }
 .position-lab__header h1 { margin:0 0 6px; font-size:clamp(24px,3vw,34px); }

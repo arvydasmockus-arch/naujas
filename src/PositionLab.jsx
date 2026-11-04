@@ -308,6 +308,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   }
   async function savePosition() {
     if (!accountUser) return;
+    setArchiveOpen(true);
     try {
       const result = await positionArchiveRequest('POST', { fen, stipulation: currentStipulation });
       setArchiveData((archive) => archive.userId === accountUser.id
@@ -393,12 +394,12 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
 
   return <main className="position-lab">
     <header className="position-lab__header"><div><h1>{t.title}</h1><p>{t.subtitle}</p></div><div className="position-lab__header-actions">
-      <button type="button" className="position-lab__archive-toggle" aria-expanded={archiveOpen} aria-controls="position-lab-archive" onClick={() => setArchiveOpen((open) => !open)}>{archiveLabels.archive}</button>
+      <button type="button" className="position-lab__archive-save" onClick={savePosition} disabled={!accountUser || archiveLoading}>{archiveLabels.save}</button>
+      <button type="button" className="position-lab__archive-toggle" aria-expanded={archiveOpen} aria-controls="position-lab-archive" onClick={() => setArchiveOpen((open) => !open)}>{archiveLabels.archive} ({visiblePositions.length})</button>
       <span className={'position-lab__engine' + (ready && engineEnabled ? ' is-ready' : '')} title={engineError}><i />{!engineEnabled ? t.engineOff : ready ? t.ready : (engineError || t.loading)}</span>
     </div></header>
     {archiveOpen && <section id="position-lab-archive" className="position-lab__archive" role="dialog" aria-label={archiveLabels.archive}>
       <div className="position-lab__archive-heading"><h2>{archiveLabels.archive}</h2><div>
-        <button type="button" onClick={savePosition} disabled={!accountUser || archiveLoading}>{archiveLabels.save}</button>
         <button type="button" onClick={downloadOlv} disabled={!visiblePositions.length}>{archiveLabels.download}</button>
         <button type="button" className="position-lab__archive-close" onClick={() => setArchiveOpen(false)} aria-label={archiveLabels.close} title={archiveLabels.close}>×</button>
       </div></div>
