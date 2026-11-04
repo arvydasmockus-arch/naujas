@@ -170,6 +170,34 @@ async function softenedBitmap(source) {
 
 async function recognizeImageRegion(source, recognizer) {
   const primary = await recognizer.recognize(source);
+  let centeredCandidate;
+  if (primary?.corners) {
+    const { x0, y0, x1, y1 } = primary.corners;
+    const side = Math.min(source.width, source.height);
+    const extendsPastImage = x0 < 0 || y0 < 0 || x1 > source.width || y1 > source.height;
+    const nearlyFillsImage = Math.max(x1 - x0, y1 - y0) >= side * 0.8;
+    if (extendsPastImage && nearlyFillsImage) {
+      const left = Math.round((source.width - side) / 2);
+      const top = Math.round((source.height - side) / 2);
+      const centeredBitmap = await createImageBitmap(source, left, top, side, side);
+      try {
+        centeredCandidate = await recognizer.recognize(centeredBitmap);
+        if (centeredCandidate) {
+          centeredCandidate = {
+            ...centeredCandidate,
+            corners: {
+              x0: centeredCandidate.corners.x0 + left,
+              y0: centeredCandidate.corners.y0 + top,
+              x1: centeredCandidate.corners.x1 + left,
+              y1: centeredCandidate.corners.y1 + top,
+            },
+          };
+        }
+      } finally {
+        centeredBitmap.close();
+      }
+    }
+  }
   const filtered = await medianFilteredBitmap(source);
   let alternate;
   try {
@@ -225,10 +253,16 @@ async function recognizeImageRegion(source, recognizer) {
       softened.bitmap.close();
     }
   }
-  const improvesRead = alternate?.plausible && (!primary?.plausible
+  const bestExisting = alternate?.plausible && (!primary?.plausible
     || alternate.meanConfidence > primary.meanConfidence
     || (alternate.meanConfidence === primary.meanConfidence && alternate.minConfidence > primary.minConfidence));
-  return improvesRead ? alternate : primary;
+  let best = bestExisting ? alternate : primary;
+  if (centeredCandidate?.plausible && (!best?.plausible
+    || centeredCandidate.meanConfidence > best.meanConfidence
+    || (centeredCandidate.meanConfidence === best.meanConfidence && centeredCandidate.minConfidence > best.minConfidence))) {
+    best = centeredCandidate;
+  }
+  return best;
 }
 
 const initialPieces = () => {
