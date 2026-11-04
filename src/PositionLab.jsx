@@ -121,12 +121,15 @@ async function medianFilteredBitmap(source) {
 
 async function recognizeImageRegion(source, recognizer) {
   const primary = await recognizer.recognize(source);
-  if (!primary || primary.reliable) return primary;
+  // Some textured diagrams (especially Olive's hatched board) fail the raw
+  // board detector altogether. Still run the filtered pass when the detector
+  // returns null; previously that early return skipped the only useful retry.
+  if (primary?.reliable) return primary;
 
   const filtered = await medianFilteredBitmap(source);
   try {
     const alternate = await recognizer.recognize(filtered.bitmap);
-    const improvesRead = alternate?.plausible && (!primary.plausible
+    const improvesRead = alternate?.plausible && (!primary?.plausible
       || alternate.meanConfidence > primary.meanConfidence
       || (alternate.meanConfidence === primary.meanConfidence && alternate.minConfidence > primary.minConfidence));
     if (!improvesRead) return primary;
