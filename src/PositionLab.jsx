@@ -460,11 +460,14 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   }
   useEffect(() => {
     function onPasteImage(event) {
-      const image = [...(event.clipboardData?.items || [])].find((item) => item.type.startsWith('image/'));
-      if (!image) return;
+      const clipboard = event.clipboardData;
+      if (!clipboard) return;
       const target = event.target;
-      if (target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA'].includes(target.tagName))) return;
-      const blob = image.getAsFile();
+      const isTextField = target instanceof HTMLTextAreaElement
+        || (target instanceof HTMLInputElement && !['file', 'button', 'submit', 'reset', 'checkbox', 'radio'].includes(target.type));
+      if (target instanceof HTMLElement && (target.isContentEditable || isTextField)) return;
+      const imageItem = [...clipboard.items].find((item) => item.type.startsWith('image/'));
+      const blob = imageItem?.getAsFile() || [...clipboard.files].find((file) => file.type.startsWith('image/'));
       if (!blob) return;
       event.preventDefault();
       setImageImportOpen(true);
