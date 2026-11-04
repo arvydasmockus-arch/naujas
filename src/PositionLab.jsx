@@ -544,6 +544,8 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
           </button>;
         }))}
       </div></section>
+      <div className="position-lab__board-footer">
+        <button type="button" className="position-lab__ocr-trigger" title={imageText.title} aria-label={imageText.title} onClick={() => setImageImportOpen(true)}>OCR</button>
         <section className="position-lab__fen-panel" aria-label="FEN">
           <label htmlFor="position-lab-fen">FEN</label>
           <button type="button" className="position-lab__flip-button" aria-label={t.flip} title={t.flip} onClick={() => setFlipped((value) => !value)}>⟳</button>
@@ -556,6 +558,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
           {fenError && <p role="alert">{fenError}</p>}
         </section>
       </div>
+      </div>
       <aside className="position-lab__side">
         <div className="position-lab__piece-column">
         <section className="position-lab__card position-lab__pieces"><h2>{t.pieces}</h2>{['w', 'b'].map((color) => <div className="position-lab__piece-row" key={color}>{['K', 'Q', 'R', 'B', 'N', 'P'].map((kind) => {
@@ -565,7 +568,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         })}</div>)}<button className={'position-lab__erase' + (selected?.type === 'erase' ? ' is-active' : '')} type="button" onClick={() => setSelected({ type: 'erase' })}>⌫ {t.erase}</button></section>
 
         </div>
-        <section className="position-lab__card position-lab__controls"><div className="position-lab__controls-heading"><h2>{t.title}</h2><button type="button" className="position-lab__ocr-trigger" title={imageText.title} aria-label={imageText.title} onClick={() => setImageImportOpen(true)}>OCR</button></div><div className="position-lab__turn"><button className={turn === 'w' ? 'is-active' : ''} onClick={() => { setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.white}</button><button className={turn === 'b' ? 'is-active' : ''} onClick={() => { setTurn('b'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.black}</button></div>
+        <section className="position-lab__card position-lab__controls"><h2>{t.title}</h2><div className="position-lab__turn"><button className={turn === 'w' ? 'is-active' : ''} onClick={() => { setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.white}</button><button className={turn === 'b' ? 'is-active' : ''} onClick={() => { setTurn('b'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.black}</button></div>
           <div className="position-lab__buttons"><button type="button" onClick={() => { setPieces(initialPieces()); setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.start}</button><button type="button" onClick={() => { setPieces({}); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.clear}</button></div>
           <div className="position-lab__buttons position-lab__board-actions">
             <button type="button" title={archiveLabels.save} onClick={savePosition} disabled={!accountUser || archiveLoading}>{archiveLabels.saveShort}</button>
