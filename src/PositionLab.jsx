@@ -169,8 +169,38 @@ async function softenedBitmap(source) {
   return { bitmap: await createImageBitmap(canvas), scaleX: source.width / width, scaleY: source.height / height };
 }
 
+function needsGridRecovery(source, result) {
+  if (!result?.corners) return false;
+  const minDimension = Math.min(source.width, source.height);
+  if (minDimension < 180 || Math.max(source.width, source.height) > 1000) return false;
+  const { x0, y0, x1, y1 } = result.corners;
+  return x0 < 0 || y0 < 0 || x1 > source.width || y1 > source.height
+    || Math.min(x1 - x0, y1 - y0) < minDimension * 0.82
+    || !result.plausible;
+}
+
+function pieceCount(placement) {
+  return (placement || '').replace(/[1-8/]/g, '').length;
+}
+
+function gridRecoversRead(primary, candidate) {
+  return candidate?.plausible && (!primary?.plausible
+    || candidate.meanConfidence > primary.meanConfidence
+    || (candidate.meanConfidence === primary.meanConfidence && candidate.minConfidence > primary.minConfidence)
+    || (candidate.meanConfidence >= 0.78 && pieceCount(candidate.placement) >= pieceCount(primary?.placement) + 4));
+}
+
 async function recognizeImageRegion(source, recognizer) {
   const primary = await recognizer.recognize(source);
+  let gridCandidate;
+  if (needsGridRecovery(source, primary)) {
+    gridCandidate = await scanHatchedBoard(source, primary.corners, {
+      modelUrl,
+      wasmPaths: { mjs: wasmMjsUrl, wasm: wasmUrl },
+    });
+    if (gridRecoversRead(primary, gridCandidate)) return gridCandidate;
+  }
+
   const filtered = await medianFilteredBitmap(source);
   let alternate;
   try {
@@ -230,28 +260,12 @@ async function recognizeImageRegion(source, recognizer) {
     || alternate.meanConfidence > primary.meanConfidence
     || (alternate.meanConfidence === primary.meanConfidence && alternate.minConfidence > primary.minConfidence));
   let best = bestExisting ? alternate : primary;
-  const minDimension = Math.min(source.width, source.height);
-  if (best?.corners && minDimension >= 180 && Math.max(source.width, source.height) <= 1000) {
-    const { x0, y0, x1, y1 } = best.corners;
-    const width = x1 - x0;
-    const height = y1 - y0;
-    const extendsPastImage = x0 < 0 || y0 < 0 || x1 > source.width || y1 > source.height;
-    const weakBoardBounds = Math.min(width, height) < minDimension * 0.82;
-    if (extendsPastImage || weakBoardBounds || !best.plausible || !best.reliable) {
-      const gridCandidate = await scanHatchedBoard(source, best.corners, {
-        modelUrl,
-        wasmPaths: { mjs: wasmMjsUrl, wasm: wasmUrl },
-      });
-      const pieceCount = (placement) => (placement || '').replace(/[1-8/]/g, '').length;
-      const recoversMissingPieces = gridCandidate?.meanConfidence >= 0.78
-        && pieceCount(gridCandidate?.placement) >= pieceCount(best?.placement) + 4;
-      if (gridCandidate?.plausible && (!best?.plausible
-        || gridCandidate.meanConfidence > best.meanConfidence
-        || (gridCandidate.meanConfidence === best.meanConfidence && gridCandidate.minConfidence > best.minConfidence)
-        || recoversMissingPieces)) {
-        best = gridCandidate;
-      }
-    }
+  if (needsGridRecovery(source, best)) {
+    gridCandidate ||= await scanHatchedBoard(source, best.corners, {
+      modelUrl,
+      wasmPaths: { mjs: wasmMjsUrl, wasm: wasmUrl },
+    });
+    if (gridRecoversRead(best, gridCandidate)) best = gridCandidate;
   }
   return best;
 }
