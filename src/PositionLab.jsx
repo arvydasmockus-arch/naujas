@@ -12,9 +12,9 @@ const pieceImages = Object.fromEntries(Object.entries(import.meta.glob('./assets
   .map(([path, url]) => [path.split('/').pop().replace('.svg', ''), url]));
 const files = 'abcdefgh';
 const imageImportText = {
-  lt: { title: 'Įkelti diagramą iš vaizdo', button: 'Pasirinkti vaizdą', help: 'Nutempkite vaizdą čia arba įklijuokite su Ctrl+V. Galima rinktis nuotrauką iš telefono galerijos.', scanning: 'Atpažįstamos diagramos…', none: 'Diagramų nepavyko aptikti. Įkelkite aiškesnį 2D vaizdą.', failed: 'Vaizdo nuskaityti nepavyko. Bandykite kitą failą.', found: 'Atpažintos diagramos', choose: 'Pasirinkite diagramą, kurią įkelti į lentą.', confidence: 'patikimumas', check: 'Patikrinkite figūras: atpažinimas gali klysti.', ready: 'Nuskaityta. Pasirinkite diagramą.' },
-  en: { title: 'Import position from image', button: 'Choose image', help: 'Drop an image here or paste with Ctrl+V. On mobile, choose a photo from your camera or gallery.', scanning: 'Recognizing diagrams…', none: 'No chessboard was detected. Try a clearer 2D image.', failed: 'Could not read this image. Try another file.', found: 'Recognized diagrams', choose: 'Choose a diagram to load onto the board.', confidence: 'confidence', check: 'Please check the pieces; recognition can make mistakes.', ready: 'Image scanned. Choose a diagram.' },
-  ru: { title: 'Загрузить диаграмму из изображения', button: 'Выбрать изображение', help: 'Перетащите изображение сюда или вставьте через Ctrl+V. На телефоне можно выбрать фото из галереи.', scanning: 'Распознавание диаграмм…', none: 'Диаграммы не найдены. Попробуйте более четкое 2D-изображение.', failed: 'Не удалось прочитать изображение. Попробуйте другой файл.', found: 'Распознанные диаграммы', choose: 'Выберите диаграмму для загрузки на доску.', confidence: 'точность', check: 'Проверьте фигуры: распознавание может ошибаться.', ready: 'Изображение обработано. Выберите диаграмму.' },
+  lt: { title: 'Įkelti diagramą iš vaizdo', button: 'Pasirinkti vaizdą', pasteMissing: 'Iškarpinėje nerastas paveikslėlis. Nukopijuokite diagramą ir bandykite dar kartą.', pasteDenied: 'Naršyklė neleido perskaityti iškarpinės. Bandykite Ctrl+V arba pasirinkite failą.', help: 'Nutempkite vaizdą čia arba įklijuokite su Ctrl+V. Galima rinktis nuotrauką iš telefono galerijos.', scanning: 'Atpažįstamos diagramos…', none: 'Diagramų nepavyko aptikti. Įkelkite aiškesnį 2D vaizdą.', failed: 'Vaizdo nuskaityti nepavyko. Bandykite kitą failą.', found: 'Atpažintos diagramos', choose: 'Pasirinkite diagramą, kurią įkelti į lentą.', confidence: 'patikimumas', check: 'Patikrinkite figūras: atpažinimas gali klysti.', ready: 'Nuskaityta. Pasirinkite diagramą.' },
+  en: { title: 'Import position from image', button: 'Choose image', pasteMissing: 'No image found in the clipboard. Copy the diagram and try again.', pasteDenied: 'The browser could not read the clipboard. Try Ctrl+V or choose a file.', help: 'Drop an image here or paste with Ctrl+V. On mobile, choose a photo from your camera or gallery.', scanning: 'Recognizing diagrams…', none: 'No chessboard was detected. Try a clearer 2D image.', failed: 'Could not read this image. Try another file.', found: 'Recognized diagrams', choose: 'Choose a diagram to load onto the board.', confidence: 'confidence', check: 'Please check the pieces; recognition can make mistakes.', ready: 'Image scanned. Choose a diagram.' },
+  ru: { title: 'Загрузить диаграмму из изображения', button: 'Выбрать изображение', pasteMissing: 'В буфере обмена нет изображения. Скопируйте диаграмму и попробуйте снова.', pasteDenied: 'Браузер не разрешил доступ к буферу обмена. Попробуйте Ctrl+V или выберите файл.', help: 'Перетащите изображение сюда или вставьте через Ctrl+V. На телефоне можно выбрать фото из галереи.', scanning: 'Распознавание диаграмм…', none: 'Диаграммы не найдены. Попробуйте более четкое 2D-изображение.', failed: 'Не удалось прочитать изображение. Попробуйте другой файл.', found: 'Распознанные диаграммы', choose: 'Выберите диаграмму для загрузки на доску.', confidence: 'точность', check: 'Проверьте фигуры: распознавание может ошибаться.', ready: 'Изображение обработано. Выберите диаграмму.' },
 };
 
 async function recognizeImageBoards(file, recognizer) {
@@ -60,8 +60,21 @@ async function recognizeImageBoards(file, recognizer) {
   return found.sort((a, b) => a.y - b.y || a.x - b.x);
 }
 
-async function medianFilteredBitmap(source) {
-  const scale = Math.min(1, 1600 / Math.max(source.width, source.height));
+const clipboardImagePriority = ['image/png', 'image/jpeg', 'image/webp', 'image/bmp', 'image/gif', 'image/svg+xml'];
+function preferredClipboardImage(items) {
+  return [...items]
+    .filter((item) => item.type?.startsWith('image/'))
+    .sort((a, b) => {
+      const aIndex = clipboardImagePriority.indexOf(a.type);
+      const bIndex = clipboardImagePriority.indexOf(b.type);
+      return (aIndex < 0 ? clipboardImagePriority.length : aIndex)
+        - (bIndex < 0 ? clipboardImagePriority.length : bIndex);
+    })[0] || null;
+}
+
+async function medianFilteredBitmap(source, radius = 1) {
+  const maxDimension = radius > 1 ? 1000 : 1600;
+  const scale = Math.min(1, maxDimension / Math.max(source.width, source.height));
   const width = Math.max(1, Math.round(source.width * scale));
   const height = Math.max(1, Math.round(source.height * scale));
   const canvas = document.createElement('canvas');
@@ -76,9 +89,11 @@ async function medianFilteredBitmap(source) {
   const image = context.getImageData(0, 0, width, height);
   const input = image.data;
   const output = new Uint8ClampedArray(input.length);
-  const redSamples = new Uint8Array(9);
-  const greenSamples = new Uint8Array(9);
-  const blueSamples = new Uint8Array(9);
+  const sampleCount = (radius * 2 + 1) ** 2;
+  const redSamples = new Uint8Array(sampleCount);
+  const greenSamples = new Uint8Array(sampleCount);
+  const blueSamples = new Uint8Array(sampleCount);
+  const medianIndex = Math.floor(sampleCount / 2);
   const sortSamples = (samples) => {
     for (let i = 1; i < samples.length; i += 1) {
       const value = samples[i];
@@ -93,9 +108,9 @@ async function medianFilteredBitmap(source) {
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
       let index = 0;
-      for (let dy = -1; dy <= 1; dy += 1) {
+      for (let dy = -radius; dy <= radius; dy += 1) {
         const sampleY = Math.max(0, Math.min(height - 1, y + dy));
-        for (let dx = -1; dx <= 1; dx += 1) {
+        for (let dx = -radius; dx <= radius; dx += 1) {
           const sampleX = Math.max(0, Math.min(width - 1, x + dx));
           const offset = (sampleY * width + sampleX) * 4;
           redSamples[index] = input[offset];
@@ -108,9 +123,9 @@ async function medianFilteredBitmap(source) {
       sortSamples(greenSamples);
       sortSamples(blueSamples);
       const offset = (y * width + x) * 4;
-      output[offset] = redSamples[4];
-      output[offset + 1] = greenSamples[4];
-      output[offset + 2] = blueSamples[4];
+      output[offset] = redSamples[medianIndex];
+      output[offset + 1] = greenSamples[medianIndex];
+      output[offset + 2] = blueSamples[medianIndex];
       output[offset + 3] = 255;
     }
   }
@@ -121,19 +136,33 @@ async function medianFilteredBitmap(source) {
 
 async function recognizeImageRegion(source, recognizer) {
   const primary = await recognizer.recognize(source);
-  // Some textured diagrams (especially Olive's hatched board) fail the raw
-  // board detector altogether. Still run the filtered pass when the detector
-  // returns null; previously that early return skipped the only useful retry.
-  if (primary?.reliable) return primary;
-
   const filtered = await medianFilteredBitmap(source);
+  let alternate;
   try {
-    const alternate = await recognizer.recognize(filtered.bitmap);
-    const improvesRead = alternate?.plausible && (!primary?.plausible
-      || alternate.meanConfidence > primary.meanConfidence
-      || (alternate.meanConfidence === primary.meanConfidence && alternate.minConfidence > primary.minConfidence));
-    if (!improvesRead) return primary;
-    return {
+    alternate = await recognizer.recognize(filtered.bitmap);
+  } finally {
+    filtered.bitmap.close();
+  }
+  if (!alternate?.plausible) {
+    const strongerFilter = await medianFilteredBitmap(source, 2);
+    try {
+      alternate = await recognizer.recognize(strongerFilter.bitmap);
+      if (alternate?.plausible) {
+        alternate = {
+          ...alternate,
+          corners: {
+            x0: alternate.corners.x0 * strongerFilter.scaleX,
+            y0: alternate.corners.y0 * strongerFilter.scaleY,
+            x1: alternate.corners.x1 * strongerFilter.scaleX,
+            y1: alternate.corners.y1 * strongerFilter.scaleY,
+          },
+        };
+      }
+    } finally {
+      strongerFilter.bitmap.close();
+    }
+  } else {
+    alternate = {
       ...alternate,
       corners: {
         x0: alternate.corners.x0 * filtered.scaleX,
@@ -142,9 +171,11 @@ async function recognizeImageRegion(source, recognizer) {
         y1: alternate.corners.y1 * filtered.scaleY,
       },
     };
-  } finally {
-    filtered.bitmap.close();
   }
+  const improvesRead = alternate?.plausible && (!primary?.plausible
+    || alternate.meanConfidence > primary.meanConfidence
+    || (alternate.meanConfidence === primary.meanConfidence && alternate.minConfidence > primary.minConfidence));
+  return improvesRead ? alternate : primary;
 }
 
 const initialPieces = () => {
@@ -216,10 +247,12 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const [imageImport, setImageImport] = useState({ status: 'idle', items: [], selected: -1 });
   const [imageImportOpen, setImageImportOpen] = useState(false);
   const [imagePreviewUrl, setImagePreviewUrl] = useState('');
+  const [imagePreviewDetails, setImagePreviewDetails] = useState('');
   const popeyeWorker = useRef(null);
   const worker = useRef(null);
   const imageRecognizer = useRef(null);
   const imageInput = useRef(null);
+  const imagePasteTarget = useRef(null);
   const imagePreviewUrlRef = useRef('');
   const scanImageRef = useRef(null);
   const engineEnabledRef = useRef(true);
@@ -528,6 +561,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
     if (imagePreviewUrlRef.current) URL.revokeObjectURL(imagePreviewUrlRef.current);
     imagePreviewUrlRef.current = URL.createObjectURL(file);
     setImagePreviewUrl(imagePreviewUrlRef.current);
+    setImagePreviewDetails(`${file.type || 'image'} · ${Math.max(1, Math.round(file.size / 1024))} KB`);
     if (file.size > 25 * 1024 * 1024) {
       setImageImport({ status: 'error', items: [], selected: -1 });
       return;
@@ -544,6 +578,60 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
       setImageImport({ status: 'error', items: [], selected: -1 });
     }
   }
+  async function pasteClipboardImage() {
+    try {
+      if (!navigator.clipboard?.read) throw new Error('Clipboard image read is unavailable');
+      const clipboardItems = await navigator.clipboard.read();
+      for (const item of clipboardItems) {
+        const imageItem = preferredClipboardImage(item.types.map((type) => ({ type })));
+        const imageType = imageItem?.type;
+        if (!imageType) continue;
+        const blob = await item.getType(imageType);
+        await scanClipboardImage(blob, blob.type || imageType);
+        return;
+      }
+      setImageImport({ status: 'error', items: [], selected: -1, message: imageText.pasteMissing });
+    } catch (error) {
+      console.warn('Could not read an image from the clipboard', error);
+      setImageImport({ status: 'error', items: [], selected: -1, message: imageText.pasteDenied });
+    }
+  }
+  async function scanClipboardImage(blob, type = 'image/png') {
+    try {
+      const bitmap = await createImageBitmap(blob);
+      const canvas = document.createElement('canvas');
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Canvas 2d context unavailable');
+      context.fillStyle = '#fff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(bitmap, 0, 0);
+      bitmap.close();
+      const png = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (!png) throw new Error('Could not normalize clipboard image');
+      await scanPositionImage(new File([png], 'clipboard-image.png', { type: 'image/png' }));
+    } catch (error) {
+      console.warn(`Could not decode clipboard image (${type})`, error);
+      setImageImport({ status: 'error', items: [], selected: -1, message: imageText.pasteDenied });
+    }
+  }
+  function handleDialogImagePaste(event) {
+    const clipboard = event.clipboardData;
+    const imageItem = clipboard && preferredClipboardImage(clipboard.items);
+    const imageFile = clipboard && preferredClipboardImage(clipboard.files);
+    const blob = imageItem?.getAsFile() || imageFile;
+    event.preventDefault();
+    event.stopPropagation();
+    if (blob) {
+      void scanClipboardImage(blob, blob.type || 'image/png');
+    } else {
+      void pasteClipboardImage();
+    }
+  }
+  useEffect(() => {
+    if (imageImportOpen) imagePasteTarget.current?.focus();
+  }, [imageImportOpen]);
   scanImageRef.current = scanPositionImage;
   function selectRecognizedPosition(index) {
     const item = imageImport.items[index];
@@ -561,8 +649,9 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
       const isTextField = target instanceof HTMLTextAreaElement
         || (target instanceof HTMLInputElement && !['file', 'button', 'submit', 'reset', 'checkbox', 'radio'].includes(target.type));
       if (target instanceof HTMLElement && (target.isContentEditable || isTextField)) return;
-      const imageItem = [...clipboard.items].find((item) => item.type.startsWith('image/'));
-      const blob = imageItem?.getAsFile() || [...clipboard.files].find((file) => file.type.startsWith('image/'));
+      const imageItem = preferredClipboardImage(clipboard.items);
+      const imageFile = preferredClipboardImage(clipboard.files);
+      const blob = imageItem?.getAsFile() || imageFile;
       if (!blob) return;
       event.preventDefault();
       setImageImportOpen(true);
@@ -680,7 +769,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
       </aside>
     </div>
     {imageImportOpen && <div className="position-lab__image-import-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setImageImportOpen(false); }}>
-      <section className="position-lab__image-import" role="dialog" aria-modal="true" aria-label={imageText.title} onDragOver={(event) => event.preventDefault()} onDrop={(event) => {
+      <section ref={imagePasteTarget} tabIndex={-1} className="position-lab__image-import" role="dialog" aria-modal="true" aria-label={imageText.title} onPaste={handleDialogImagePaste} onDragOver={(event) => event.preventDefault()} onDrop={(event) => {
         event.preventDefault();
         const file = [...event.dataTransfer.files].find((item) => item.type.startsWith('image/'));
         if (file) scanPositionImage(file);
@@ -692,10 +781,10 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         }} />
         <div className="position-lab__image-import-heading"><strong>{imageText.title}</strong><div><button type="button" onClick={() => imageInput.current?.click()}>{imageText.button}</button><button type="button" aria-label="Close" onClick={() => setImageImportOpen(false)}>×</button></div></div>
         {imageImport.status === 'idle' && <p>{imageText.help}</p>}
-        {imagePreviewUrl && <figure className="position-lab__image-preview"><figcaption>{language === 'lt' ? 'Įkeltas vaizdas' : language === 'ru' ? 'Загруженное изображение' : 'Image received'}</figcaption><img src={imagePreviewUrl} alt={language === 'lt' ? 'Įkeltas vaizdas' : 'Image received'} /></figure>}
+        {imagePreviewUrl && <figure className="position-lab__image-preview"><figcaption>{language === 'lt' ? 'Įkeltas vaizdas' : language === 'ru' ? 'Загруженное изображение' : 'Image received'} <small>{imagePreviewDetails}</small></figcaption><img src={imagePreviewUrl} alt={language === 'lt' ? 'Įkeltas vaizdas' : 'Image received'} /></figure>}
         {imageImport.status === 'scanning' && <p role="status">{imageText.scanning}</p>}
         {imageImport.status === 'empty' && <p role="status">{imageText.none}</p>}
-        {imageImport.status === 'error' && <p role="alert">{imageText.failed}</p>}
+        {imageImport.status === 'error' && <p role="alert">{imageImport.message || imageText.failed}</p>}
         {imageImport.status === 'done' && <>
           <p role="status">{imageText.found}: {imageImport.items.length}. {imageImport.items.length > 1 ? imageText.choose : imageText.ready}</p>
           <div className="position-lab__recognized-list">{imageImport.items.map((item, index) => <button type="button" key={`${item.fen}-${index}`} className={imageImport.selected === index ? 'is-selected' : ''} onClick={() => selectRecognizedPosition(index)}>
