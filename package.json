@@ -21,7 +21,9 @@
     "import:tournaments": "node scripts/import-tournament-puzzles.mjs"
   },
   "dependencies": {
+    "@scoriiu/fenshot": "^0.1.5",
     "chess.js": "^1.4.0",
+    "onnxruntime-web": "^1.31.1",
     "pdfkit": "^0.20.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

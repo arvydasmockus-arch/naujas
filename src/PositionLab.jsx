@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
+import { createRecognizer, placementToFen, resolveOrientation } from '@scoriiu/fenshot';
+import modelUrl from '@scoriiu/fenshot/model/chess-tiles-v2.onnx?url';
+import wasmUrl from 'onnxruntime-web/ort-wasm-simd-threaded.wasm?url';
+import wasmMjsUrl from 'onnxruntime-web/ort-wasm-simd-threaded.mjs?url';
 import { positionArchiveRequest } from './positionArchiveApi.js';
 import { exportOliveCollection } from './lib/oliveExport.js';
 import './PositionLab.css';
@@ -7,6 +11,55 @@ import './PositionLab.css';
 const pieceImages = Object.fromEntries(Object.entries(import.meta.glob('./assets/chess/*.svg', { eager: true, query: '?url', import: 'default' }))
   .map(([path, url]) => [path.split('/').pop().replace('.svg', ''), url]));
 const files = 'abcdefgh';
+const imageImportText = {
+  lt: { title: 'Įkelti diagramą iš vaizdo', button: 'Pasirinkti vaizdą', help: 'Nutempkite vaizdą čia arba įklijuokite su Ctrl+V. Galima rinktis nuotrauką iš telefono galerijos.', scanning: 'Atpažįstamos diagramos…', none: 'Diagramų nepavyko aptikti. Įkelkite aiškesnį 2D vaizdą.', failed: 'Vaizdo nuskaityti nepavyko. Bandykite kitą failą.', found: 'Atpažintos diagramos', choose: 'Pasirinkite diagramą, kurią įkelti į lentą.', confidence: 'patikimumas', check: 'Patikrinkite figūras: atpažinimas gali klysti.', ready: 'Nuskaityta. Pasirinkite diagramą.' },
+  en: { title: 'Import position from image', button: 'Choose image', help: 'Drop an image here or paste with Ctrl+V. On mobile, choose a photo from your camera or gallery.', scanning: 'Recognizing diagrams…', none: 'No chessboard was detected. Try a clearer 2D image.', failed: 'Could not read this image. Try another file.', found: 'Recognized diagrams', choose: 'Choose a diagram to load onto the board.', confidence: 'confidence', check: 'Please check the pieces; recognition can make mistakes.', ready: 'Image scanned. Choose a diagram.' },
+  ru: { title: 'Загрузить диаграмму из изображения', button: 'Выбрать изображение', help: 'Перетащите изображение сюда или вставьте через Ctrl+V. На телефоне можно выбрать фото из галереи.', scanning: 'Распознавание диаграмм…', none: 'Диаграммы не найдены. Попробуйте более четкое 2D-изображение.', failed: 'Не удалось прочитать изображение. Попробуйте другой файл.', found: 'Распознанные диаграммы', choose: 'Выберите диаграмму для загрузки на доску.', confidence: 'точность', check: 'Проверьте фигуры: распознавание может ошибаться.', ready: 'Изображение обработано. Выберите диаграмму.' },
+};
+
+async function recognizeImageBoards(file, recognizer) {
+  const root = await createImageBitmap(file);
+  const pending = [{ bitmap: root, x: 0, y: 0, root: true }];
+  const found = [];
+  let scannedRegions = 0;
+
+  while (pending.length && scannedRegions < 32 && found.length < 12) {
+    const region = pending.shift();
+    scannedRegions += 1;
+    try {
+      const result = await recognizer.recognize(region.bitmap);
+      if (!result?.plausible) continue;
+
+      const { placement } = resolveOrientation(result.placement);
+      found.push({ fen: placementToFen(placement, 'w'), confidence: result.minConfidence, reliable: result.reliable, x: region.x + result.corners.x0, y: region.y + result.corners.y0 });
+
+      const { x0, y0, x1, y1 } = result.corners;
+      const width = region.bitmap.width;
+      const height = region.bitmap.height;
+      const left = Math.max(0, Math.floor(x0));
+      const top = Math.max(0, Math.floor(y0));
+      const right = Math.min(width, Math.ceil(x1));
+      const bottom = Math.min(height, Math.ceil(y1));
+      const crops = [
+        [0, 0, width, top],
+        [0, bottom, width, height - bottom],
+        [0, top, left, bottom - top],
+        [right, top, width - right, bottom - top],
+      ];
+      for (const [cropX, cropY, cropWidth, cropHeight] of crops) {
+        if (cropWidth < 100 || cropHeight < 100) continue;
+        const bitmap = await createImageBitmap(region.bitmap, cropX, cropY, cropWidth, cropHeight);
+        pending.push({ bitmap, x: region.x + cropX, y: region.y + cropY, root: false });
+      }
+    } finally {
+      if (!region.root) region.bitmap.close();
+    }
+  }
+  for (const region of pending) if (!region.root) region.bitmap.close();
+  root.close();
+  return found.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
 const initialPieces = () => {
   const chess = new Chess();
   return Object.fromEntries(chess.board().flatMap((row, rank) => row.map((piece, file) =>
@@ -48,6 +101,7 @@ function toFen(pieces, turn, metadata = null) {
 export default function PositionLab({ language = 'en', accountUser = null }) {
   const t = copy[language] || copy.en;
   const archiveLabels = archiveText[language] || archiveText.en;
+  const imageText = imageImportText[language] || imageImportText.en;
   const restartLabel = language === 'lt' ? 'Paleisti variklį iš naujo' : language === 'ru' ? 'Перезапустить движок' : 'Restart engine';
   const engineTimeoutLabel = language === 'lt' ? 'Variklis neatsako. Paleiskite jį iš naujo.' : language === 'ru' ? 'Движок не отвечает. Перезапустите его.' : 'Engine is not responding. Restart it.';
   const engineTimeoutLabelRef = useRef(engineTimeoutLabel);
@@ -72,8 +126,12 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const [answerPlayback, setAnswerPlayback] = useState(false);
   const [stipulation, setStipulation] = useState('#2');
   const [activeAnswerPhases, setActiveAnswerPhases] = useState(['play', 'tries', 'setPlay']);
+  const [imageImport, setImageImport] = useState({ status: 'idle', items: [], selected: -1 });
   const popeyeWorker = useRef(null);
   const worker = useRef(null);
+  const imageRecognizer = useRef(null);
+  const imageInput = useRef(null);
+  const scanImageRef = useRef(null);
   const engineEnabledRef = useRef(true);
   const fen = useMemo(() => toFen(pieces, turn, fenMetadata), [pieces, turn, fenMetadata]);
   const game = useMemo(() => { try { return new Chess(fen); } catch { return null; } }, [fen]);
@@ -372,6 +430,42 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
       setFenError(t.invalidFen);
     }
   }
+  async function scanPositionImage(file) {
+    if (!file?.type?.startsWith('image/')) return;
+    if (file.size > 25 * 1024 * 1024) {
+      setImageImport({ status: 'error', items: [], selected: -1 });
+      return;
+    }
+    setImageImport({ status: 'scanning', items: [], selected: -1 });
+    try {
+      imageRecognizer.current ||= createRecognizer({ modelUrl, wasmPaths: { mjs: wasmMjsUrl, wasm: wasmUrl } });
+      const items = await recognizeImageBoards(file, imageRecognizer.current);
+      setImageImport({ status: items.length ? 'done' : 'empty', items, selected: -1 });
+    } catch (error) {
+      console.error('Chess diagram image recognition failed', error);
+      setImageImport({ status: 'error', items: [], selected: -1 });
+    }
+  }
+  scanImageRef.current = scanPositionImage;
+  function selectRecognizedPosition(index) {
+    const item = imageImport.items[index];
+    if (!item) return;
+    if (applyFen(item.fen)) setImageImport((current) => ({ ...current, selected: index }));
+  }
+  useEffect(() => {
+    function onPasteImage(event) {
+      const image = [...(event.clipboardData?.items || [])].find((item) => item.type.startsWith('image/'));
+      if (!image) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA'].includes(target.tagName))) return;
+      const blob = image.getAsFile();
+      if (!blob) return;
+      event.preventDefault();
+      scanImageRef.current?.(new File([blob], 'clipboard-image.png', { type: blob.type || 'image/png' }));
+    }
+    window.addEventListener('paste', onPasteImage);
+    return () => window.removeEventListener('paste', onPasteImage);
+  }, []);
   function toggleEngine() {
     const enabled = !engineEnabledRef.current;
     engineEnabledRef.current = enabled;
@@ -453,6 +547,28 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
             <button type="button" title={t.copy} aria-label={t.copy} onClick={copyPosition}>{copied ? '✓' : '⧉'}</button>
           </div>
           {fenError && <p role="alert">{fenError}</p>}
+        </section>
+        <section className="position-lab__image-import" aria-label={imageText.title} onDragOver={(event) => event.preventDefault()} onDrop={(event) => {
+          event.preventDefault();
+          const file = [...event.dataTransfer.files].find((item) => item.type.startsWith('image/'));
+          if (file) scanPositionImage(file);
+        }}>
+          <input ref={imageInput} className="position-lab__image-input" type="file" accept="image/*" aria-label={imageText.button} onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) scanPositionImage(file);
+            event.target.value = '';
+          }} />
+          <div className="position-lab__image-import-heading"><strong>{imageText.title}</strong><button type="button" onClick={() => imageInput.current?.click()}>{imageText.button}</button></div>
+          <p>{imageText.help}</p>
+          {imageImport.status === 'scanning' && <p role="status">{imageText.scanning}</p>}
+          {imageImport.status === 'empty' && <p role="status">{imageText.none}</p>}
+          {imageImport.status === 'error' && <p role="alert">{imageText.failed}</p>}
+          {imageImport.status === 'done' && <>
+            <p role="status">{imageText.found}: {imageImport.items.length}. {imageImport.items.length > 1 ? imageText.choose : imageText.ready}</p>
+            <div className="position-lab__recognized-list">{imageImport.items.map((item, index) => <button type="button" key={`${item.fen}-${index}`} className={imageImport.selected === index ? 'is-selected' : ''} onClick={() => selectRecognizedPosition(index)}>
+              <strong>{index + 1}.</strong><span>{Math.round(item.confidence * 100)}% {imageText.confidence}</span><code>{item.fen.split(' ')[0]}</code>{!item.reliable && <em>{imageText.check}</em>}
+            </button>)}</div>
+          </>}
         </section>
       </div>
       <aside className="position-lab__side">
