@@ -440,7 +440,9 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
     try {
       imageRecognizer.current ||= createRecognizer({ modelUrl, wasmPaths: { mjs: wasmMjsUrl, wasm: wasmUrl } });
       const items = await recognizeImageBoards(file, imageRecognizer.current);
-      setImageImport({ status: items.length ? 'done' : 'empty', items, selected: -1 });
+      const selected = items.length ? 0 : -1;
+      if (items[0]) applyFen(items[0].fen);
+      setImageImport({ status: items.length ? 'done' : 'empty', items, selected });
     } catch (error) {
       console.error('Chess diagram image recognition failed', error);
       setImageImport({ status: 'error', items: [], selected: -1 });
@@ -537,17 +539,6 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
           </button>;
         }))}
       </div></section>
-        <section className="position-lab__fen-panel" aria-label="FEN">
-          <label htmlFor="position-lab-fen">FEN</label>
-          <button type="button" className="position-lab__flip-button" aria-label={t.flip} title={t.flip} onClick={() => setFlipped((value) => !value)}>⟳</button>
-          <div className="position-lab__fen-controls">
-            <input id="position-lab-fen" type="text" value={fenDraft ?? fen.split(' ')[0]} placeholder={t.fenPlaceholder}
-              aria-invalid={Boolean(fenError)} onChange={(event) => { setFenDraft(event.target.value); setFenError(''); }}
-              onPaste={pasteFen} onKeyDown={(event) => { if (event.key === 'Enter') loadFen(); }} />
-            <button type="button" title={t.copy} aria-label={t.copy} onClick={copyPosition}>{copied ? '✓' : '⧉'}</button>
-          </div>
-          {fenError && <p role="alert">{fenError}</p>}
-        </section>
         <section className="position-lab__image-import" aria-label={imageText.title} onDragOver={(event) => event.preventDefault()} onDrop={(event) => {
           event.preventDefault();
           const file = [...event.dataTransfer.files].find((item) => item.type.startsWith('image/'));
@@ -559,24 +550,37 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
             event.target.value = '';
           }} />
           <div className="position-lab__image-import-heading"><strong>{imageText.title}</strong><button type="button" onClick={() => imageInput.current?.click()}>{imageText.button}</button></div>
-          <p>{imageText.help}</p>
+          {imageImport.status === 'idle' && <p>{imageText.help}</p>}
           {imageImport.status === 'scanning' && <p role="status">{imageText.scanning}</p>}
           {imageImport.status === 'empty' && <p role="status">{imageText.none}</p>}
           {imageImport.status === 'error' && <p role="alert">{imageText.failed}</p>}
           {imageImport.status === 'done' && <>
             <p role="status">{imageText.found}: {imageImport.items.length}. {imageImport.items.length > 1 ? imageText.choose : imageText.ready}</p>
             <div className="position-lab__recognized-list">{imageImport.items.map((item, index) => <button type="button" key={`${item.fen}-${index}`} className={imageImport.selected === index ? 'is-selected' : ''} onClick={() => selectRecognizedPosition(index)}>
-              <strong>{index + 1}.</strong><span>{Math.round(item.confidence * 100)}% {imageText.confidence}</span><code>{item.fen.split(' ')[0]}</code>{!item.reliable && <em>{imageText.check}</em>}
+              <strong>{index + 1}.</strong><span>{Math.round(item.confidence * 100)}% {imageText.confidence}</span>{!item.reliable && <em>{imageText.check}</em>}
             </button>)}</div>
           </>}
         </section>
       </div>
       <aside className="position-lab__side">
-        <section className="position-lab__card"><h2>{t.pieces}</h2>{['w', 'b'].map((color) => <div className="position-lab__piece-row" key={color}>{['K', 'Q', 'R', 'B', 'N', 'P'].map((kind) => {
+        <div className="position-lab__piece-column">
+        <section className="position-lab__card position-lab__pieces"><h2>{t.pieces}</h2>{['w', 'b'].map((color) => <div className="position-lab__piece-row" key={color}>{['K', 'Q', 'R', 'B', 'N', 'P'].map((kind) => {
           const code = color + kind;
           return <button type="button" draggable key={code} aria-label={code} className={selected?.code === code ? 'is-active' : ''} onClick={() => setSelected({ type: 'piece', code })}
             onDragStart={(event) => event.dataTransfer.setData('text/plain', 'piece:' + code)}><img src={pieceImages[code]} alt={code} /></button>;
         })}</div>)}<button className={'position-lab__erase' + (selected?.type === 'erase' ? ' is-active' : '')} type="button" onClick={() => setSelected({ type: 'erase' })}>⌫ {t.erase}</button></section>
+        <section className="position-lab__fen-panel" aria-label="FEN">
+          <label htmlFor="position-lab-fen">FEN</label>
+          <button type="button" className="position-lab__flip-button" aria-label={t.flip} title={t.flip} onClick={() => setFlipped((value) => !value)}>⟳</button>
+          <div className="position-lab__fen-controls">
+            <input id="position-lab-fen" type="text" value={fenDraft ?? fen.split(' ')[0]} placeholder={t.fenPlaceholder}
+              aria-invalid={Boolean(fenError)} onChange={(event) => { setFenDraft(event.target.value); setFenError(''); }}
+              onPaste={pasteFen} onKeyDown={(event) => { if (event.key === 'Enter') loadFen(); }} />
+            <button type="button" title={t.copy} aria-label={t.copy} onClick={copyPosition}>{copied ? '✓' : '⧉'}</button>
+          </div>
+          {fenError && <p role="alert">{fenError}</p>}
+        </section>
+        </div>
         <section className="position-lab__card position-lab__controls"><h2>{t.title}</h2><div className="position-lab__turn"><button className={turn === 'w' ? 'is-active' : ''} onClick={() => { setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.white}</button><button className={turn === 'b' ? 'is-active' : ''} onClick={() => { setTurn('b'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.black}</button></div>
           <div className="position-lab__buttons"><button type="button" onClick={() => { setPieces(initialPieces()); setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.start}</button><button type="button" onClick={() => { setPieces({}); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.clear}</button></div>
           <div className="position-lab__buttons position-lab__board-actions">
