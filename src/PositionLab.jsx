@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
+import { positionArchiveRequest } from './positionArchiveApi.js';
+import { exportOliveCollection } from './lib/oliveExport.js';
 import './PositionLab.css';
 
 const pieceImages = Object.fromEntries(Object.entries(import.meta.glob('./assets/chess/*.svg', { eager: true, query: '?url', import: 'default' }))
@@ -14,6 +16,12 @@ const copy = {
   lt: { title: 'Pozicijų analizė', subtitle: 'Sudėliokite figūras ir iškart analizuokite su Stockfish.', pieces: 'Figūros', white: 'Baltųjų ėjimas', black: 'Juodųjų ėjimas', ready: 'Variklis paruoštas', loading: 'Įkeliamas Stockfish…', engineOn: 'Variklis įjungtas', engineOff: 'Variklis išjungtas', enableEngine: 'Įjungti variklį', disableEngine: 'Išjungti variklį', showPosition: 'Rodyti poziciją po šio ėjimo', best: 'Geriausias ėjimas', evaluation: 'Įvertinimas', mate: 'Matas', noMate: 'Matas šiuo gyliu nerastas', checkmate: 'Šioje pozicijoje matas', stalemate: 'Patas', invalid: 'Pozicija negalioja', erase: 'Trinti', start: 'Pradinė padėtis', clear: 'Išvalyti lentą', flip: 'Apversti lentą', copy: 'Kopijuoti', copied: 'Nukopijuota', loadFen: 'Įkelti', fenPlaceholder: 'Įklijuokite FEN poziciją', invalidFen: 'Neteisingas FEN. Patikrinkite pozicijos įrašą.', thinking: 'Matas nerastas iki šio gylio nereiškia, kad jo nėra.' },
   en: { title: 'Position analysis', subtitle: 'Place pieces and analyze instantly with Stockfish.', pieces: 'Pieces', white: 'White to move', black: 'Black to move', ready: 'Engine ready', loading: 'Loading Stockfish…', engineOn: 'Engine on', engineOff: 'Engine off', enableEngine: 'Turn engine on', disableEngine: 'Turn engine off', showPosition: 'Show position after this move', best: 'Best move', evaluation: 'Evaluation', mate: 'Mate', noMate: 'No mate found at this depth', checkmate: 'This position is checkmate', stalemate: 'Stalemate', invalid: 'Invalid position', erase: 'Erase', start: 'Starting position', clear: 'Clear board', flip: 'Flip board', copy: 'Copy', copied: 'Copied', loadFen: 'Load', fenPlaceholder: 'Paste a FEN position', invalidFen: 'Invalid FEN. Check the position notation.', thinking: 'Not finding mate at this depth does not prove there is no mate.' },
   ru: { title: 'Анализ позиции', subtitle: 'Расставьте фигуры и сразу анализируйте с Stockfish.', pieces: 'Фигуры', white: 'Ход белых', black: 'Ход чёрных', ready: 'Движок готов', loading: 'Загрузка Stockfish…', engineOn: 'Движок включён', engineOff: 'Движок выключен', enableEngine: 'Включить движок', disableEngine: 'Выключить движок', showPosition: 'Показать позицию после этого хода', best: 'Лучший ход', evaluation: 'Оценка', mate: 'Мат', noMate: 'Мат на этой глубине не найден', checkmate: 'В этой позиции мат', stalemate: 'Пат', invalid: 'Недопустимая позиция', erase: 'Стереть', start: 'Начальная позиция', clear: 'Очистить доску', flip: 'Перевернуть доску', copy: 'Копировать', copied: 'Скопировано', loadFen: 'Загрузить', fenPlaceholder: 'Вставьте позицию FEN', invalidFen: 'Неверный FEN. Проверьте запись позиции.', thinking: 'Если мат не найден на этой глубине, это не значит, что его точно нет.' },
+};
+
+const archiveText = {
+  lt: { archive: 'Išsaugotos pozicijos', save: 'Išsaugoti poziciją', download: 'Atsisiųsti .olv', empty: 'Archyvas tuščias.', login: 'Prisijunkite, kad matytumėte ir saugotumėte savo privačias pozicijas.', remove: 'Ištrinti', error: 'Archyvo klaida' },
+  en: { archive: 'Saved problems', save: 'Save position', download: 'Download .olv', empty: 'Your archive is empty.', login: 'Sign in to view and save your private positions.', remove: 'Delete', error: 'Archive error' },
+  ru: { archive: 'Сохранённые задачи', save: 'Сохранить позицию', download: 'Скачать .olv', empty: 'Архив пуст.', login: 'Войдите, чтобы видеть и сохранять свои приватные позиции.', remove: 'Удалить', error: 'Ошибка архива' },
 };
 
 function toFen(pieces, turn, metadata = null) {
@@ -37,8 +45,9 @@ function toFen(pieces, turn, metadata = null) {
     + (metadata?.enPassant ?? '-') + ' ' + (metadata?.halfmove ?? '0') + ' ' + (metadata?.fullmove ?? '1');
 }
 
-export default function PositionLab({ language = 'en' }) {
+export default function PositionLab({ language = 'en', accountUser = null }) {
   const t = copy[language] || copy.en;
+  const archiveLabels = archiveText[language] || archiveText.en;
   const restartLabel = language === 'lt' ? 'Paleisti variklį iš naujo' : language === 'ru' ? 'Перезапустить движок' : 'Restart engine';
   const engineTimeoutLabel = language === 'lt' ? 'Variklis neatsako. Paleiskite jį iš naujo.' : language === 'ru' ? 'Движок не отвечает. Перезапустите его.' : 'Engine is not responding. Restart it.';
   const engineTimeoutLabelRef = useRef(engineTimeoutLabel);
@@ -57,6 +66,7 @@ export default function PositionLab({ language = 'en' }) {
   const [fenDraft, setFenDraft] = useState(null);
   const [fenError, setFenError] = useState('');
   const [fenMetadata, setFenMetadata] = useState(null);
+  const [archiveData, setArchiveData] = useState({ userId: null, positions: [], error: '' });
   const [problemSolution, setProblemSolution] = useState({ state: 'idle', groups: null });
   const [answerPlayback, setAnswerPlayback] = useState(false);
   const [stipulation, setStipulation] = useState('#2');
@@ -73,6 +83,17 @@ export default function PositionLab({ language = 'en' }) {
     popeyeWorker.current = null;
   }, [fen]);
   useEffect(() => () => popeyeWorker.current?.terminate(), []);
+  useEffect(() => {
+    let active = true;
+    const userId = accountUser?.id;
+    if (!userId) return () => { active = false; };
+    positionArchiveRequest().then((result) => {
+      if (active) setArchiveData({ userId, positions: result.positions || [], error: '' });
+    }).catch((error) => {
+      if (active) setArchiveData({ userId, positions: [], error: error.message });
+    });
+    return () => { active = false; };
+  }, [accountUser?.id]);
 
   const solveProblem = useCallback(() => {
     popeyeWorker.current?.terminate();
@@ -284,6 +305,40 @@ export default function PositionLab({ language = 'en' }) {
     await navigator.clipboard?.writeText(fen.split(' ')[0]);
     setCopied(true); window.setTimeout(() => setCopied(false), 1500);
   }
+  async function savePosition() {
+    if (!accountUser) return;
+    try {
+      const result = await positionArchiveRequest('POST', { fen, stipulation: currentStipulation });
+      setArchiveData((archive) => archive.userId === accountUser.id
+        ? { ...archive, positions: [...archive.positions, result.position].sort((a, b) => a.number - b.number), error: '' }
+        : archive);
+    } catch (error) { setArchiveData((archive) => archive.userId === accountUser.id ? { ...archive, error: error.message } : archive); }
+  }
+  async function deletePosition(position) {
+    try {
+      await positionArchiveRequest('DELETE', undefined, position.id);
+      setArchiveData((archive) => archive.userId === accountUser?.id
+        ? { ...archive, positions: archive.positions.filter((item) => item.id !== position.id), error: '' }
+        : archive);
+    } catch (error) { setArchiveData((archive) => archive.userId === accountUser?.id ? { ...archive, error: error.message } : archive); }
+  }
+  function openSavedPosition(position) {
+    if (applyFen(position.fen)) setStipulation(position.stipulation);
+  }
+  function downloadOlv() {
+    if (!visiblePositions.length) return;
+    const blob = new Blob([exportOliveCollection(visiblePositions)], { type: 'text/yaml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'ML-Academy-positions.olv';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+  const archiveReady = Boolean(accountUser && archiveData.userId === accountUser.id);
+  const visiblePositions = archiveReady ? archiveData.positions : [];
+  const archiveError = archiveReady ? archiveData.error : '';
+  const archiveLoading = Boolean(accountUser && !archiveReady);
   function applyFen(value, showError = true) {
     try {
       const trimmedFen = value.trim();
@@ -342,10 +397,23 @@ export default function PositionLab({ language = 'en' }) {
         {ranks.map((rank, r) => boardFiles.map((file, c) => {
           const square = file + rank; const piece = pieces[square];
           return <button type="button" key={square} aria-label={square} className={'position-lab__square ' + ((r + c) % 2 ? 'is-dark' : 'is-light') + (selected?.square === square ? ' is-selected' : '')}
-            onClick={() => squareClick(square)} onDragOver={(event) => event.preventDefault()} onDrop={(event) => {
-              event.preventDefault(); const data = event.dataTransfer.getData('text/plain'); setFenMetadata(null); setFenDraft(null); setFenError('');
+            onClick={() => squareClick(square)} onContextMenu={(event) => {
+              if (!pieces[square]) return;
+              event.preventDefault();
+              setPieces((old) => { const next = { ...old }; delete next[square]; return next; });
+              if (selected?.square === square) setSelected(null);
+              setFenMetadata(null);
+              setFenDraft(null);
+              setFenError('');
+            }} onDragOver={(event) => event.preventDefault()} onDrop={(event) => {
+              event.preventDefault(); const data = event.dataTransfer.getData('text/plain');
+              if (data.startsWith('square:') && data.slice(7) === square) return;
+              setFenMetadata(null); setFenDraft(null); setFenError('');
               if (data.startsWith('piece:')) setPieces((old) => ({ ...old, [square]: data.slice(6) }));
-              if (data.startsWith('square:')) setPieces((old) => { const next = { ...old, [square]: old[data.slice(7)] }; delete next[data.slice(7)]; return next; });
+              if (data.startsWith('square:')) {
+                const source = data.slice(7);
+                setPieces((old) => { const next = { ...old, [square]: old[source] }; delete next[source]; return next; });
+              }
             }}>
             {c === 0 && <span className="position-lab__coordinate">{rank}</span>}{r === 7 && <span className="position-lab__coordinate position-lab__coordinate--file">{file}</span>}
             {piece && <img draggable onDragStart={(event) => {
@@ -364,6 +432,22 @@ export default function PositionLab({ language = 'en' }) {
             <button type="button" title={t.copy} aria-label={t.copy} onClick={copyPosition}>{copied ? '✓' : '⧉'}</button>
           </div>
           {fenError && <p role="alert">{fenError}</p>}
+        </section>
+        <section className="position-lab__archive" aria-label={archiveLabels.archive}>
+          <div className="position-lab__archive-heading"><h2>{archiveLabels.archive}</h2><div>
+            <button type="button" onClick={savePosition} disabled={!accountUser || archiveLoading}>{archiveLabels.save}</button>
+            <button type="button" onClick={downloadOlv} disabled={!visiblePositions.length}>{archiveLabels.download}</button>
+          </div></div>
+          {!accountUser && <p>{archiveLabels.login}</p>}
+          {archiveLoading && <p>{t.loading}</p>}
+          {archiveError && <p className="position-lab__archive-error" role="alert">{archiveError}</p>}
+          {accountUser && !archiveLoading && !archiveError && visiblePositions.length === 0 && <p>{archiveLabels.empty}</p>}
+          {accountUser && visiblePositions.length > 0 && <ol className="position-lab__archive-list">{visiblePositions.map((position) => <li key={position.id}>
+            <button type="button" className="position-lab__archive-open" onClick={() => openSavedPosition(position)}>
+              <strong>{position.number}.</strong><span>{position.stipulation}</span><code>{position.fen.split(' ')[0]}</code>
+            </button>
+            <button type="button" className="position-lab__archive-delete" aria-label={`${archiveLabels.remove} ${position.number}`} title={archiveLabels.remove} onClick={() => deletePosition(position)}>×</button>
+          </li>)}</ol>}
         </section>
       </div>
       <aside className="position-lab__side">

@@ -69,7 +69,7 @@ function App() {
       {activePage === 'sprint' && accountConfig && <SprintPlatform key={accountUser?.id || 'guest'} language={language} accountUser={accountUser} accountsEnabled={accountConfig.enabled} />}
       {activePage === 'training' && accountConfig && <TournamentPlatform key={accountUser?.id || 'guest'} language={language} accountUser={accountUser} accountsEnabled={accountConfig.enabled} />}
       {activePage === 'forum' && <Forum key={accountUser?.id || 'guest'} language={language} accountUser={accountUser} />}
-      {activePage === 'positionlab' && <PositionLab language={language} />}
+      {activePage === 'positionlab' && <PositionLab language={language} accountUser={accountUser} />}
       {activePage === 'tournaments' && <News url="https://solving.wfcc.ch/wsc/2026-2027/info.html" title={interfaceText(language, 'Pasaulio sprendimo taurės turnyrai', 'World Solving Cup tournaments')} />}
     </>
   );

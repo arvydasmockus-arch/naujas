@@ -109,6 +109,20 @@
 .position-lab__fen-controls button { flex:0 0 28px; padding:3px; border:1px solid #d5d2dc; border-radius:5px; background:#f7f6f9; color:#302d36; font:14px/1 sans-serif; cursor:pointer; }
 .position-lab__fen-controls button:hover { border-color:#83c895; background:#eff8f1; }
 .position-lab__fen-panel > p { flex:1 0 100%; margin:0; color:#a12b38; font-size:12px; }
+.position-lab__archive { min-width:0; padding:10px; border:1px solid #dedbe3; border-radius:9px; background:#fff; color:#25232b; }
+.position-lab__archive-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+.position-lab__archive-heading h2 { margin:0; font-size:13px; }
+.position-lab__archive-heading > div { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:5px; }
+.position-lab__archive button { padding:5px 8px; border:1px solid #d9d6df; border-radius:6px; background:#f7f6f9; color:#302d36; font:inherit; font-size:11px; cursor:pointer; }
+.position-lab__archive button:hover:not(:disabled) { border-color:#83c895; background:#eff8f1; }
+.position-lab__archive button:disabled { opacity:.5; cursor:not-allowed; }
+.position-lab__archive > p { margin:6px 0 0; color:#686571; font-size:11px; line-height:1.45; }
+.position-lab__archive > .position-lab__archive-error { color:#a12b38; }
+.position-lab__archive-list { display:grid; gap:4px; max-height:240px; overflow:auto; margin:8px 0 0; padding:0; list-style:none; }
+.position-lab__archive-list li { display:flex; min-width:0; gap:4px; }
+.position-lab__archive-list .position-lab__archive-open { display:flex; align-items:center; flex:1; min-width:0; gap:7px; text-align:left; }
+.position-lab__archive-open code { overflow:hidden; color:#686571; text-overflow:ellipsis; white-space:nowrap; }
+.position-lab__archive-list .position-lab__archive-delete { flex:0 0 28px; padding:2px; color:#923f48; font-size:16px; }
 @media (max-width:1200px) {
   .position-lab { width:min(100% - 32px,1320px); margin-top:20px; }
   .position-lab__layout { --piece-size:clamp(30px,3.875vw,45px); grid-template-columns:calc(var(--piece-size) + var(--piece-size) + 14px) minmax(0,min(31vw,360px)) minmax(0,1fr); gap:var(--lab-gap) 4px; }

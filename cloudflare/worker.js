@@ -2,6 +2,7 @@ import { Buffer } from 'node:buffer';
 import { iscApi, iscState, guardIsc, runIscSchedule, frozenIscPdf, deliverIscMail } from '../server/iscTraining.mjs';
 import { drawSprintRows } from '../server/sprintDraw.mjs';
 import { forumApi } from '../server/forumApi.mjs';
+import { positionArchiveApi } from '../server/positionArchive.mjs';
 import { accountApi, accountsEnabled, authorizeGameRequest, recordAccountActivity } from '../server/accountAuth.mjs';
 import { latestSaturday, oldEnough, parseTournamentEntry, rankResults, tournamentTypes } from '../server/tournamentTools.mjs';
 import { solutionDraft } from '../server/solutionDraft.mjs';
@@ -30,7 +31,7 @@ function json(data, status = 200, headers = {}) {
 
 function cors(request) {
   const origin = request.headers.get('Origin');
-  const headers = new Headers({ 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Player-Session', 'Vary': 'Origin' });
+  const headers = new Headers({ 'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Player-Session', 'Vary': 'Origin' });
   if (origin && ALLOWED_ORIGINS.has(origin)) headers.set('Access-Control-Allow-Origin', origin);
   return headers;
 }
@@ -988,6 +989,11 @@ export default {
     if (request.method === 'GET' && url.pathname === '/healthz') return json({ ok: true, service: 'ml-academy-api' }, 200, headers);
     if (url.pathname.startsWith('/api/forum/')) {
       const response = await forumApi(request, env, isJudge(request, env));
+      for (const [key, value] of headers) response.headers.set(key, value);
+      return response;
+    }
+    if (url.pathname.startsWith('/api/positions')) {
+      const response = await positionArchiveApi(request, env);
       for (const [key, value] of headers) response.headers.set(key, value);
       return response;
     }
