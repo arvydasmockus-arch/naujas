@@ -35,6 +35,19 @@ async function recognizeImageBoards(file, recognizer) {
       const { x0, y0, x1, y1 } = result.corners;
       const width = region.bitmap.width;
       const height = region.bitmap.height;
+      const boardWidth = x1 - x0;
+      const boardHeight = y1 - y0;
+      const squareSize = Math.min(boardWidth, boardHeight) / 8;
+      if (!region.root) {
+        const edgeMargin = squareSize * 0.3;
+        const largestFoundBoard = Math.max(0, ...found.map((item) => Math.min(item.width, item.height)));
+        // Cropped strips are only for finding another complete board. A
+        // clipped board touching a strip edge is usually just the sliver of
+        // a neighboring diagram, not a second position to offer.
+        if (x0 < edgeMargin || y0 < edgeMargin
+          || x1 > width - edgeMargin || y1 > height - edgeMargin
+          || (largestFoundBoard && Math.min(boardWidth, boardHeight) < largestFoundBoard * 0.65)) continue;
+      }
       const left = Math.max(0, Math.floor(x0));
       const top = Math.max(0, Math.floor(y0));
       const right = Math.min(width, Math.ceil(x1));
@@ -47,6 +60,8 @@ async function recognizeImageBoards(file, recognizer) {
         y: region.y + y0,
         right: region.x + x1,
         bottom: region.y + y1,
+        width: boardWidth,
+        height: boardHeight,
         pieceCount: pieceCount(placement),
       };
       const area = Math.max(0, candidate.right - candidate.x) * Math.max(0, candidate.bottom - candidate.y);
