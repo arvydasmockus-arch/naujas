@@ -190,14 +190,23 @@ function gridRecoversRead(primary, candidate) {
     || (candidate.meanConfidence >= 0.78 && pieceCount(candidate.placement) >= pieceCount(primary?.placement) + 4));
 }
 
+async function scanHatchedRegion(source) {
+  const guide = await medianFilteredBitmap(source, 2);
+  try {
+    return await scanHatchedBoard(source, guide.bitmap, guide, {
+      modelUrl,
+      wasmPaths: { mjs: wasmMjsUrl, wasm: wasmUrl },
+    });
+  } finally {
+    guide.bitmap.close();
+  }
+}
+
 async function recognizeImageRegion(source, recognizer) {
   const primary = await recognizer.recognize(source);
   let gridCandidate;
   if (needsGridRecovery(source, primary)) {
-    gridCandidate = await scanHatchedBoard(source, primary.corners, {
-      modelUrl,
-      wasmPaths: { mjs: wasmMjsUrl, wasm: wasmUrl },
-    });
+    gridCandidate = await scanHatchedRegion(source);
     if (gridRecoversRead(primary, gridCandidate)) return gridCandidate;
   }
 
@@ -261,10 +270,7 @@ async function recognizeImageRegion(source, recognizer) {
     || (alternate.meanConfidence === primary.meanConfidence && alternate.minConfidence > primary.minConfidence));
   let best = bestExisting ? alternate : primary;
   if (needsGridRecovery(source, best)) {
-    gridCandidate ||= await scanHatchedBoard(source, best.corners, {
-      modelUrl,
-      wasmPaths: { mjs: wasmMjsUrl, wasm: wasmUrl },
-    });
+    gridCandidate ||= await scanHatchedRegion(source);
     if (gridRecoversRead(best, gridCandidate)) best = gridCandidate;
   }
   return best;
