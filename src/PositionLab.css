@@ -51,6 +51,7 @@
 .position-lab__board-actions { display:grid; grid-template-columns:34px minmax(0,.8fr) minmax(0,1.2fr); gap:5px; margin-top:7px; }
 .position-lab__board-actions button { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .position-lab__board-actions .position-lab__flip-button { padding:2px; font-size:21px; line-height:1; }
+.position-lab__board-actions .position-lab__archive-toggle.is-populated,
 .position-lab__board-actions .position-lab__archive-toggle[aria-expanded="true"] { border-color:#4f9c63; background:#e2f3e6; color:#285d35; }
 .position-lab__result { grid-column:1/-1; grid-row:1; padding:8px 10px; border-color:#dedbe3; background:#fff; color:#25232b; }
 .position-lab__problem-solver { margin:0 0 14px; border-color:#dedbe3; background:#fff; color:#25232b; }
