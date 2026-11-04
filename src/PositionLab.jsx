@@ -242,9 +242,13 @@ async function recognizeImageRegion(source, recognizer) {
         modelUrl,
         wasmPaths: { mjs: wasmMjsUrl, wasm: wasmUrl },
       });
+      const pieceCount = (placement) => (placement || '').replace(/[1-8/]/g, '').length;
+      const recoversMissingPieces = gridCandidate?.meanConfidence >= 0.78
+        && pieceCount(gridCandidate?.placement) >= pieceCount(best?.placement) + 4;
       if (gridCandidate?.plausible && (!best?.plausible
         || gridCandidate.meanConfidence > best.meanConfidence
-        || (gridCandidate.meanConfidence === best.meanConfidence && gridCandidate.minConfidence > best.minConfidence))) {
+        || (gridCandidate.meanConfidence === best.meanConfidence && gridCandidate.minConfidence > best.minConfidence)
+        || recoversMissingPieces)) {
         best = gridCandidate;
       }
     }
