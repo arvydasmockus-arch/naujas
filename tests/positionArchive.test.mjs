@@ -54,6 +54,27 @@ test('saved positions are private to their verified account and can be created, 
   } finally { t.mock.restoreAll(); app.db.close(); }
 });
 
+test('judge-only shared archive lists each saved position with its author', async (t) => {
+  const app = setup();
+  try {
+    const firstToken = await app.createUser('Author One', 'author1@example.test');
+    const secondToken = await app.createUser('Author Two', 'author2@example.test');
+    for (const [token, fen] of [
+      [firstToken, '4k3/8/8/8/8/8/8/4K3 w - - 0 1'],
+      [secondToken, '4k3/8/8/8/8/8/8/4K3 b - - 0 1'],
+    ]) {
+      const saved = await positionArchiveApi(app.request('/api/positions', 'POST', { fen, stipulation: '#2' }, token), app.env);
+      assert.equal(saved.status, 201);
+    }
+
+    const denied = await positionArchiveApi(app.request('/api/positions/shared'), app.env, false);
+    assert.equal(denied.status, 401);
+    const response = await positionArchiveApi(app.request('/api/positions/shared'), app.env, true);
+    assert.equal(response.status, 200);
+    assert.deepEqual((await response.json()).positions.map(({ author }) => author).sort(), ['Author One', 'Author Two']);
+  } finally { t.mock.restoreAll(); app.db.close(); }
+});
+
 test('saved positions reject invalid positions and unsupported stipulations', async (t) => {
   const app = setup();
   try {

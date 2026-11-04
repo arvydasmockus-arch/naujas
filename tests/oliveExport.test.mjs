@@ -18,3 +18,10 @@ test('Olive export creates a numbered multi-problem YAML collection using Olive 
 test('empty Olive archive downloads as an empty collection', () => {
   assert.equal(exportOliveCollection([]), '');
 });
+
+test('shared Olive exports include each position author in its comments', () => {
+  const text = exportOliveCollection([
+    { number: 1, author: 'Kevin', fen: '4k3/8/8/8/8/8/8/4K3 w - - 0 1', stipulation: '#2' },
+  ]);
+  assert.match(text, /ML Academy #1; author: Kevin; white to move/);
+});

@@ -72,6 +72,23 @@ function preferredClipboardImage(items) {
     })[0] || null;
 }
 
+const localArchiveStorageKey = 'ml-academy-position-archive-v1';
+function readLocalArchive() {
+  try {
+    const positions = JSON.parse(window.localStorage.getItem(localArchiveStorageKey) || '[]');
+    return Array.isArray(positions) ? positions : [];
+  } catch {
+    return [];
+  }
+}
+
+function positionCells(fen) {
+  return fen.split(' ')[0].split('/').flatMap((rank) => [...rank].flatMap((symbol) => {
+    if (/\d/.test(symbol)) return Array(Number(symbol)).fill(null);
+    return [symbol];
+  }));
+}
+
 async function medianFilteredBitmap(source, radius = 1) {
   const maxDimension = radius > 1 ? 1000 : 1600;
   const scale = Math.min(1, maxDimension / Math.max(source.width, source.height));
@@ -275,7 +292,14 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const [fenError, setFenError] = useState('');
   const [fenMetadata, setFenMetadata] = useState(null);
   const [archiveData, setArchiveData] = useState({ userId: null, positions: [], error: '' });
+  const [localArchivePositions, setLocalArchivePositions] = useState(readLocalArchive);
+  const [localArchiveError, setLocalArchiveError] = useState('');
   const [archiveOpen, setArchiveOpen] = useState(false);
+  const [sharedArchiveKey, setSharedArchiveKey] = useState('');
+  const [sharedArchivePositions, setSharedArchivePositions] = useState(null);
+  const [sharedArchiveSelectedUser, setSharedArchiveSelectedUser] = useState('');
+  const [sharedArchiveError, setSharedArchiveError] = useState('');
+  const [sharedArchiveLoading, setSharedArchiveLoading] = useState(false);
   const [problemSolution, setProblemSolution] = useState({ state: 'idle', groups: null });
   const [answerPlayback, setAnswerPlayback] = useState(false);
   const [stipulation, setStipulation] = useState('#2');
@@ -526,9 +550,54 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
     await navigator.clipboard?.writeText(fen.split(' ')[0]);
     setCopied(true); window.setTimeout(() => setCopied(false), 1500);
   }
+  async function loadSharedArchive(event) {
+    event.preventDefault();
+    setSharedArchiveLoading(true);
+    setSharedArchiveError('');
+    try {
+      const result = await positionArchiveRequest('GET', undefined, 'shared', sharedArchiveKey.trim());
+      setSharedArchivePositions(result.positions || []);
+      setSharedArchiveSelectedUser('');
+    } catch (error) {
+      setSharedArchivePositions(null);
+      setSharedArchiveError(error.message);
+    } finally {
+      setSharedArchiveLoading(false);
+    }
+  }
+  function downloadSharedArchive() {
+    const positions = (sharedArchivePositions || [])
+      .filter((position) => !sharedArchiveSelectedUser || position.accountId === sharedArchiveSelectedUser)
+      .map((position, index) => ({ ...position, number: index + 1 }));
+    if (!positions.length) return;
+    const blob = new Blob([exportOliveCollection(positions)], { type: 'text/yaml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'ML-Academy-shared-positions.olv';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
   async function savePosition() {
-    if (!accountUser) return;
     setArchiveOpen(true);
+    if (!accountUser) {
+      const position = {
+        id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        number: localArchivePositions.length + 1,
+        fen,
+        stipulation: currentStipulation,
+        createdAt: new Date().toISOString(),
+      };
+      const positions = [...localArchivePositions, position];
+      try {
+        window.localStorage.setItem(localArchiveStorageKey, JSON.stringify(positions));
+        setLocalArchivePositions(positions);
+        setLocalArchiveError('');
+      } catch (error) {
+        setLocalArchiveError(error.message);
+      }
+      return;
+    }
     try {
       const result = await positionArchiveRequest('POST', { fen, stipulation: currentStipulation });
       setArchiveData((archive) => archive.userId === accountUser.id
@@ -537,6 +606,19 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
     } catch (error) { setArchiveData((archive) => archive.userId === accountUser.id ? { ...archive, error: error.message } : archive); }
   }
   async function deletePosition(position) {
+    if (!accountUser) {
+      const positions = localArchivePositions
+        .filter((item) => item.id !== position.id)
+        .map((item, index) => ({ ...item, number: index + 1 }));
+      try {
+        window.localStorage.setItem(localArchiveStorageKey, JSON.stringify(positions));
+        setLocalArchivePositions(positions);
+        setLocalArchiveError('');
+      } catch (error) {
+        setLocalArchiveError(error.message);
+      }
+      return;
+    }
     try {
       await positionArchiveRequest('DELETE', undefined, position.id);
       setArchiveData((archive) => archive.userId === accountUser?.id
@@ -558,9 +640,16 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
     URL.revokeObjectURL(url);
   }
   const archiveReady = Boolean(accountUser && archiveData.userId === accountUser.id);
-  const visiblePositions = archiveReady ? archiveData.positions : [];
-  const archiveError = archiveReady ? archiveData.error : '';
+  const visiblePositions = accountUser
+    ? archiveReady ? archiveData.positions : []
+    : localArchivePositions;
+  const archiveError = accountUser
+    ? archiveReady ? archiveData.error : ''
+    : localArchiveError;
   const archiveLoading = Boolean(accountUser && !archiveReady);
+  const sharedArchiveUsers = [...new Map((sharedArchivePositions || []).map((position) => [position.accountId, position.author])).entries()];
+  const filteredSharedPositions = (sharedArchivePositions || []).filter((position) =>
+    !sharedArchiveSelectedUser || position.accountId === sharedArchiveSelectedUser);
   function applyFen(value, showError = true) {
     try {
       const trimmedFen = value.trim();
@@ -725,16 +814,43 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         <button type="button" onClick={downloadOlv} disabled={!visiblePositions.length}>{archiveLabels.download}</button>
         <button type="button" className="position-lab__archive-close" onClick={() => setArchiveOpen(false)} aria-label={archiveLabels.close} title={archiveLabels.close}>×</button>
       </div></div>
-      {!accountUser && <p>{archiveLabels.login}</p>}
+      {!accountUser && <p>{language === 'lt' ? 'Pozicijos saugomos šioje naršyklėje.' : language === 'ru' ? 'Позиции сохраняются в этом браузере.' : 'Positions are saved in this browser.'}</p>}
       {archiveLoading && <p>{t.loading}</p>}
       {archiveError && <p className="position-lab__archive-error" role="alert">{archiveError}</p>}
-      {accountUser && !archiveLoading && !archiveError && visiblePositions.length === 0 && <p>{archiveLabels.empty}</p>}
-      {accountUser && visiblePositions.length > 0 && <ol className="position-lab__archive-list">{visiblePositions.map((position) => <li key={position.id}>
+      {!archiveLoading && !archiveError && visiblePositions.length === 0 && <p>{archiveLabels.empty}</p>}
+      {visiblePositions.length > 0 && <ol className="position-lab__archive-list">{visiblePositions.map((position) => <li key={position.id}>
         <button type="button" className="position-lab__archive-open" onClick={() => openSavedPosition(position)}>
           <strong>{position.number}.</strong><span>{position.stipulation}</span><code>{position.fen.split(' ')[0]}</code>
         </button>
         <button type="button" className="position-lab__archive-delete" aria-label={`${archiveLabels.remove} ${position.number}`} title={archiveLabels.remove} onClick={() => deletePosition(position)}>×</button>
       </li>)}</ol>}
+      <section className="position-lab__shared-archive">
+        <h3>{language === 'lt' ? 'Bendras kūrėjų archyvas' : language === 'ru' ? 'Общий архив авторов' : 'Shared authors archive'}</h3>
+        <p>{language === 'lt' ? 'Teisėjas gali peržiūrėti registruotų kūrėjų išsaugotas pozicijas.' : language === 'ru' ? 'Судья может просматривать сохранённые позиции авторов.' : 'The judge can review positions saved by registered authors.'}</p>
+        <form onSubmit={loadSharedArchive}>
+          <label>{language === 'lt' ? 'Teisėjo raktas' : language === 'ru' ? 'Ключ судьи' : 'Judge key'}
+            <input type="password" value={sharedArchiveKey} onChange={(event) => setSharedArchiveKey(event.target.value)} autoComplete="current-password" required />
+          </label>
+          <button type="submit" disabled={sharedArchiveLoading || !sharedArchiveKey.trim()}>{sharedArchiveLoading ? '…' : language === 'lt' ? 'Rodyti pozicijas' : language === 'ru' ? 'Показать позиции' : 'Show positions'}</button>
+        </form>
+        {sharedArchiveError && <p className="position-lab__archive-error" role="alert">{sharedArchiveError}</p>}
+        {sharedArchivePositions && <>
+          <div className="position-lab__shared-filter">
+            <label>{language === 'lt' ? 'Kūrėjas' : language === 'ru' ? 'Автор' : 'Author'}
+              <select value={sharedArchiveSelectedUser} onChange={(event) => setSharedArchiveSelectedUser(event.target.value)}>
+                <option value="">{language === 'lt' ? 'Visi kūrėjai' : language === 'ru' ? 'Все авторы' : 'All authors'}</option>
+                {sharedArchiveUsers.map(([id, username]) => <option key={id} value={id}>{username}</option>)}
+              </select>
+            </label>
+            <button type="button" onClick={downloadSharedArchive} disabled={!filteredSharedPositions.length}>.olv</button>
+          </div>
+          {filteredSharedPositions.length ? <ol className="position-lab__archive-list">{filteredSharedPositions.map((position) => <li key={position.id}>
+            <button type="button" className="position-lab__archive-open" onClick={() => openSavedPosition(position)}>
+              <strong>{position.author}</strong><span>{position.stipulation} · #{position.number}</span><code>{position.fen.split(' ')[0]}</code>
+            </button>
+          </li>)}</ol> : <p>{language === 'lt' ? 'Pozicijų dar nėra.' : language === 'ru' ? 'Пока нет позиций.' : 'No saved positions yet.'}</p>}
+        </>}
+      </section>
     </section>}
     <div className="position-lab__layout">
       <div className="position-lab__board-panel"><section className="position-lab__board-wrap"><div className="position-lab__board">
@@ -794,7 +910,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         <section className="position-lab__card position-lab__controls"><h2>{t.title}</h2><div className="position-lab__turn"><button className={turn === 'w' ? 'is-active' : ''} onClick={() => { setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.white}</button><button className={turn === 'b' ? 'is-active' : ''} onClick={() => { setTurn('b'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.black}</button></div>
           <div className="position-lab__buttons"><button type="button" onClick={() => { setPieces(initialPieces()); setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.start}</button><button type="button" onClick={() => { setPieces({}); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.clear}</button></div>
           <div className="position-lab__buttons position-lab__board-actions">
-            <button type="button" title={archiveLabels.save} onClick={savePosition} disabled={!accountUser || archiveLoading}>{archiveLabels.saveShort}</button>
+            <button type="button" title={archiveLabels.save} onClick={savePosition} disabled={archiveLoading}>{archiveLabels.saveShort}</button>
             <button type="button" className={visiblePositions.length ? 'position-lab__archive-toggle is-populated' : 'position-lab__archive-toggle'} title={archiveLabels.archive} aria-label={`${archiveLabels.archive}: ${visiblePositions.length}`} aria-expanded={archiveOpen} aria-controls="position-lab-archive" onClick={() => setArchiveOpen((open) => !open)}>{archiveLabels.archiveShort} ({visiblePositions.length})</button>
           </div></section>
         <section className="position-lab__card position-lab__result"><div className="position-lab__analysis-heading"><div className="position-lab__analysis-title"><h2>{language === 'lt' ? 'Geriausios linijos' : language === 'ru' ? 'Лучшие варианты' : 'Best lines'}</h2><button type="button" className={'position-lab__engine-toggle' + (engineEnabled ? ' is-active' : '')} aria-pressed={engineEnabled} onClick={toggleEngine}>{engineEnabled ? t.disableEngine : t.enableEngine}</button><button type="button" className="position-lab__engine-toggle" onClick={restartEngine}>{restartLabel}</button></div><div className="position-lab__analysis-options"><span className="position-lab__engine-version">{engineName}</span><label>{language === 'lt' ? 'Rodyti linijas' : language === 'ru' ? 'Показывать линий' : 'Show lines'}<select value={lineCount} onChange={(event) => setLineCount(Number(event.target.value))}>{[1, 2, 3, 4, 5].map((count) => <option key={count} value={count}>{count}</option>)}</select></label></div></div>
@@ -817,15 +933,23 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         }} />
         <div className="position-lab__image-import-heading"><strong>{imageText.title}</strong><div><button type="button" onClick={() => imageInput.current?.click()}>{imageText.button}</button><button type="button" aria-label="Close" onClick={() => setImageImportOpen(false)}>×</button></div></div>
         {imageImport.status === 'idle' && <p>{imageText.help}</p>}
-        {imagePreviewUrl && <figure className="position-lab__image-preview"><figcaption>{language === 'lt' ? 'Įkeltas vaizdas' : language === 'ru' ? 'Загруженное изображение' : 'Image received'} <small>{imagePreviewDetails}</small></figcaption><img src={imagePreviewUrl} alt={language === 'lt' ? 'Įkeltas vaizdas' : 'Image received'} /></figure>}
+        {imagePreviewUrl && <div className={`position-lab__image-comparison${imageImport.status === 'done' ? ' has-results' : ''}`}>
+          <figure className="position-lab__image-preview"><figcaption>{language === 'lt' ? 'Įkeltas vaizdas' : language === 'ru' ? 'Загруженное изображение' : 'Image received'} <small>{imagePreviewDetails}</small></figcaption><img src={imagePreviewUrl} alt={language === 'lt' ? 'Nukopijuotas arba įkeltas pradinis vaizdas' : 'Original imported image'} /></figure>
+          {imageImport.status === 'done' && <section className="position-lab__recognized-preview">
+            <strong>{language === 'lt' ? 'Atpažinta lentoje' : language === 'ru' ? 'Распознано' : 'Recognized position'}</strong>
+            <div className="position-lab__recognized-list">{imageImport.items.map((item, index) => <button type="button" key={`${item.fen}-${index}`} className={imageImport.selected === index ? 'is-selected' : ''} onClick={() => selectRecognizedPosition(index)}>
+              <span className="position-lab__recognized-card-title">{index + 1}. {language === 'lt' ? 'Įkelti šią poziciją' : language === 'ru' ? 'Загрузить эту позицию' : 'Load this position'}</span>
+              <span className="position-lab__recognized-board" role="img" aria-label={`${language === 'lt' ? 'Atpažinta šachmatų pozicija' : 'Recognized chess position'} ${index + 1}`}>
+                {positionCells(item.fen).map((piece, squareIndex) => <span key={squareIndex} className={(Math.floor(squareIndex / 8) + squareIndex % 8) % 2 ? 'is-dark' : 'is-light'}>{piece && <img src={pieceImages[`${piece === piece.toUpperCase() ? 'w' : 'b'}${piece.toUpperCase()}`]} alt="" />}</span>)}
+              </span>
+            </button>)}</div>
+          </section>}
+        </div>}
         {imageImport.status === 'scanning' && <p role="status">{imageText.scanning}</p>}
         {imageImport.status === 'empty' && <p role="status">{imageText.none}</p>}
         {imageImport.status === 'error' && <p role="alert">{imageImport.message || imageText.failed}</p>}
         {imageImport.status === 'done' && <>
           <p role="status">{imageText.found}: {imageImport.items.length}. {imageImport.items.length > 1 ? imageText.choose : imageText.ready}</p>
-          <div className="position-lab__recognized-list">{imageImport.items.map((item, index) => <button type="button" key={`${item.fen}-${index}`} className={imageImport.selected === index ? 'is-selected' : ''} onClick={() => selectRecognizedPosition(index)}>
-            <strong>{index + 1}.</strong><span>{Math.round(item.confidence * 100)}% {imageText.confidence}</span>{!item.reliable && <em>{imageText.check}</em>}
-          </button>)}</div>
         </>}
       </section>
     </div>}

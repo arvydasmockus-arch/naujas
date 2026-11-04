@@ -993,7 +993,7 @@ export default {
       return response;
     }
     if (url.pathname.startsWith('/api/positions')) {
-      const response = await positionArchiveApi(request, env);
+      const response = await positionArchiveApi(request, env, isJudge(request, env));
       for (const [key, value] of headers) response.headers.set(key, value);
       return response;
     }

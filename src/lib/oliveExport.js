@@ -19,12 +19,13 @@ export function exportOliveCollection(positions) {
     const white = algebraicPieces(position.fen, 'w');
     const black = algebraicPieces(position.fen, 'b');
     const turn = position.fen.split(/\s+/)[1] === 'b' ? 'black' : 'white';
+    const author = position.author ? `; author: ${position.author}` : '';
     return [
       '---',
       'algebraic:',
       `  black: [${black.join(', ')}]`,
       `  white: [${white.join(', ')}]`,
-      `comments: [${quoteYaml(`ML Academy #${position.number}; ${turn} to move; FEN: ${position.fen}`)}]`,
+      `comments: [${quoteYaml(`ML Academy #${position.number}${author}; ${turn} to move; FEN: ${position.fen}`)}]`,
       `stipulation: ${quoteYaml(position.stipulation)}`,
       "solution: ''",
     ].join('\n');

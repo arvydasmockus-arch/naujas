@@ -74,7 +74,7 @@ const server = createServer(async (req, res) => {
       res.statusCode = response.status; res.end(await response.text()); return;
     }
     if (url.pathname.startsWith('/api/positions')) {
-      const response = await positionArchiveApi(authRequest, accountEnv);
+      const response = await positionArchiveApi(authRequest, accountEnv, isJudge(req));
       res.statusCode = response.status; res.end(await response.text()); return;
     }
     if (url.pathname.startsWith('/api/tournaments/isc/')) {

@@ -4,9 +4,17 @@ import { accountsEnabled, currentAccount } from './accountAuth.mjs';
 const json = (data, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
 function fail(message, status = 400) { throw Object.assign(new Error(message), { status }); }
 
-export async function positionArchiveApi(request, env) {
+export async function positionArchiveApi(request, env, judge = false) {
   try {
     if (!accountsEnabled(env)) fail('Paskyros dar neįjungtos.', 503);
+    if (request.method === 'GET' && new URL(request.url).pathname === '/api/positions/shared') {
+      if (!judge) fail('Teisėjo prieiga reikalinga.', 401);
+      const rows = await env.DB.prepare(`SELECT p.id,p.account_id AS accountId,a.username AS author,
+        p.position_number AS number,p.fen,p.stipulation,p.created_at AS createdAt
+        FROM saved_positions p JOIN accounts a ON a.id=p.account_id ORDER BY p.created_at DESC,p.position_number`)
+        .all();
+      return json({ positions: rows.results ?? [] });
+    }
     const user = await currentAccount(request, env);
     if (!user) fail('Prisijunkite, kad galėtumėte atidaryti savo uždavinių archyvą.', 401);
 
