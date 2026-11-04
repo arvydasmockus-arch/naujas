@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import createPopeye from '../src/lib/popeye/py.js';
 import { buildPopeyeInput, parsePopeyeOutput, parseStipulation } from '../src/lib/popeyeSolver.js';
+import { allWhitePiecesParticipate, countKeyMoves, getBlackNonKingSquares, hasSameSolutionSet, isGeneratedCandidate, removeFenPiece } from '../src/lib/helpMateGenerator.js';
 import entries from './fixtures/tournamentEntries.json' with { type: 'json' };
 
 const fen = '5b1N/nr1p1B1q/pPR2pp1/Rnp1k1p1/KP2p1P1/4Q3/4Nr2/6B1 w - - 0 1';
-const normalized = (lines) => lines.map((line) => line.trim()).sort();
+const normalized = (lines) => lines.map((line) => line.trim().replace(/\s+/g, ' ')).sort();
 
 function fenFromEntry(entry) {
   const board = Array.from({ length: 8 }, () => Array(8).fill(''));
@@ -88,6 +89,142 @@ test('the supplied h#2 position puts six black-started set lines before its whit
   assert.ok(groups.setPlay.every((line) => /^\s*1\.\.\.Rh2-d2/.test(line)));
   assert.ok(groups.setPlay.some((line) => line.includes('2.Sf3-e1 Bf8-h6 #')));
   assert.deepEqual(groups.play.map((line) => line.trim()), ['1.Sf3-d4 Rh2-d2   2.Sd4-b5 Bf8-h6 #']);
+  assert.equal(isGeneratedCandidate(groups, { solutionCount: 1, theme: 'any' }), true);
+});
+
+test('the corrected eight-corner twin position has exactly one h#2 solution in every variant', async () => {
+  globalThis.self = { location: { href: 'http://localhost/popeyeWorker.js' } };
+  const wasmBinary = fs.readFileSync(new URL('../public/popeye/py.wasm', import.meta.url));
+  const output = [];
+  const popeye = await createPopeye({ noInitialRun: true, wasmBinary, print: (line) => output.push(line), printErr: (line) => output.push(line) });
+  const base = '8/3p1q2/3np1b1/1pR5/4k1p1/1P4p1/n2K2p1/7N';
+  const expected = {
+    'N@h1': '1.g2-g1=B Rc5-f5 2.Bg1-d4 Sh1*g3 #',
+    'N@a1': '1.Ke4-d4 b3-b4 2.Bg6-e4 Sa1-b3 #',
+    'N@a8': '1.e6-e5 Rc5-c4 + 2.Ke4-d5 Sa8-c7 #',
+    'N@h8': '1.Qf7-f3 Rc5-e5 + 2.Ke4-f4 Sh8*g6 #',
+    'B@h1': '1.Ke4-f3 Rc5-c1 2.Bg6-e4 Rc1-f1 #',
+    'B@a1': '1.Sa2-c3 Rc5-e5 + 2.Ke4-d4 Ba1*c3 #',
+    'B@a8': '1.Ke4-f4 Rc5-d5 2.Kf4-f3 Rd5-f5 #',
+    'B@h8': '1.Qf7-f3 Rc5-d5 2.Bg6-f5 Rd5-d4 #',
+  };
+
+  function placeCornerPiece(piece, square) {
+    const board = base.split('/').map((rank) => {
+      const expanded = [];
+      for (const char of rank) {
+        if (/\d/.test(char)) expanded.push(...Array(Number(char)).fill(''));
+        else expanded.push(char);
+      }
+      return expanded;
+    });
+    board[7][7] = '';
+    const file = square.charCodeAt(0) - 97;
+    const rank = Number(square[1]) - 1;
+    board[7 - rank][file] = piece;
+    return board.map((row) => {
+      let empty = 0;
+      let result = '';
+      for (const cell of row) {
+        if (!cell) empty += 1;
+        else {
+          if (empty) result += empty;
+          result += cell;
+          empty = 0;
+        }
+      }
+      if (empty) result += empty;
+      return result;
+    }).join('/') + ' w - - 0 1';
+  }
+
+  for (const [variant, solution] of Object.entries(expected)) {
+    output.length = 0;
+    const [piece, square] = variant.split('@');
+    const position = placeCornerPiece(piece, square);
+    popeye.FS.writeFile('/test-corner-twin.inp', `BeginProblem\n${buildPopeyeInput(position, 'h2')}\nEndProblem`);
+    popeye.callMain(['-maxmem', '512M', '-maxtime', '3', '/test-corner-twin.inp']);
+    const groups = parsePopeyeOutput(output.join('\n'), 'h2');
+
+    assert.equal(countKeyMoves(groups), 1, `${variant} (${position}) should have exactly one solution`);
+    assert.deepEqual(groups.play.map((line) => line.trim().replace(/\s+/g, ' ')), [solution], `${variant} should retain its expected solution`);
+  }
+});
+
+test('both supplied reciprocal ideal-mate examples pass the participation and black-piece necessity checks', async () => {
+  globalThis.self = { location: { href: 'http://localhost/popeyeWorker.js' } };
+  let activeOutput = null;
+  const wasmBinary = fs.readFileSync(new URL('../public/popeye/py.wasm', import.meta.url));
+  const popeye = await createPopeye({ noInitialRun: true, wasmBinary, print: (line) => activeOutput?.push(line), printErr: (line) => activeOutput?.push(line) });
+  const examples = [
+    {
+      fen: '8/8/8/6n1/8/3K1k2/6b1/5NB1 w - - 0 1',
+      solutions: ['1.Kf3-f4 Sf1-e3 2.Bg2-f3 Bg1-h2 #', '1.Sg5-e4 Bg1-e3 2.Se4-g3 Sf1-h2 #'],
+    },
+    {
+      fen: '8/8/2pp4/3k1r2/2b1p1q1/4K3/N2B4/8 w - - 0 1',
+      solutions: ['1.Kd5-e5 Sa2-b4 2.Bc4-e6 Bd2-c3 #', '1.Rf5-e5 Bd2-b4 2.Qg4-e6 Sa2-c3 #'],
+    },
+  ];
+  const solve = (fen) => {
+    activeOutput = [];
+    popeye.FS.writeFile('/test-ideal-twin.inp', `BeginProblem\n${buildPopeyeInput(fen, 'h2')}\nEndProblem`);
+    popeye.callMain(['-maxmem', '512M', '/test-ideal-twin.inp']);
+    const groups = parsePopeyeOutput(activeOutput.join('\n'), 'h2');
+    activeOutput = null;
+    return groups;
+  };
+
+  for (const { fen: position, solutions } of examples) {
+    const groups = solve(position);
+    assert.deepEqual(normalized(groups.play), normalized(solutions));
+    assert.equal(allWhitePiecesParticipate(position, groups), true);
+    for (const square of getBlackNonKingSquares(position)) {
+      assert.equal(hasSameSolutionSet(groups, solve(removeFenPiece(position, square))), false, `${position}: removing ${square} must change the complete solution set`);
+    }
+  }
+});
+
+test('Popeye output preserves both complete queen-versus-king h#2 lines', async () => {
+  globalThis.self = { location: { href: 'http://localhost/popeyeWorker.js' } };
+  const output = [];
+  const wasmBinary = fs.readFileSync(new URL('../public/popeye/py.wasm', import.meta.url));
+  const popeye = await createPopeye({ noInitialRun: true, wasmBinary, print: (line) => output.push(line), printErr: (line) => output.push(line) });
+  const position = '8/8/8/7k/4K3/Q7/8/8 w - - 0 1';
+  popeye.FS.writeFile('/test-h2-two-keys.inp', `BeginProblem\n${buildPopeyeInput(position, 'h2')}\nEndProblem`);
+  popeye.callMain(['-maxmem', '512M', '/test-h2-two-keys.inp']);
+  const groups = parsePopeyeOutput(output.join('\n'), 'h2');
+
+  assert.equal(countKeyMoves(groups), 2);
+});
+
+test('Popeye output counts complete lines for minimal queen-versus-king material', async () => {
+  globalThis.self = { location: { href: 'http://localhost/popeyeWorker.js' } };
+  const output = [];
+  const wasmBinary = fs.readFileSync(new URL('../public/popeye/py.wasm', import.meta.url));
+  const popeye = await createPopeye({ noInitialRun: true, wasmBinary, print: (line) => output.push(line), printErr: (line) => output.push(line) });
+  const position = '8/8/4Q3/8/8/7K/8/7k w - - 0 1';
+  popeye.FS.writeFile('/test-h2-one-key.inp', `BeginProblem\n${buildPopeyeInput(position, 'h2')}\nEndProblem`);
+  popeye.callMain(['-maxmem', '512M', '/test-h2-one-key.inp']);
+  const groups = parsePopeyeOutput(output.join('\n'), 'h2');
+
+  assert.equal(countKeyMoves(groups), 40);
+});
+
+test('Popeye worker output callback can route results from repeated calls to the active search', async () => {
+  globalThis.self = { location: { href: 'http://localhost/popeyeWorker.js' } };
+  let activeOutput = null;
+  const wasmBinary = fs.readFileSync(new URL('../public/popeye/py.wasm', import.meta.url));
+  const popeye = await createPopeye({ noInitialRun: true, wasmBinary, print: (line) => activeOutput?.push(line), printErr: (line) => activeOutput?.push(line) });
+  const position = '8/8/4Q3/8/8/7K/8/7k w - - 0 1';
+  const outputs = [];
+  activeOutput = outputs;
+  popeye.FS.writeFile('/test-h2-routed-output.inp', `BeginProblem\n${buildPopeyeInput(position, 'h2')}\nEndProblem`);
+  popeye.callMain(['-maxmem', '512M', '/test-h2-routed-output.inp']);
+  activeOutput = null;
+
+  assert.ok(outputs.length > 0);
+  assert.equal(countKeyMoves(parsePopeyeOutput(outputs.join('\n'), 'h2')), 40);
 });
 
 test('Popeye WASM returns the Olive Key, Try and Set for the supplied #2 position', async () => {

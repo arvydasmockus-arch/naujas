@@ -281,7 +281,7 @@ export default function PositionLab({ language = 'en' }) {
       : [...active, phase]);
   }
   async function copyPosition() {
-    await navigator.clipboard?.writeText(fen);
+    await navigator.clipboard?.writeText(fen.split(' ')[0]);
     setCopied(true); window.setTimeout(() => setCopied(false), 1500);
   }
   function applyFen(value, showError = true) {
@@ -358,7 +358,7 @@ export default function PositionLab({ language = 'en' }) {
         <section className="position-lab__fen-panel" aria-label="FEN">
           <label htmlFor="position-lab-fen">FEN</label>
           <div className="position-lab__fen-controls">
-            <input id="position-lab-fen" type="text" value={fenDraft ?? fen} placeholder={t.fenPlaceholder}
+            <input id="position-lab-fen" type="text" value={fenDraft ?? fen.split(' ')[0]} placeholder={t.fenPlaceholder}
               aria-invalid={Boolean(fenError)} onChange={(event) => { setFenDraft(event.target.value); setFenError(''); }}
               onPaste={pasteFen} onKeyDown={(event) => { if (event.key === 'Enter') loadFen(); }} />
             <button type="button" title={t.copy} aria-label={t.copy} onClick={copyPosition}>{copied ? '✓' : '⧉'}</button>
