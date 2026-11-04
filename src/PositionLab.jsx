@@ -215,10 +215,12 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const [activeAnswerPhases, setActiveAnswerPhases] = useState(['play', 'tries', 'setPlay']);
   const [imageImport, setImageImport] = useState({ status: 'idle', items: [], selected: -1 });
   const [imageImportOpen, setImageImportOpen] = useState(false);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
   const popeyeWorker = useRef(null);
   const worker = useRef(null);
   const imageRecognizer = useRef(null);
   const imageInput = useRef(null);
+  const imagePreviewUrlRef = useRef('');
   const scanImageRef = useRef(null);
   const engineEnabledRef = useRef(true);
   const fen = useMemo(() => toFen(pieces, turn, fenMetadata), [pieces, turn, fenMetadata]);
@@ -230,6 +232,9 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
     popeyeWorker.current = null;
   }, [fen]);
   useEffect(() => () => popeyeWorker.current?.terminate(), []);
+  useEffect(() => () => {
+    if (imagePreviewUrlRef.current) URL.revokeObjectURL(imagePreviewUrlRef.current);
+  }, []);
   useEffect(() => {
     let active = true;
     const userId = accountUser?.id;
@@ -520,6 +525,9 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   }
   async function scanPositionImage(file) {
     if (!file?.type?.startsWith('image/')) return;
+    if (imagePreviewUrlRef.current) URL.revokeObjectURL(imagePreviewUrlRef.current);
+    imagePreviewUrlRef.current = URL.createObjectURL(file);
+    setImagePreviewUrl(imagePreviewUrlRef.current);
     if (file.size > 25 * 1024 * 1024) {
       setImageImport({ status: 'error', items: [], selected: -1 });
       return;
@@ -684,6 +692,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         }} />
         <div className="position-lab__image-import-heading"><strong>{imageText.title}</strong><div><button type="button" onClick={() => imageInput.current?.click()}>{imageText.button}</button><button type="button" aria-label="Close" onClick={() => setImageImportOpen(false)}>×</button></div></div>
         {imageImport.status === 'idle' && <p>{imageText.help}</p>}
+        {imagePreviewUrl && <figure className="position-lab__image-preview"><figcaption>{language === 'lt' ? 'Įkeltas vaizdas' : language === 'ru' ? 'Загруженное изображение' : 'Image received'}</figcaption><img src={imagePreviewUrl} alt={language === 'lt' ? 'Įkeltas vaizdas' : 'Image received'} /></figure>}
         {imageImport.status === 'scanning' && <p role="status">{imageText.scanning}</p>}
         {imageImport.status === 'empty' && <p role="status">{imageText.none}</p>}
         {imageImport.status === 'error' && <p role="alert">{imageText.failed}</p>}

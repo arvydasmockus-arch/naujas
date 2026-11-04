@@ -144,6 +144,9 @@
 .position-lab__image-import-heading button:last-child { min-width:36px; font-size:18px; }
 .position-lab__image-import > p { font-size:13px; line-height:1.5; }
 .position-lab__image-import > p[role="status"] { padding:10px 12px; border-radius:8px; background:#f4f2f6; }
+.position-lab__image-preview { display:grid; justify-items:start; gap:6px; max-height:min(340px,45vh); margin:0; padding:10px; overflow:auto; border:1px solid #e1dee6; border-radius:8px; background:#f7f6f9; }
+.position-lab__image-preview figcaption { color:#686571; font-size:12px; font-weight:600; }
+.position-lab__image-preview img { display:block; max-width:100%; max-height:280px; object-fit:contain; }
 .position-lab__recognized-list { gap:8px; max-height:min(360px,45vh); }
 .position-lab__recognized-list button { padding:8px 10px; }
 .position-lab__recognized-list strong,.position-lab__recognized-list span,.position-lab__recognized-list em { font-size:12px; }
