@@ -6,7 +6,7 @@ import wasmUrl from 'onnxruntime-web/ort-wasm-simd-threaded.wasm?url';
 import wasmMjsUrl from 'onnxruntime-web/ort-wasm-simd-threaded.mjs?url';
 import { positionArchiveRequest } from './positionArchiveApi.js';
 import { exportOliveCollection } from './lib/oliveExport.js';
-import { scanHatchedBoard } from './lib/hatchedBoardScan.js';
+import { prepareHatchedOcr, scanHatchedBoard } from './lib/hatchedBoardScan.js';
 import './PositionLab.css';
 
 const pieceImages = Object.fromEntries(Object.entries(import.meta.glob('./assets/chess/*.svg', { eager: true, query: '?url', import: 'default' }))
@@ -32,8 +32,6 @@ async function recognizeImageBoards(file, recognizer) {
       if (!result?.plausible) continue;
 
       const { placement } = resolveOrientation(result.placement);
-      found.push({ fen: placementToFen(placement, 'w'), confidence: result.minConfidence, reliable: result.reliable, x: region.x + result.corners.x0, y: region.y + result.corners.y0 });
-
       const { x0, y0, x1, y1 } = result.corners;
       const width = region.bitmap.width;
       const height = region.bitmap.height;
@@ -41,6 +39,29 @@ async function recognizeImageBoards(file, recognizer) {
       const top = Math.max(0, Math.floor(y0));
       const right = Math.min(width, Math.ceil(x1));
       const bottom = Math.min(height, Math.ceil(y1));
+      const candidate = {
+        fen: placementToFen(placement, 'w'),
+        confidence: result.minConfidence,
+        reliable: result.reliable,
+        x: region.x + x0,
+        y: region.y + y0,
+        right: region.x + x1,
+        bottom: region.y + y1,
+        pieceCount: pieceCount(placement),
+      };
+      const area = Math.max(0, candidate.right - candidate.x) * Math.max(0, candidate.bottom - candidate.y);
+      const duplicateIndex = found.findIndex((existing) => {
+        const overlapWidth = Math.max(0, Math.min(candidate.right, existing.right) - Math.max(candidate.x, existing.x));
+        const overlapHeight = Math.max(0, Math.min(candidate.bottom, existing.bottom) - Math.max(candidate.y, existing.y));
+        const overlap = overlapWidth * overlapHeight;
+        const existingArea = Math.max(0, existing.right - existing.x) * Math.max(0, existing.bottom - existing.y);
+        return overlap / Math.max(1, area + existingArea - overlap) >= 0.55;
+      });
+      if (duplicateIndex < 0) found.push(candidate);
+      else if (candidate.confidence > found[duplicateIndex].confidence
+        || (candidate.confidence === found[duplicateIndex].confidence && candidate.pieceCount > found[duplicateIndex].pieceCount)) {
+        found[duplicateIndex] = candidate;
+      }
       const crops = [
         [0, 0, width, top],
         [0, bottom, width, height - bottom],
@@ -203,16 +224,17 @@ async function scanHatchedRegion(source) {
 }
 
 async function recognizeImageRegion(source, recognizer) {
+  const wasmPaths = { mjs: wasmMjsUrl, wasm: wasmUrl };
+  await prepareHatchedOcr(wasmPaths);
   const minDimension = Math.min(source.width, source.height);
+  let gridCandidate;
   if (minDimension >= 180 && Math.max(source.width, source.height) <= 1000) {
-    const filteredGrid = await scanHatchedRegion(source);
-    if (filteredGrid?.plausible && filteredGrid.meanConfidence >= 0.82) return filteredGrid;
+    gridCandidate = await scanHatchedRegion(source);
   }
 
   const primary = await recognizer.recognize(source);
-  let gridCandidate;
   if (needsGridRecovery(source, primary)) {
-    gridCandidate = await scanHatchedRegion(source);
+    gridCandidate ||= await scanHatchedRegion(source);
     if (gridRecoversRead(primary, gridCandidate)) return gridCandidate;
   }
 

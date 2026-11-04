@@ -3,11 +3,29 @@ import { probsToPlacement } from '../../node_modules/@scoriiu/fenshot/dist/fen.j
 import { findChessboardCorners, snapCorners } from '../../node_modules/@scoriiu/fenshot/dist/detect.js';
 
 let sessionPromise;
+let ortPromise;
+
+function getOrt(wasmPaths) {
+  if (!ortPromise) {
+    ortPromise = import('onnxruntime-web/wasm').then((ort) => {
+      ort.env.wasm.wasmPaths = wasmPaths;
+      // A fixed single-threaded runtime avoids OS-dependent worker/SIMD
+      // scheduling differences when classifying small, low-confidence tiles.
+      ort.env.wasm.numThreads = 1;
+      ort.env.wasm.proxy = false;
+      return ort;
+    });
+  }
+  return ortPromise;
+}
+
+export async function prepareHatchedOcr(wasmPaths) {
+  await getOrt(wasmPaths);
+}
 
 async function getSession(modelUrl, wasmPaths) {
   if (!sessionPromise) {
-    sessionPromise = import('onnxruntime-web/wasm').then(async (ort) => {
-      ort.env.wasm.wasmPaths = wasmPaths;
+    sessionPromise = getOrt(wasmPaths).then(async (ort) => {
       const session = await ort.InferenceSession.create(modelUrl, { executionProviders: ['wasm'] });
       return { ort, session };
     });
