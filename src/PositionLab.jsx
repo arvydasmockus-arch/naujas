@@ -72,8 +72,8 @@ function preferredClipboardImage(items) {
     })[0] || null;
 }
 
-async function medianFilteredBitmap(source) {
-  const maxDimension = 1600;
+async function medianFilteredBitmap(source, radius = 1) {
+  const maxDimension = radius > 1 ? 1000 : 1600;
   const scale = Math.min(1, maxDimension / Math.max(source.width, source.height));
   const width = Math.max(1, Math.round(source.width * scale));
   const height = Math.max(1, Math.round(source.height * scale));
@@ -89,9 +89,11 @@ async function medianFilteredBitmap(source) {
   const image = context.getImageData(0, 0, width, height);
   const input = image.data;
   const output = new Uint8ClampedArray(input.length);
-  const redSamples = new Uint8Array(9);
-  const greenSamples = new Uint8Array(9);
-  const blueSamples = new Uint8Array(9);
+  const sampleCount = (radius * 2 + 1) ** 2;
+  const redSamples = new Uint8Array(sampleCount);
+  const greenSamples = new Uint8Array(sampleCount);
+  const blueSamples = new Uint8Array(sampleCount);
+  const medianIndex = Math.floor(sampleCount / 2);
   const sortSamples = (samples) => {
     for (let i = 1; i < samples.length; i += 1) {
       const value = samples[i];
@@ -106,9 +108,9 @@ async function medianFilteredBitmap(source) {
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
       let index = 0;
-      for (let dy = -1; dy <= 1; dy += 1) {
+      for (let dy = -radius; dy <= radius; dy += 1) {
         const sampleY = Math.max(0, Math.min(height - 1, y + dy));
-        for (let dx = -1; dx <= 1; dx += 1) {
+        for (let dx = -radius; dx <= radius; dx += 1) {
           const sampleX = Math.max(0, Math.min(width - 1, x + dx));
           const offset = (sampleY * width + sampleX) * 4;
           redSamples[index] = input[offset];
@@ -121,9 +123,9 @@ async function medianFilteredBitmap(source) {
       sortSamples(greenSamples);
       sortSamples(blueSamples);
       const offset = (y * width + x) * 4;
-      output[offset] = redSamples[4];
-      output[offset + 1] = greenSamples[4];
-      output[offset + 2] = blueSamples[4];
+      output[offset] = redSamples[medianIndex];
+      output[offset + 1] = greenSamples[medianIndex];
+      output[offset + 2] = blueSamples[medianIndex];
       output[offset + 3] = 255;
     }
   }
@@ -134,16 +136,33 @@ async function medianFilteredBitmap(source) {
 
 async function recognizeImageRegion(source, recognizer) {
   const primary = await recognizer.recognize(source);
-  if (primary?.reliable) return primary;
-
   const filtered = await medianFilteredBitmap(source);
+  let alternate;
   try {
-    const alternate = await recognizer.recognize(filtered.bitmap);
-    const improvesRead = alternate?.plausible && (!primary?.plausible
-      || alternate.meanConfidence > primary.meanConfidence
-      || (alternate.meanConfidence === primary.meanConfidence && alternate.minConfidence > primary.minConfidence));
-    if (!improvesRead) return primary;
-    return {
+    alternate = await recognizer.recognize(filtered.bitmap);
+  } finally {
+    filtered.bitmap.close();
+  }
+  if (!alternate?.plausible) {
+    const strongerFilter = await medianFilteredBitmap(source, 2);
+    try {
+      alternate = await recognizer.recognize(strongerFilter.bitmap);
+      if (alternate?.plausible) {
+        alternate = {
+          ...alternate,
+          corners: {
+            x0: alternate.corners.x0 * strongerFilter.scaleX,
+            y0: alternate.corners.y0 * strongerFilter.scaleY,
+            x1: alternate.corners.x1 * strongerFilter.scaleX,
+            y1: alternate.corners.y1 * strongerFilter.scaleY,
+          },
+        };
+      }
+    } finally {
+      strongerFilter.bitmap.close();
+    }
+  } else {
+    alternate = {
       ...alternate,
       corners: {
         x0: alternate.corners.x0 * filtered.scaleX,
@@ -152,9 +171,11 @@ async function recognizeImageRegion(source, recognizer) {
         y1: alternate.corners.y1 * filtered.scaleY,
       },
     };
-  } finally {
-    filtered.bitmap.close();
   }
+  const improvesRead = alternate?.plausible && (!primary?.plausible
+    || alternate.meanConfidence > primary.meanConfidence
+    || (alternate.meanConfidence === primary.meanConfidence && alternate.minConfidence > primary.minConfidence));
+  return improvesRead ? alternate : primary;
 }
 
 const initialPieces = () => {
