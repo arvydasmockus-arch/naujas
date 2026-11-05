@@ -230,11 +230,15 @@ function isFullBoardRead(result, source) {
 }
 
 function gridRecoversRead(primary, candidate, source) {
-  return candidate?.plausible && ((isFullBoardRead(candidate, source) && !isFullBoardRead(primary, source))
-    || !primary?.plausible
+  if (!candidate?.plausible) return false;
+  const candidateIsFull = isFullBoardRead(candidate, source);
+  const primaryIsFull = isFullBoardRead(primary, source);
+  if (candidateIsFull && candidate.meanConfidence >= 0.82
+    && (!primaryIsFull || candidate.placement !== primary.placement)) return true;
+  return !primary?.plausible
     || candidate.meanConfidence > primary.meanConfidence
     || (candidate.meanConfidence === primary.meanConfidence && candidate.minConfidence > primary.minConfidence)
-    || (candidate.meanConfidence >= 0.78 && pieceCount(candidate.placement) >= pieceCount(primary?.placement) + 4));
+    || (candidate.meanConfidence >= 0.78 && pieceCount(candidate.placement) >= pieceCount(primary?.placement) + 4);
 }
 
 async function scanHatchedRegion(source) {
