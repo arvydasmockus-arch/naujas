@@ -673,6 +673,13 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
     event.dataTransfer.effectAllowed = payload.startsWith('piece:') ? 'copy' : 'move';
     event.dataTransfer.setData('text/plain', payload);
     if (payload.startsWith('square:')) event.dataTransfer.setData('application/x-position-lab-square', payload.slice(7));
+    const preview = event.currentTarget instanceof HTMLImageElement
+      ? event.currentTarget
+      : event.currentTarget.querySelector('img');
+    if (preview?.complete && preview.naturalWidth > 0) {
+      const bounds = preview.getBoundingClientRect();
+      event.dataTransfer.setDragImage(preview, bounds.width / 2, bounds.height / 2);
+    }
   }
 
   function readPieceDrag(event) {
