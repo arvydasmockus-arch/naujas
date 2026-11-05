@@ -378,7 +378,6 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const engineTimeoutLabel = language === 'lt' ? 'Variklis neatsako. Paleiskite jį iš naujo.' : language === 'ru' ? 'Движок не отвечает. Перезапустите его.' : 'Engine is not responding. Restart it.';
   const engineTimeoutLabelRef = useRef(engineTimeoutLabel);
   const activePieceDrag = useRef('');
-  const dragPreviewCanvas = useRef(null);
   const [pieces, setPieces] = useState(initialPieces);
   const [turn, setTurn] = useState('w');
   const [selected, setSelected] = useState(null);
@@ -674,25 +673,10 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', payload);
     if (payload.startsWith('square:')) event.dataTransfer.setData('application/x-position-lab-square', payload.slice(7));
-    const preview = event.currentTarget instanceof HTMLImageElement
-      ? event.currentTarget
-      : event.currentTarget.querySelector('img');
-    if (preview?.complete && preview.naturalWidth > 0) {
-      const dragImage = document.createElement('canvas');
-      dragImage.width = 72;
-      dragImage.height = 72;
-      const context = dragImage.getContext('2d');
-      if (context) {
-        context.drawImage(preview, 2, 2, 68, 68);
-        dragPreviewCanvas.current = dragImage;
-        event.dataTransfer.setDragImage(dragImage, 36, 36);
-      }
-    }
   }
 
   function clearPieceDrag() {
     activePieceDrag.current = '';
-    dragPreviewCanvas.current = null;
   }
 
   function readPieceDrag(event) {
