@@ -927,7 +927,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   }
 
   return <main className="position-lab">
-    <header className="position-lab__header"><div className="position-lab__heading"><h1>{t.title}</h1><p>{t.subtitle}</p><a className="position-lab__guide-link" href="/position-analysis-guide-en.pdf" download>{language === 'lt' ? 'Naudojimo vadovas (PDF, anglų k.)' : language === 'ru' ? 'Руководство пользователя (PDF, англ.)' : 'User guide (PDF)'}</a></div>
+    <header className="position-lab__header"><div className="position-lab__heading"><h1>{t.title}</h1><p>{t.subtitle}</p></div>
       <span className={'position-lab__engine' + (ready && engineEnabled ? ' is-ready' : '')} title={engineError}><i />{!engineEnabled ? t.engineOff : ready ? t.ready : (engineError || t.loading)}</span>
     </header>
     {archiveOpen && <section id="position-lab-archive" className="position-lab__archive" role="dialog" aria-label={archiveLabels.archive}>

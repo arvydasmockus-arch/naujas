@@ -8,8 +8,6 @@
 .position-lab__heading { min-width:0; }
 .position-lab__header h1 { margin:0 0 6px; font-size:clamp(24px,3vw,34px); }
 .position-lab__header p { margin:0; color:#aaa6b5; font-size:clamp(13px,1.15vw,16px); }
-.position-lab__guide-link { display:inline-block; margin-top:7px; color:#b8d6b1; font-size:12px; text-decoration:underline; text-underline-offset:2px; }
-.position-lab__guide-link:hover { color:#e1f1dc; }
 .position-lab__engine { display:flex; align-items:center; gap:8px; color:#c2becb; font-size:14px; white-space:nowrap; }
 .position-lab__engine i { width:9px; height:9px; border-radius:50%; background:#d69a42; }
 .position-lab__engine.is-ready i { background:#38c878; box-shadow:0 0 10px #38c87888; }
