@@ -377,7 +377,8 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const restartLabel = language === 'lt' ? 'Paleisti variklį iš naujo' : language === 'ru' ? 'Перезапустить движок' : 'Restart engine';
   const engineTimeoutLabel = language === 'lt' ? 'Variklis neatsako. Paleiskite jį iš naujo.' : language === 'ru' ? 'Движок не отвечает. Перезапустите его.' : 'Engine is not responding. Restart it.';
   const engineTimeoutLabelRef = useRef(engineTimeoutLabel);
-  const activePieceDrag = useRef('');
+  const pointerPieceDrag = useRef(null);
+  const pieceDragPreview = useRef(null);
   const [pieces, setPieces] = useState(initialPieces);
   const [turn, setTurn] = useState('w');
   const [selected, setSelected] = useState(null);
@@ -532,31 +533,6 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   }, [engineRestart]);
 
   useEffect(() => {
-    const allowPieceDrop = (event) => {
-      if (activePieceDrag.current.startsWith('square:')
-        || [...event.dataTransfer.types].includes('application/x-position-lab-square')) event.preventDefault();
-    };
-    const removeDroppedPiece = (event) => {
-      if (event.target.closest?.('.position-lab__square')) return;
-      const square = event.dataTransfer.getData('application/x-position-lab-square')
-        || activePieceDrag.current.match(/^square:([a-h][1-8])$/)?.[1];
-      if (!square) return;
-      event.preventDefault();
-      setFenMetadata(null);
-      setFenDraft(null);
-      setFenError('');
-      setPieces((old) => { const next = { ...old }; delete next[square]; return next; });
-      setSelected(null);
-    };
-    window.addEventListener('dragover', allowPieceDrop);
-    window.addEventListener('drop', removeDroppedPiece);
-    return () => {
-      window.removeEventListener('dragover', allowPieceDrop);
-      window.removeEventListener('drop', removeDroppedPiece);
-    };
-  }, []);
-
-  useEffect(() => {
     const engine = worker.current;
     if (!ready || !engine) return undefined;
     engine.postMessage('stop');
@@ -669,40 +645,66 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   }
 
   function startPieceDrag(event, payload) {
-    activePieceDrag.current = payload;
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/plain', payload);
-    if (payload.startsWith('square:')) event.dataTransfer.setData('application/x-position-lab-square', payload.slice(7));
+    if (event.button !== 0) return;
+    const drag = { payload, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, moved: false, source: event.currentTarget, previousCursor: event.currentTarget.style.cursor };
+    pointerPieceDrag.current = drag;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    event.currentTarget.style.cursor = 'grabbing';
   }
 
-  function clearPieceDrag() {
-    activePieceDrag.current = '';
-  }
-
-  function readPieceDrag(event) {
-    return event.dataTransfer.getData('text/plain') || activePieceDrag.current;
-  }
-
-  function finishPieceDrop(square, event) {
+  function movePieceDrag(event) {
+    const drag = pointerPieceDrag.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    if (!drag.moved && Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) < 5) return;
+    if (!drag.moved) {
+      drag.moved = true;
+      const code = drag.payload.startsWith('piece:') ? drag.payload.slice(6) : pieces[drag.payload.slice(7)];
+      if (!code) return;
+      const preview = document.createElement('img');
+      preview.src = pieceImages[code];
+      preview.alt = '';
+      preview.setAttribute('aria-hidden', 'true');
+      Object.assign(preview.style, { position: 'fixed', zIndex: '2147483647', width: '48px', height: '48px', objectFit: 'contain', pointerEvents: 'none', userSelect: 'none', background: 'transparent', left: '0', top: '0', transform: 'translate(-50%, -50%)' });
+      document.body.appendChild(preview);
+      pieceDragPreview.current = preview;
+    }
     event.preventDefault();
-    event.stopPropagation();
-    const data = readPieceDrag(event);
-    if (data.startsWith('square:') && data.slice(7) === square) return;
-    if (!data.startsWith('piece:') && !data.startsWith('square:')) return;
+    if (pieceDragPreview.current) {
+      pieceDragPreview.current.style.left = event.clientX + 'px';
+      pieceDragPreview.current.style.top = event.clientY + 'px';
+    }
+  }
+
+  function finishPieceDrag(event, cancelled = false) {
+    const drag = pointerPieceDrag.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    pointerPieceDrag.current = null;
+    pieceDragPreview.current?.remove();
+    pieceDragPreview.current = null;
+    drag.source.style.cursor = drag.previousCursor;
+    if (cancelled || !drag.moved) return;
+    event.preventDefault();
+    const square = document.elementFromPoint(event.clientX, event.clientY)?.closest?.('.position-lab__square')?.getAttribute('aria-label');
+    const { payload } = drag;
+    if (!payload.startsWith('piece:') && !payload.startsWith('square:')) return;
     setFenMetadata(null);
     setFenDraft(null);
     setFenError('');
-    if (data.startsWith('piece:')) {
-      setPieces((old) => ({ ...old, [square]: data.slice(6) }));
+    if (square && payload.startsWith('piece:')) {
+      setPieces((old) => ({ ...old, [square]: payload.slice(6) }));
+      setSelected(null);
       return;
     }
-    const source = data.slice(7);
+    if (square && payload.slice(7) === square) return;
+    const source = payload.slice(7);
     setPieces((old) => {
       if (!old[source]) return old;
-      const next = { ...old, [square]: old[source] };
+      const next = { ...old };
+      if (square) next[square] = old[source];
       delete next[source];
       return next;
     });
+    setSelected(null);
   }
   async function loadSharedArchive(event) {
     event.preventDefault();
@@ -1026,9 +1028,9 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
               setFenMetadata(null);
               setFenDraft(null);
               setFenError('');
-            }} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; }} onDrop={(event) => finishPieceDrop(square, event)}>
+            }}>
             {c === 0 && <span className="position-lab__coordinate">{rank}</span>}{r === 7 && <span className="position-lab__coordinate position-lab__coordinate--file">{file}</span>}
-            {piece && <img draggable onDragStart={(event) => startPieceDrag(event, 'square:' + square)} onDragEnd={clearPieceDrag} src={pieceImages[piece]} alt={piece} />}
+            {piece && <img draggable={false} onPointerDown={(event) => startPieceDrag(event, 'square:' + square)} onPointerMove={movePieceDrag} onPointerUp={finishPieceDrag} onPointerCancel={(event) => finishPieceDrag(event, true)} src={pieceImages[piece]} alt={piece} />}
           </button>;
         }))}
       </div></section>
@@ -1051,8 +1053,8 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         <div className="position-lab__piece-column">
         <section className="position-lab__card position-lab__pieces"><h2>{t.pieces}</h2>{['w', 'b'].map((color) => <div className="position-lab__piece-row" key={color}>{['K', 'Q', 'R', 'B', 'N', 'P'].map((kind) => {
           const code = color + kind;
-          return <button type="button" draggable={true} key={code} aria-label={code} className={selected?.code === code ? 'is-active' : ''} onClick={() => setSelected({ type: 'piece', code })}
-            onDragStart={(event) => startPieceDrag(event, 'piece:' + code)} onDragEnd={clearPieceDrag}><img draggable={false} src={pieceImages[code]} alt={code} /></button>;
+          return <button type="button" draggable={false} key={code} aria-label={code} className={selected?.code === code ? 'is-active' : ''} onClick={() => setSelected({ type: 'piece', code })}
+            onPointerDown={(event) => startPieceDrag(event, 'piece:' + code)} onPointerMove={movePieceDrag} onPointerUp={finishPieceDrag} onPointerCancel={(event) => finishPieceDrag(event, true)}><img draggable={false} src={pieceImages[code]} alt={code} /></button>;
         })}</div>)}<button className={'position-lab__erase' + (selected?.type === 'erase' ? ' is-active' : '')} type="button" onClick={() => setSelected({ type: 'erase' })}>⌫ {t.erase}</button></section>
 
         </div>
