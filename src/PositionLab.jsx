@@ -378,6 +378,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const engineTimeoutLabel = language === 'lt' ? 'Variklis neatsako. Paleiskite jį iš naujo.' : language === 'ru' ? 'Движок не отвечает. Перезапустите его.' : 'Engine is not responding. Restart it.';
   const engineTimeoutLabelRef = useRef(engineTimeoutLabel);
   const activePieceDrag = useRef('');
+  const dragPreviewCanvas = useRef(null);
   const [pieces, setPieces] = useState(initialPieces);
   const [turn, setTurn] = useState('w');
   const [selected, setSelected] = useState(null);
@@ -670,16 +671,28 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
 
   function startPieceDrag(event, payload) {
     activePieceDrag.current = payload;
-    event.dataTransfer.effectAllowed = payload.startsWith('piece:') ? 'copy' : 'move';
+    event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', payload);
     if (payload.startsWith('square:')) event.dataTransfer.setData('application/x-position-lab-square', payload.slice(7));
     const preview = event.currentTarget instanceof HTMLImageElement
       ? event.currentTarget
       : event.currentTarget.querySelector('img');
     if (preview?.complete && preview.naturalWidth > 0) {
-      const bounds = preview.getBoundingClientRect();
-      event.dataTransfer.setDragImage(preview, bounds.width / 2, bounds.height / 2);
+      const dragImage = document.createElement('canvas');
+      dragImage.width = 72;
+      dragImage.height = 72;
+      const context = dragImage.getContext('2d');
+      if (context) {
+        context.drawImage(preview, 2, 2, 68, 68);
+        dragPreviewCanvas.current = dragImage;
+        event.dataTransfer.setDragImage(dragImage, 36, 36);
+      }
     }
+  }
+
+  function clearPieceDrag() {
+    activePieceDrag.current = '';
+    dragPreviewCanvas.current = null;
   }
 
   function readPieceDrag(event) {
@@ -1029,9 +1042,9 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
               setFenMetadata(null);
               setFenDraft(null);
               setFenError('');
-            }} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = activePieceDrag.current.startsWith('piece:') ? 'copy' : 'move'; }} onDrop={(event) => finishPieceDrop(square, event)}>
+            }} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; }} onDrop={(event) => finishPieceDrop(square, event)}>
             {c === 0 && <span className="position-lab__coordinate">{rank}</span>}{r === 7 && <span className="position-lab__coordinate position-lab__coordinate--file">{file}</span>}
-            {piece && <img draggable onDragStart={(event) => startPieceDrag(event, 'square:' + square)} onDragEnd={() => { activePieceDrag.current = ''; }} src={pieceImages[piece]} alt={piece} />}
+            {piece && <img draggable onDragStart={(event) => startPieceDrag(event, 'square:' + square)} onDragEnd={clearPieceDrag} src={pieceImages[piece]} alt={piece} />}
           </button>;
         }))}
       </div></section>
@@ -1055,7 +1068,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         <section className="position-lab__card position-lab__pieces"><h2>{t.pieces}</h2>{['w', 'b'].map((color) => <div className="position-lab__piece-row" key={color}>{['K', 'Q', 'R', 'B', 'N', 'P'].map((kind) => {
           const code = color + kind;
           return <button type="button" draggable={true} key={code} aria-label={code} className={selected?.code === code ? 'is-active' : ''} onClick={() => setSelected({ type: 'piece', code })}
-            onDragStart={(event) => startPieceDrag(event, 'piece:' + code)} onDragEnd={() => { activePieceDrag.current = ''; }}><img draggable={false} src={pieceImages[code]} alt={code} /></button>;
+            onDragStart={(event) => startPieceDrag(event, 'piece:' + code)} onDragEnd={clearPieceDrag}><img draggable={false} src={pieceImages[code]} alt={code} /></button>;
         })}</div>)}<button className={'position-lab__erase' + (selected?.type === 'erase' ? ' is-active' : '')} type="button" onClick={() => setSelected({ type: 'erase' })}>⌫ {t.erase}</button></section>
 
         </div>
