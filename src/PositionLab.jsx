@@ -263,10 +263,8 @@ async function recognizeImageRegion(source, recognizer) {
   }
 
   const primary = await recognizer.recognize(source);
-  if (needsGridRecovery(source, primary)) {
-    gridCandidate ||= await scanHatchedRegion(source);
-    if (gridRecoversRead(primary, gridCandidate, source)) return gridCandidate;
-  }
+  gridCandidate ||= await scanHatchedRegion(source);
+  if (gridCandidate?.stripedScore >= 0.12 && gridRecoversRead(primary, gridCandidate, source)) return gridCandidate;
 
   const filtered = await medianFilteredBitmap(source);
   let alternate;
