@@ -377,6 +377,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const restartLabel = language === 'lt' ? 'Paleisti variklį iš naujo' : language === 'ru' ? 'Перезапустить движок' : 'Restart engine';
   const engineTimeoutLabel = language === 'lt' ? 'Variklis neatsako. Paleiskite jį iš naujo.' : language === 'ru' ? 'Движок не отвечает. Перезапустите его.' : 'Engine is not responding. Restart it.';
   const engineTimeoutLabelRef = useRef(engineTimeoutLabel);
+  const activePieceDrag = useRef('');
   const [pieces, setPieces] = useState(initialPieces);
   const [turn, setTurn] = useState('w');
   const [selected, setSelected] = useState(null);
@@ -532,11 +533,13 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
 
   useEffect(() => {
     const allowPieceDrop = (event) => {
-      if ([...event.dataTransfer.types].includes('application/x-position-lab-square')) event.preventDefault();
+      if (activePieceDrag.current.startsWith('square:')
+        || [...event.dataTransfer.types].includes('application/x-position-lab-square')) event.preventDefault();
     };
     const removeDroppedPiece = (event) => {
       if (event.target.closest?.('.position-lab__square')) return;
-      const square = event.dataTransfer.getData('application/x-position-lab-square');
+      const square = event.dataTransfer.getData('application/x-position-lab-square')
+        || activePieceDrag.current.match(/^square:([a-h][1-8])$/)?.[1];
       if (!square) return;
       event.preventDefault();
       setFenMetadata(null);
@@ -663,6 +666,39 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   async function copyPosition() {
     await navigator.clipboard?.writeText(fen.split(' ')[0]);
     setCopied(true); window.setTimeout(() => setCopied(false), 1500);
+  }
+
+  function startPieceDrag(event, payload) {
+    activePieceDrag.current = payload;
+    event.dataTransfer.effectAllowed = payload.startsWith('piece:') ? 'copy' : 'move';
+    event.dataTransfer.setData('text/plain', payload);
+    if (payload.startsWith('square:')) event.dataTransfer.setData('application/x-position-lab-square', payload.slice(7));
+  }
+
+  function readPieceDrag(event) {
+    return event.dataTransfer.getData('text/plain') || activePieceDrag.current;
+  }
+
+  function finishPieceDrop(square, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const data = readPieceDrag(event);
+    if (data.startsWith('square:') && data.slice(7) === square) return;
+    if (!data.startsWith('piece:') && !data.startsWith('square:')) return;
+    setFenMetadata(null);
+    setFenDraft(null);
+    setFenError('');
+    if (data.startsWith('piece:')) {
+      setPieces((old) => ({ ...old, [square]: data.slice(6) }));
+      return;
+    }
+    const source = data.slice(7);
+    setPieces((old) => {
+      if (!old[source]) return old;
+      const next = { ...old, [square]: old[source] };
+      delete next[source];
+      return next;
+    });
   }
   async function loadSharedArchive(event) {
     event.preventDefault();
@@ -986,21 +1022,9 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
               setFenMetadata(null);
               setFenDraft(null);
               setFenError('');
-            }} onDragOver={(event) => event.preventDefault()} onDrop={(event) => {
-              event.preventDefault(); const data = event.dataTransfer.getData('text/plain');
-              if (data.startsWith('square:') && data.slice(7) === square) return;
-              setFenMetadata(null); setFenDraft(null); setFenError('');
-              if (data.startsWith('piece:')) setPieces((old) => ({ ...old, [square]: data.slice(6) }));
-              if (data.startsWith('square:')) {
-                const source = data.slice(7);
-                setPieces((old) => { const next = { ...old, [square]: old[source] }; delete next[source]; return next; });
-              }
-            }}>
+            }} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = activePieceDrag.current.startsWith('piece:') ? 'copy' : 'move'; }} onDrop={(event) => finishPieceDrop(square, event)}>
             {c === 0 && <span className="position-lab__coordinate">{rank}</span>}{r === 7 && <span className="position-lab__coordinate position-lab__coordinate--file">{file}</span>}
-            {piece && <img draggable onDragStart={(event) => {
-              event.dataTransfer.setData('text/plain', 'square:' + square);
-              event.dataTransfer.setData('application/x-position-lab-square', square);
-            }} src={pieceImages[piece]} alt={piece} />}
+            {piece && <img draggable onDragStart={(event) => startPieceDrag(event, 'square:' + square)} onDragEnd={() => { activePieceDrag.current = ''; }} src={pieceImages[piece]} alt={piece} />}
           </button>;
         }))}
       </div></section>
@@ -1023,8 +1047,8 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         <div className="position-lab__piece-column">
         <section className="position-lab__card position-lab__pieces"><h2>{t.pieces}</h2>{['w', 'b'].map((color) => <div className="position-lab__piece-row" key={color}>{['K', 'Q', 'R', 'B', 'N', 'P'].map((kind) => {
           const code = color + kind;
-          return <button type="button" draggable key={code} aria-label={code} className={selected?.code === code ? 'is-active' : ''} onClick={() => setSelected({ type: 'piece', code })}
-            onDragStart={(event) => event.dataTransfer.setData('text/plain', 'piece:' + code)}><img src={pieceImages[code]} alt={code} /></button>;
+          return <button type="button" draggable={true} key={code} aria-label={code} className={selected?.code === code ? 'is-active' : ''} onClick={() => setSelected({ type: 'piece', code })}
+            onDragStart={(event) => startPieceDrag(event, 'piece:' + code)} onDragEnd={() => { activePieceDrag.current = ''; }}><img draggable={false} src={pieceImages[code]} alt={code} /></button>;
         })}</div>)}<button className={'position-lab__erase' + (selected?.type === 'erase' ? ' is-active' : '')} type="button" onClick={() => setSelected({ type: 'erase' })}>⌫ {t.erase}</button></section>
 
         </div>
