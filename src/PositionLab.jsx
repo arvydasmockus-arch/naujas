@@ -649,7 +649,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
     const drag = { payload, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, moved: false, source: event.currentTarget, previousCursor: event.currentTarget.style.cursor };
     pointerPieceDrag.current = drag;
     event.currentTarget.setPointerCapture?.(event.pointerId);
-    event.currentTarget.style.cursor = 'grabbing';
+    event.currentTarget.style.cursor = 'pointer';
   }
 
   function movePieceDrag(event) {
