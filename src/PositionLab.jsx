@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
-import { createRecognizer, placementToFen, resolveOrientation } from '@scoriiu/fenshot';
+import { createRecognizer, placementToFen } from '@scoriiu/fenshot';
 import modelUrl from '@scoriiu/fenshot/model/chess-tiles-v2.onnx?url';
 import wasmUrl from 'onnxruntime-web/ort-wasm-simd-threaded.wasm?url';
 import wasmMjsUrl from 'onnxruntime-web/ort-wasm-simd-threaded.mjs?url';
@@ -31,7 +31,7 @@ async function recognizeImageBoards(file, recognizer) {
       const result = await recognizeImageRegion(region.bitmap, recognizer);
       if (!result?.plausible) continue;
 
-      const { placement } = resolveOrientation(result.placement);
+      const placement = result.placement;
       const { x0, y0, x1, y1 } = result.corners;
       const width = region.bitmap.width;
       const height = region.bitmap.height;
