@@ -7,6 +7,8 @@ import wasmMjsUrl from 'onnxruntime-web/ort-wasm-simd-threaded.mjs?url';
 import { positionArchiveRequest } from './positionArchiveApi.js';
 import { exportOliveCollection } from './lib/oliveExport.js';
 import { prepareHatchedOcr, scanHatchedBoard } from './lib/hatchedBoardScan.js';
+import { gridRecoversRead } from './lib/ocrBoardArbitration.js';
+import { extractPositionText } from './lib/positionTextImport.js';
 import './PositionLab.css';
 
 const pieceImages = Object.fromEntries(Object.entries(import.meta.glob('./assets/chess/*.svg', { eager: true, query: '?url', import: 'default' }))
@@ -18,7 +20,7 @@ const imageImportText = {
   ru: { title: 'Загрузить диаграмму из изображения', button: 'Выбрать изображение', pasteMissing: 'В буфере обмена нет изображения. Скопируйте диаграмму и попробуйте снова.', pasteDenied: 'Браузер не разрешил доступ к буферу обмена. Попробуйте Ctrl+V или выберите файл.', help: 'Перетащите изображение сюда или вставьте через Ctrl+V. На телефоне можно выбрать фото из галереи.', scanning: 'Распознавание диаграмм…', none: 'Диаграммы не найдены. Попробуйте более четкое 2D-изображение.', failed: 'Не удалось прочитать изображение. Попробуйте другой файл.', found: 'Распознанные диаграммы', choose: 'Выберите диаграмму для загрузки на доску.', confidence: 'точность', check: 'Проверьте фигуры: распознавание может ошибаться.', ready: 'Изображение обработано. Выберите диаграмму.' },
 };
 
-async function recognizeImageBoards(file, recognizer) {
+async function recognizeImageBoards(file, recognizer, method = 'auto') {
   const root = await createImageBitmap(file);
   const pending = [{ bitmap: root, x: 0, y: 0, root: true }];
   const found = [];
@@ -28,7 +30,7 @@ async function recognizeImageBoards(file, recognizer) {
     const region = pending.shift();
     scannedRegions += 1;
     try {
-      const result = await recognizeImageRegion(region.bitmap, recognizer);
+      const result = await recognizeImageRegion(region.bitmap, recognizer, method);
       if (!result?.plausible) continue;
 
       const placement = result.placement;
@@ -126,6 +128,10 @@ function positionCells(fen) {
   }));
 }
 
+function pieceCount(placement) {
+  return (placement || '').replace(/[1-8/]/g, '').length;
+}
+
 async function medianFilteredBitmap(source, radius = 1) {
   const maxDimension = radius > 1 ? 1000 : 1600;
   const scale = Math.min(1, maxDimension / Math.max(source.width, source.height));
@@ -215,32 +221,6 @@ function needsGridRecovery(source, result) {
     || !result.plausible;
 }
 
-function pieceCount(placement) {
-  return (placement || '').replace(/[1-8/]/g, '').length;
-}
-
-function isFullBoardRead(result, source) {
-  if (!result?.corners) return false;
-  const { x0, y0, x1, y1 } = result.corners;
-  const width = x1 - x0;
-  const height = y1 - y0;
-  const sourceMin = Math.min(source.width, source.height);
-  return Math.min(width, height) >= sourceMin * 0.82
-    && Math.min(width, height) / Math.max(width, height) >= 0.88;
-}
-
-function gridRecoversRead(primary, candidate, source) {
-  if (!candidate?.plausible) return false;
-  const candidateIsFull = isFullBoardRead(candidate, source);
-  const primaryIsFull = isFullBoardRead(primary, source);
-  if (candidateIsFull && candidate.meanConfidence >= 0.82
-    && (!primaryIsFull || candidate.placement !== primary.placement)) return true;
-  return !primary?.plausible
-    || candidate.meanConfidence > primary.meanConfidence
-    || (candidate.meanConfidence === primary.meanConfidence && candidate.minConfidence > primary.minConfidence)
-    || (candidate.meanConfidence >= 0.78 && pieceCount(candidate.placement) >= pieceCount(primary?.placement) + 4);
-}
-
 async function scanHatchedRegion(source) {
   const guide = await medianFilteredBitmap(source, 2);
   try {
@@ -253,9 +233,25 @@ async function scanHatchedRegion(source) {
   }
 }
 
-async function recognizeImageRegion(source, recognizer) {
+async function recognizeImageRegion(source, recognizer, method = 'auto') {
   const wasmPaths = { mjs: wasmMjsUrl, wasm: wasmUrl };
   await prepareHatchedOcr(wasmPaths);
+  if (method === 'grid') return scanHatchedRegion(source);
+  if (method === 'strong-filter' || method === 'soft-focus') {
+    const filtered = method === 'strong-filter' ? await medianFilteredBitmap(source, 2) : await softenedBitmap(source);
+    try {
+      const result = await recognizer.recognize(filtered.bitmap);
+      if (!result?.corners) return result;
+      return { ...result, corners: {
+        x0: result.corners.x0 * filtered.scaleX,
+        y0: result.corners.y0 * filtered.scaleY,
+        x1: result.corners.x1 * filtered.scaleX,
+        y1: result.corners.y1 * filtered.scaleY,
+      } };
+    } finally {
+      filtered.bitmap.close();
+    }
+  }
   const minDimension = Math.min(source.width, source.height);
   let gridCandidate;
   if (minDimension >= 180 && Math.max(source.width, source.height) <= 1000) {
@@ -428,6 +424,8 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const imageInput = useRef(null);
   const imagePasteTarget = useRef(null);
   const imagePreviewUrlRef = useRef('');
+  const imageSourceRef = useRef(null);
+  const retryRecognitionIndex = useRef(0);
   const scanImageRef = useRef(null);
   const engineEnabledRef = useRef(true);
   const fen = useMemo(() => toFen(pieces, turn, fenMetadata), [pieces, turn, fenMetadata]);
@@ -851,13 +849,33 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         bitmap.close();
       }
       if (!normalized) throw new Error('Could not normalize image');
+      imageSourceRef.current = normalized;
+      retryRecognitionIndex.current = 0;
       const items = await recognizeImageBoards(normalized, imageRecognizer.current);
       const selected = items.length ? 0 : -1;
-      if (items[0]) applyFen(items[0].fen);
+      // Never silently place a low-confidence read on the working board.
+      // Keep it visible for review, but require an explicit selection.
+      if (items[0]?.reliable) applyFen(items[0].fen);
       setImageImport({ status: items.length ? 'done' : 'empty', items, selected });
     } catch (error) {
       console.error('Chess diagram image recognition failed', error);
       setImageImport({ status: 'error', items: [], selected: -1 });
+    }
+  }
+  async function retryPositionRecognition() {
+    const source = imageSourceRef.current;
+    if (!source) return;
+    const methods = ['grid', 'strong-filter', 'soft-focus'];
+    const method = methods[retryRecognitionIndex.current % methods.length];
+    retryRecognitionIndex.current += 1;
+    setImageImport({ status: 'scanning', items: [], selected: -1, method });
+    try {
+      imageRecognizer.current ||= createRecognizer({ modelUrl, wasmPaths: { mjs: wasmMjsUrl, wasm: wasmUrl } });
+      const items = await recognizeImageBoards(source, imageRecognizer.current, method);
+      setImageImport({ status: items.length ? 'done' : 'empty', items, selected: items.length ? 0 : -1, method });
+    } catch (error) {
+      console.error('Alternate chess diagram recognition failed', error);
+      setImageImport({ status: 'error', items: [], selected: -1, method });
     }
   }
   async function pasteClipboardImage() {
@@ -888,6 +906,13 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   }
   function handleDialogImagePaste(event) {
     const clipboard = event.clipboardData;
+    const copiedPosition = extractPositionText(clipboard?.getData('text/plain') || clipboard?.getData('text') || '');
+    if (copiedPosition && applyFen(copiedPosition, false)) {
+      event.preventDefault();
+      event.stopPropagation();
+      setImageImportOpen(false);
+      return;
+    }
     const imageItem = clipboard && preferredClipboardImage(clipboard.items);
     const imageFile = clipboard && preferredClipboardImage(clipboard.files);
     const blob = imageItem?.getAsFile() || imageFile;
@@ -1085,6 +1110,9 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         {imageImport.status === 'done' && <>
           <p role="status">{imageText.found}: {imageImport.items.length}. {imageImport.items.length > 1 ? imageText.choose : imageText.ready}</p>
         </>}
+        {imagePreviewUrl && imageImport.status !== 'scanning' && <button type="button" onClick={retryPositionRecognition}>
+          {language === 'lt' ? 'Bandyt kitu atpažinimo būdu' : language === 'ru' ? 'Попробовать другой способ распознавания' : 'Try another recognition method'}
+        </button>}
       </section>
     </div>}
     <section className="position-lab__card position-lab__problem-solver">
