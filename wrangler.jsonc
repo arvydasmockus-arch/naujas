@@ -5,7 +5,7 @@
   "compatibility_date": "2026-10-09",
   "compatibility_flags": ["nodejs_compat"],
   "define": { "__filename": "\"/bundle/worker.js\"" },
-  "vars": { "ACCOUNTS_ENABLED": "true" },
+  "vars": { "ACCOUNTS_ENABLED": "true", "OPEN_TOURNAMENT_AUTOGENERATION": "false" },
   "observability": { "enabled": true },
   "d1_databases": [
     {
@@ -25,5 +25,5 @@
       { "queue": "ml-academy-isc-mail", "max_batch_size": 1, "max_retries": 3 }
     ]
   },
-  "triggers": { "crons": ["0 21,22 * * *", "0 5,6 * * *", "* * * * *"] }
+  "triggers": { "crons": ["0 21,22 * * *"] }
 }

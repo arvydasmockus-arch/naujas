@@ -185,8 +185,8 @@ test('failed automatic batches retain a reservation and a new UTC day gets its o
 });
 
 
-test('midnight and 08:00 retry follow Vilnius daylight saving and skip other UTC candidates without database reads', async (t) => {
-  for (const timestamp of ['2026-07-10T21:00:00Z', '2026-12-10T22:00:00Z', '2026-07-11T05:00:00Z', '2026-12-11T06:00:00Z']) {
+test('daily generation runs once at Vilnius midnight across daylight saving changes', async (t) => {
+  for (const timestamp of ['2026-07-10T21:00:00Z', '2026-12-10T22:00:00Z']) {
     t.mock.method(Date, 'now', () => Date.parse(timestamp));
     const queries = [];
     const adapter = { prepare(sql) {
@@ -203,9 +203,9 @@ test('midnight and 08:00 retry follow Vilnius daylight saving and skip other UTC
     assert.ok(queries.some((sql) => sql.includes('FROM sprint_puzzles')));
     t.mock.restoreAll();
   }
-  for (const timestamp of ['2026-07-10T22:00:00Z', '2026-12-10T21:00:00Z', '2026-07-11T06:00:00Z', '2026-12-11T05:00:00Z', '2026-10-20T12:00:00Z']) {
+  for (const timestamp of ['2026-07-10T22:00:00Z', '2026-12-10T21:00:00Z', '2026-07-11T05:00:00Z', '2026-12-11T06:00:00Z', '2026-10-20T12:00:00Z']) {
     await worker.scheduled({ scheduledTime: Date.parse(timestamp) }, {
-      DB: { prepare() { assert.fail('No database work outside local midnight or 08:00'); } },
+      DB: { prepare() { assert.fail('No database work outside local midnight'); } },
     });
   }
 });
@@ -275,14 +275,13 @@ test('Worker ISC routes protect drafts and PDFs, require registration, and enfor
   } finally { db.close(); }
 });
 
-test('ISC minute trigger never invokes daily generators, including midnight and 08:00', async () => {
-  for (const time of ['2026-11-01T22:00:00Z', '2026-11-02T06:00:00Z', '2026-11-02T09:00:00Z']) {
+test('obsolete minute trigger no longer polls ISC jobs or reads D1', async () => {
+  for (const timestamp of ['2026-11-02T09:00:00Z', '2026-11-02T22:37:00Z']) {
     const queries = [];
-    await worker.scheduled({ cron: '* * * * *', scheduledTime: Date.parse(time) }, { DB: { prepare(sql) {
+    await worker.scheduled({ cron: '* * * * *', scheduledTime: Date.parse(timestamp) }, { DB: { prepare(sql) {
       queries.push(sql); return { bind() { return this; }, async all() { return { results: [] }; } };
     } } });
-    assert.equal(queries.length, 2);
-    assert.ok(queries.every((sql) => /FROM isc_(jobs|mail)/.test(sql)));
+    assert.equal(queries.length, 0);
   }
 });
 

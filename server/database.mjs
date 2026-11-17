@@ -53,6 +53,7 @@ export function openDatabase(path = defaultDatabasePath, seed = true) {
   }
   db.exec(readFileSync(new URL('../cloudflare/migrations/0013_forum.sql', import.meta.url), 'utf8'));
   db.exec(readFileSync(new URL('../cloudflare/migrations/0016_saved_positions.sql', import.meta.url), 'utf8'));
+  db.exec(readFileSync(new URL('../cloudflare/migrations/0017_anonymous_positions.sql', import.meta.url), 'utf8'));
   if (seed) {
     const puzzles = JSON.parse(readFileSync(new URL('../src/solvingPuzzles.json', import.meta.url), 'utf8'));
     const insert = db.prepare('INSERT OR IGNORE INTO puzzles(id,puzzle,eligible,verified,position_hash) VALUES(?,?,1,1,?)');

@@ -24,14 +24,31 @@ function setup() {
   return { db, env, request, createUser };
 }
 
-test('saved positions are private to their verified account and can be created, reopened and deleted', async (t) => {
+test('guest positions are shared while signed-in positions remain private to their verified account', async (t) => {
   const app = setup();
   try {
     const firstToken = await app.createUser('Private One', 'private1@example.test');
     const secondToken = await app.createUser('Private Two', 'private2@example.test');
     const get = async (token) => positionArchiveApi(app.request('/api/positions', 'GET', undefined, token), app.env);
     const anonymous = await get(undefined);
-    assert.equal(anonymous.status, 401);
+    assert.equal(anonymous.status, 200);
+    assert.deepEqual((await anonymous.json()).positions, []);
+
+    const guestSave = await positionArchiveApi(app.request('/api/positions', 'POST', {
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', fen: '4k3/8/8/8/8/8/8/4K3 w - - 0 1', stipulation: '#2',
+    }), app.env);
+    assert.equal(guestSave.status, 201);
+    assert.equal((await guestSave.json()).position.number, 1);
+    const guestArchive = await (await get(undefined)).json();
+    assert.equal(guestArchive.positions.length, 1);
+    assert.equal(guestArchive.positions[0].id, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+    assert.deepEqual((await (await get(secondToken)).json()).positions, [], 'signed-in users do not see the public guest archive');
+    const retryGuestSave = await positionArchiveApi(app.request('/api/positions', 'POST', {
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', fen: '4k3/8/8/8/8/8/8/4K3 w - - 0 1', stipulation: '#2',
+    }), app.env);
+    assert.equal(retryGuestSave.status, 201);
+    assert.equal((await (await get(undefined)).json()).positions.length, 1, 'retrying the same guest save does not duplicate it');
+    assert.equal((await positionArchiveApi(app.request('/api/positions/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'DELETE'), app.env)).status, 401);
 
     const saved = await positionArchiveApi(app.request('/api/positions', 'POST', {
       fen: '8/8/2pp4/3k1r2/2b1p1q1/4K3/N2B4/8 w - - 0 1', stipulation: 'h2',
@@ -51,6 +68,9 @@ test('saved positions are private to their verified account and can be created, 
     const deleted = await positionArchiveApi(app.request(`/api/positions/${position.id}`, 'DELETE', undefined, firstToken), app.env);
     assert.equal(deleted.status, 200);
     assert.deepEqual((await (await get(firstToken)).json()).positions, []);
+    assert.equal((await (await get(undefined)).json()).positions.length, 1, 'deleting a private position leaves guest submissions untouched');
+
+    assert.equal((await positionArchiveApi(app.request('/api/positions', 'GET', undefined, 'invalid-token'), app.env)).status, 401);
   } finally { t.mock.restoreAll(); app.db.close(); }
 });
 

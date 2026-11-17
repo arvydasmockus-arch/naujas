@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS anonymous_positions (
+  number INTEGER PRIMARY KEY AUTOINCREMENT,
+  id TEXT NOT NULL UNIQUE,
+  fen TEXT NOT NULL,
+  stipulation TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);

@@ -395,8 +395,6 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const [fenError, setFenError] = useState('');
   const [fenMetadata, setFenMetadata] = useState(null);
   const [archiveData, setArchiveData] = useState({ userId: null, positions: [], error: '' });
-  const [localArchivePositions, setLocalArchivePositions] = useState(readLocalArchive);
-  const [localArchiveError, setLocalArchiveError] = useState('');
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [judgePanelOpen, setJudgePanelOpen] = useState(false);
   const [sharedArchiveKey, setSharedArchiveKey] = useState('');
@@ -435,6 +433,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const fen = useMemo(() => toFen(pieces, turn, fenMetadata), [pieces, turn, fenMetadata]);
   const game = useMemo(() => { try { return new Chess(fen); } catch { return null; } }, [fen]);
   const currentStipulation = stipulation.trim().toLowerCase().replace(/^([hs])(?=\d)/, '$1#');
+  const currentArchiveUserId = accountUser?.id ?? 'anonymous';
 
   useEffect(() => {
     popeyeWorker.current?.terminate();
@@ -446,15 +445,29 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   }, []);
   useEffect(() => {
     let active = true;
-    const userId = accountUser?.id;
-    if (!userId) return () => { active = false; };
-    positionArchiveRequest().then((result) => {
+    const userId = currentArchiveUserId;
+    (async () => {
+      if (userId === 'anonymous') {
+        let migrationError = '';
+        try {
+          for (const position of readLocalArchive()) {
+            await positionArchiveRequest('POST', { id: position.id, fen: position.fen, stipulation: position.stipulation });
+          }
+          window.localStorage.removeItem(localArchiveStorageKey);
+        } catch (error) {
+          migrationError = error.message;
+        }
+        const result = await positionArchiveRequest();
+        if (active) setArchiveData({ userId, positions: result.positions || [], error: migrationError });
+        return;
+      }
+      const result = await positionArchiveRequest();
       if (active) setArchiveData({ userId, positions: result.positions || [], error: '' });
-    }).catch((error) => {
+    })().catch((error) => {
       if (active) setArchiveData({ userId, positions: [], error: error.message });
     });
     return () => { active = false; };
-  }, [accountUser?.id]);
+  }, [currentArchiveUserId]);
 
   const solveProblem = useCallback(() => {
     popeyeWorker.current?.terminate();
@@ -736,45 +749,18 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   }
   async function savePosition() {
     setArchiveOpen(true);
-    if (!accountUser) {
-      const position = {
-        id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        number: localArchivePositions.length + 1,
-        fen,
-        stipulation: currentStipulation,
-        createdAt: new Date().toISOString(),
-      };
-      const positions = [...localArchivePositions, position];
-      try {
-        window.localStorage.setItem(localArchiveStorageKey, JSON.stringify(positions));
-        setLocalArchivePositions(positions);
-        setLocalArchiveError('');
-      } catch (error) {
-        setLocalArchiveError(error.message);
-      }
-      return;
-    }
+    const userId = accountUser?.id ?? 'anonymous';
     try {
-      const result = await positionArchiveRequest('POST', { fen, stipulation: currentStipulation });
-      setArchiveData((archive) => archive.userId === accountUser.id
+      const result = await positionArchiveRequest('POST', {
+        ...(!accountUser ? { id: window.crypto.randomUUID() } : {}), fen, stipulation: currentStipulation,
+      });
+      setArchiveData((archive) => archive.userId === userId
         ? { ...archive, positions: [...archive.positions, result.position].sort((a, b) => a.number - b.number), error: '' }
         : archive);
-    } catch (error) { setArchiveData((archive) => archive.userId === accountUser.id ? { ...archive, error: error.message } : archive); }
+    } catch (error) { setArchiveData((archive) => archive.userId === userId ? { ...archive, error: error.message } : archive); }
   }
   async function deletePosition(position) {
-    if (!accountUser) {
-      const positions = localArchivePositions
-        .filter((item) => item.id !== position.id)
-        .map((item, index) => ({ ...item, number: index + 1 }));
-      try {
-        window.localStorage.setItem(localArchiveStorageKey, JSON.stringify(positions));
-        setLocalArchivePositions(positions);
-        setLocalArchiveError('');
-      } catch (error) {
-        setLocalArchiveError(error.message);
-      }
-      return;
-    }
+    if (!accountUser) return;
     try {
       await positionArchiveRequest('DELETE', undefined, position.id);
       setArchiveData((archive) => archive.userId === accountUser?.id
@@ -795,14 +781,10 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
     link.click();
     URL.revokeObjectURL(url);
   }
-  const archiveReady = Boolean(accountUser && archiveData.userId === accountUser.id);
-  const visiblePositions = accountUser
-    ? archiveReady ? archiveData.positions : []
-    : localArchivePositions;
-  const archiveError = accountUser
-    ? archiveReady ? archiveData.error : ''
-    : localArchiveError;
-  const archiveLoading = Boolean(accountUser && !archiveReady);
+  const archiveReady = archiveData.userId === currentArchiveUserId;
+  const visiblePositions = archiveReady ? archiveData.positions : [];
+  const archiveError = archiveReady ? archiveData.error : '';
+  const archiveLoading = !archiveReady;
   const sharedArchiveUsers = [...new Map((sharedArchivePositions || []).map((position) => [position.accountId, position.author])).entries()];
   const filteredSharedPositions = (sharedArchivePositions || []).filter((position) =>
     !sharedArchiveSelectedUser || position.accountId === sharedArchiveSelectedUser);
@@ -977,7 +959,8 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         <button type="button" onClick={downloadOlv} disabled={!visiblePositions.length}>{archiveLabels.download}</button>
       <button type="button" className="position-lab__archive-close" onClick={() => { setArchiveOpen(false); setJudgePanelOpen(false); }} aria-label={archiveLabels.close} title={archiveLabels.close}>×</button>
       </div></div>
-      {!accountUser && <p>{language === 'lt' ? 'Pozicijos saugomos šioje naršyklėje.' : language === 'ru' ? 'Позиции сохраняются в этом браузере.' : 'Positions are saved in this browser.'}</p>}
+      {!accountUser && <p>{language === 'lt' ? 'Svečio išsaugotos pozicijos matomos visiems neprisijungusiems lankytojams.' : language === 'ru' ? 'Позиции гостей видны всем посетителям без входа.' : 'Guest positions are visible to all visitors who are not signed in.'}</p>}
+      {accountUser && <p>{language === 'lt' ? 'Prisijungę matote tik savo privačias pozicijas.' : language === 'ru' ? 'После входа видны только ваши личные позиции.' : 'When signed in, you see only your private positions.'}</p>}
       {archiveLoading && <p>{t.loading}</p>}
       {archiveError && <p className="position-lab__archive-error" role="alert">{archiveError}</p>}
       {!archiveLoading && !archiveError && visiblePositions.length === 0 && <p>{archiveLabels.empty}</p>}
@@ -985,7 +968,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         <button type="button" className="position-lab__archive-open" onClick={() => openSavedPosition(position)}>
           <strong>{position.number}.</strong><span>{position.stipulation}</span><code>{position.fen.split(' ')[0]}</code>
         </button>
-        <button type="button" className="position-lab__archive-delete" aria-label={`${archiveLabels.remove} ${position.number}`} title={archiveLabels.remove} onClick={() => deletePosition(position)}>×</button>
+        {accountUser && <button type="button" className="position-lab__archive-delete" aria-label={`${archiveLabels.remove} ${position.number}`} title={archiveLabels.remove} onClick={() => deletePosition(position)}>×</button>}
       </li>)}</ol>}
       {judgePanelOpen && <section className="position-lab__shared-archive">
         <h3>{language === 'lt' ? 'Bendras kūrėjų archyvas' : language === 'ru' ? 'Общий архив авторов' : 'Shared authors archive'}</h3>

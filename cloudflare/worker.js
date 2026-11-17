@@ -1,5 +1,5 @@
 import { Buffer } from 'node:buffer';
-import { iscApi, iscState, guardIsc, runIscSchedule, frozenIscPdf, deliverIscMail } from '../server/iscTraining.mjs';
+import { iscApi, iscState, guardIsc, frozenIscPdf, deliverIscMail, runIscJobWakeup } from '../server/iscTraining.mjs';
 import { drawSprintRows } from '../server/sprintDraw.mjs';
 import { forumApi } from '../server/forumApi.mjs';
 import { positionArchiveApi } from '../server/positionArchive.mjs';
@@ -1054,13 +1054,11 @@ export default {
   },
   async scheduled(controller, env) {
     const timestamp = controller.scheduledTime ?? Date.now();
-    if (controller.cron === '* * * * *') {
-      await runIscSchedule(env, iscDependencies(env), timestamp);
-      return;
-    }
-    const localHour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Vilnius', hour: '2-digit', hourCycle: 'h23' }).format(timestamp));
-    // UTC candidates cover Vilnius summer/winter time; retry missing sets at 08:00.
-    if (localHour === 0 || localHour === 8) {
+    const localTime = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Vilnius', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(timestamp).map(({ type, value }) => [type, value]));
+    // Two UTC candidates cover CET/CEST, but only local midnight generates a daily set.
+    if (localTime.hour === '00' && localTime.minute === '00') {
       const date = localSprintDate(timestamp);
       try { await ensureDaily(env.DB, date); } catch (error) { console.log('Daily generation is waiting for verified puzzles:', error.message); }
       try { await ensureSprintDay(env.DB, date); } catch (error) { console.log('Sprint generation is waiting for eligible puzzles:', error.message); }
@@ -1072,9 +1070,11 @@ export default {
         try {
           if (message.body?.type === 'isc-mail' && typeof message.body.id === 'string' && Number.isFinite(message.body.lease)) {
             await deliverIscMail(env, message.body.id, message.body.lease);
+          } else if (message.body?.type === 'isc-job' && typeof message.body.id === 'string') {
+            await runIscJobWakeup(env, iscDependencies(env), message.body.id);
           }
           message.ack();
-        } catch { message.retry(); }
+        } catch { message.retry({ delaySeconds: 120 }); }
       }
       return;
     }

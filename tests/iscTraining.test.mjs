@@ -7,7 +7,7 @@ import { TournamentStore } from '../server/tournamentStore.mjs';
 import { parseTournamentEntry } from '../server/tournamentTools.mjs';
 import { accountApi } from '../server/accountAuth.mjs';
 import { tournamentPdf } from '../server/tournamentPdf.mjs';
-import { guardIsc, iscApi, iscStart, runIscSchedule, deliverIscMail, frozenIscPdf } from '../server/iscTraining.mjs';
+import { guardIsc, iscApi, iscStart, runIscSchedule, runIscJobWakeup, deliverIscMail, frozenIscPdf } from '../server/iscTraining.mjs';
 
 function setup(t) {
   let now = Date.parse('2026-11-02T09:00:00Z');
@@ -127,6 +127,26 @@ test('scheduled generation creates a judge draft once; approval is explicit and 
   assert.equal(app.deliveries.length, 0);
 });
 
+test('ISC delivery waits in the queue and only wakes ten minutes before a fixed start', async (t) => {
+  const app = setup(t); const queued = [];
+  app.env.ISC_MAIL_QUEUE = {
+    send: async (body, options) => queued.push({ body, options }),
+    sendBatch: async (messages) => queued.push(...messages),
+  };
+  const id = await app.event(true);
+  assert.equal(queued.length, 2);
+  assert.deepEqual(queued.slice(0, 2).map((message) => message.body.type), ['isc-job', 'isc-job']);
+  assert.ok(queued.slice(0, 2).every((message) => message.options.delaySeconds === 86400), 'dates beyond 24 hours are chained by the queue limit');
+
+  app.setTime('2026-11-08T09:50:00Z');
+  await runIscJobWakeup(app.env, app.dependencies, `${id}:problems`, Date.now());
+  assert.equal(queued.at(-1).options.delaySeconds, 600);
+
+  app.setTime('2026-11-08T10:00:00Z');
+  await runIscJobWakeup(app.env, app.dependencies, `${id}:problems`, Date.now());
+  assert.equal(app.db.prepare('SELECT status FROM isc_jobs WHERE id=?').get(`${id}:problems`).status, 'done');
+});
+
 test('ISC outbox sends separate PDF attachments at start and +3 hours, caches PDFs, and survives repeated and concurrent ticks', async (t) => {
   const app = setup(t); const id = await app.event(true); const alice = await app.user(); const bob = await app.user('Bob', 'bob@example.test');
   for (const user of [alice, bob]) await app.call('register', { id }, false, user.token);
@@ -171,6 +191,15 @@ test('idle ISC tick only checks indexed due work and never scans problem pools o
   await runIscSchedule({ DB: { prepare(sql) { queries.push(sql); return { bind() { return this; }, all() { return { results: [] }; } }; } } }, {});
   assert.equal(queries.length, 2);
   assert.ok(queries.every((sql) => /isc_(jobs|mail)/.test(sql) && /status='pending'/.test(sql) && /run_at<=/.test(sql)));
+});
+
+test('paused Open tournament generation leaves other ISC scheduled jobs enabled', async () => {
+  const queries = [];
+  await runIscSchedule({ OPEN_TOURNAMENT_AUTOGENERATION: 'false', DB: { prepare(sql) {
+    queries.push(sql); return { bind() { return this; }, all() { return { results: [] }; } };
+  } } }, {});
+  assert.match(queries[0], /kind!='generate'/);
+  assert.match(queries[0], /ORDER BY run_at LIMIT 1/);
 });
 
 test('editing invalidates prepared PDFs and approval requires both PDFs from the same revision', async (t) => {
@@ -224,11 +253,11 @@ test('ISC queue sends one stored PDF per recipient, ignores duplicate/stale mess
 test('queue failures retry through the indexed outbox; expired uncertain deliveries stop for judge review', async (t) => {
   const app = setup(t); const id = await app.event(true); const alice = await app.user();
   await app.call('register', { id }, false, alice.token);
-  const queued = []; app.env.ISC_MAIL_QUEUE = { sendBatch: async (messages) => queued.push(...messages) };
+  const queued = []; app.env.ISC_MAIL_QUEUE = { sendBatch: async (messages) => queued.push(...messages), send: async (body, options) => queued.push({ body, options }) };
   app.env.SEND_ISC_EMAIL = async () => { throw new Error('Test provider unavailable'); };
   app.setTime('2026-11-08T10:00:00Z'); await app.schedule();
   const first = queued[0].body; await deliverIscMail(app.env, first.id, first.lease);
-  app.setTime('2026-11-08T10:02:00Z'); await app.schedule();
+  app.setTime('2026-11-08T10:02:00Z');
   assert.equal(queued.length, 2); const second = queued[1].body;
   assert.equal(second.id, first.id); assert.notEqual(second.lease, first.lease);
   await deliverIscMail(app.env, first.id, first.lease); // stale packet cannot reclaim the delivery

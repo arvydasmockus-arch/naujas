@@ -3,6 +3,8 @@ import { currentAccount } from './accountAuth.mjs';
 export const ISC_TIMEZONE = 'Europe/Berlin'; // CET in winter, CEST in summer.
 export const ISC_DURATION = 2 * 60 * 60 * 1000;
 export const ISC_SOLUTIONS_DELAY = 3 * 60 * 60 * 1000;
+const ISC_JOB_PREPARATION = 10 * 60 * 1000;
+const QUEUE_MAX_DELAY_SECONDS = 24 * 60 * 60;
 const error = (message, status = 400) => { throw Object.assign(new Error(message), { status }); };
 const reply = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
 const rows = async (statement) => (await statement.all()).results ?? [];
@@ -49,6 +51,31 @@ async function job(db, id, kind, when) {
   return db.prepare(`INSERT INTO isc_jobs(id,tournament_id,kind,run_at) VALUES(?,?,?,?)
     ON CONFLICT(id) DO UPDATE SET run_at=excluded.run_at,status='pending',attempts=0,last_error=''`)
     .bind(`${id}:${kind}`, id, kind, when);
+}
+
+async function scheduleIscWake(env, id, runAt, now = Date.now()) {
+  if (!env.ISC_MAIL_QUEUE) return;
+  const prepareAt = runAt - ISC_JOB_PREPARATION;
+  const wakeAt = prepareAt > now ? Math.min(prepareAt, now + QUEUE_MAX_DELAY_SECONDS * 1000)
+    : runAt > now ? runAt : now;
+  const delaySeconds = Math.max(0, Math.min(QUEUE_MAX_DELAY_SECONDS, Math.ceil((wakeAt - now) / 1000)));
+  await env.ISC_MAIL_QUEUE.send({ type: 'isc-job', id }, { delaySeconds });
+}
+
+export async function runIscJobWakeup(env, dependencies, id, now = Date.now()) {
+  const db = env.DB;
+  const current = await db.prepare('SELECT * FROM isc_jobs WHERE id=?').bind(id).first();
+  if (!current) return;
+  if (current.kind === 'generate' && env.OPEN_TOURNAMENT_AUTOGENERATION === 'false') return;
+  if (current.status === 'pending' && current.run_at > now) {
+    await scheduleIscWake(env, id, current.run_at, now);
+    return;
+  }
+  if (current.status === 'pending' || current.status === 'done') {
+    await runIscSchedule(env, dependencies, now, id);
+  }
+  const updated = await db.prepare('SELECT * FROM isc_jobs WHERE id=?').bind(id).first();
+  if (updated?.status === 'pending') await scheduleIscWake(env, id, updated.run_at, now);
 }
 
 export async function frozenIscPdf(db, id, kind) {
@@ -139,6 +166,7 @@ export async function iscApi(request, env, judge, dependencies) {
         .bind(data.kind, content, data.id, row.revision, Date.now()).run();
       if (!saved.meta.changes) error('ISC training changed. Refresh and prepare the PDFs again.');
     } else if (action === 'arm') {
+      if (row.armed) error('ISC training start is already approved.');
       if (data.reviewed !== true) error('Review the solutions, difficulty and scoring before publishing a competition.');
       if (!env.BREVO_API_KEY || !env.EMAIL_FROM) error('Email delivery is not configured.');
       const count = await db.prepare('SELECT COUNT(*) AS n FROM tournament_problems WHERE tournament_id=?').bind(data.id).first();
@@ -146,17 +174,25 @@ export async function iscApi(request, env, judge, dependencies) {
       if (!row.announced) error('Announce ISC training before arming the start.');
       const prepared = await db.prepare('SELECT COUNT(*) AS n FROM isc_pdfs WHERE tournament_id=? AND revision=?').bind(data.id, row.revision).first();
       if (prepared.n !== 2) error('Prepare both ISC PDFs before approving the start.');
+      const scheduledJobs = [['problems', row.starts_at], ['solutions', row.starts_at + ISC_SOLUTIONS_DELAY]];
       const armed = await db.batch([
         db.prepare(`UPDATE isc_trainings SET armed=1 WHERE tournament_id=? AND revision=? AND starts_at>?
           AND (SELECT COUNT(*) FROM isc_pdfs p WHERE p.tournament_id=isc_trainings.tournament_id AND p.revision=isc_trainings.revision)=2`)
           .bind(data.id, row.revision, Date.now()),
-        ...[['problems', row.starts_at], ['solutions', row.starts_at + ISC_SOLUTIONS_DELAY]].map(([kind, when]) =>
+        ...scheduledJobs.map(([kind, when]) =>
           db.prepare(`INSERT INTO isc_jobs(id,tournament_id,kind,run_at)
             SELECT ?,tournament_id,?,? FROM isc_trainings WHERE tournament_id=? AND armed=1 AND revision=? AND starts_at>?
             ON CONFLICT(id) DO UPDATE SET run_at=excluded.run_at,status='pending',attempts=0,last_error=''`)
             .bind(`${data.id}:${kind}`, kind, when, data.id, row.revision, Date.now())),
       ]);
       if (!armed[0].meta.changes) error('ISC training changed. Refresh and prepare the PDFs again.');
+      try {
+        await Promise.all(scheduledJobs.map(([kind, when]) => scheduleIscWake(env, `${data.id}:${kind}`, when)));
+      } catch (cause) {
+        await db.batch([db.prepare('UPDATE isc_trainings SET armed=0 WHERE tournament_id=?').bind(data.id),
+          db.prepare('DELETE FROM isc_jobs WHERE tournament_id=? AND kind IN (\'problems\',\'solutions\')').bind(data.id)]);
+        throw new Error(`Could not schedule ISC delivery: ${cause.message}`);
+      }
     } else if (action === 'disarm') {
       await db.batch([db.prepare('UPDATE isc_trainings SET armed=0 WHERE tournament_id=?').bind(data.id),
         db.prepare("DELETE FROM isc_jobs WHERE tournament_id=? AND kind IN ('problems','solutions')").bind(data.id)]);
@@ -202,15 +238,30 @@ export async function deliverIscMail(env, id, lease, now = Date.now()) {
     await db.prepare("UPDATE isc_mail SET status='sent',sent_at=?,last_error='',processing_token='' WHERE id=? AND processing_token=?").bind(now, id, token).run();
   } catch (cause) {
     const exhausted = mail.attempts >= 5 || (mail.first_attempt_at && now - mail.first_attempt_at > 25 * 60000);
+    const retryAt = now + 120000;
     await db.prepare("UPDATE isc_mail SET status=?,run_at=?,last_error=?,processing_token='' WHERE id=? AND processing_token=?")
-      .bind(exhausted ? 'failed' : 'pending', now + 120000, String(cause.message).slice(0, 500), id, token).run();
+      .bind(exhausted ? 'failed' : 'pending', exhausted ? retryAt : lease, String(cause.message).slice(0, 500), id, token).run();
+    if (!exhausted && env.ISC_MAIL_QUEUE) {
+      try {
+        await env.ISC_MAIL_QUEUE.send({ type: 'isc-mail', id, lease: retryAt }, { delaySeconds: 120 });
+        await db.prepare("UPDATE isc_mail SET run_at=? WHERE id=? AND status='pending' AND run_at=?")
+          .bind(retryAt, id, lease).run();
+      } catch {
+        await db.prepare("UPDATE isc_mail SET run_at=? WHERE id=? AND status='pending' AND run_at=?")
+          .bind(lease, id, lease).run();
+        throw cause;
+      }
+    }
   }
 }
 
 // Only indexed due jobs/outbox entries are read. No calendar, pool or account scan on an idle tick.
-export async function runIscSchedule(env, dependencies, now = Date.now()) {
+export async function runIscSchedule(env, dependencies, now = Date.now(), jobId = null) {
   const db = env.DB;
-  const due = await rows(db.prepare("SELECT * FROM isc_jobs WHERE status='pending' AND run_at<=? ORDER BY run_at LIMIT 1").bind(now));
+  const generationFilter = env.OPEN_TOURNAMENT_AUTOGENERATION === 'false' ? " AND kind!='generate'" : '';
+  const jobFilter = jobId ? ' AND id=?' : '';
+  const due = await rows(db.prepare(`SELECT * FROM isc_jobs WHERE status='pending' AND run_at<=?${generationFilter}${jobFilter} ORDER BY run_at LIMIT 1`)
+    .bind(...(jobId ? [now, jobId] : [now])));
   for (const item of due) {
     const claim = await db.prepare("UPDATE isc_jobs SET run_at=?,attempts=attempts+1 WHERE id=? AND status='pending' AND run_at=?").bind(now + 15 * 60000, item.id, item.run_at).run();
     if (!claim.meta.changes) continue;
@@ -254,9 +305,10 @@ export async function runIscSchedule(env, dependencies, now = Date.now()) {
     if (!claimed.length) return;
     try {
       await env.ISC_MAIL_QUEUE.sendBatch(claimed.map((mail) => ({ body: { type: 'isc-mail', id: mail.id, lease } })));
-    } catch {
+    } catch (cause) {
       await db.batch(claimed.map((mail) => db.prepare("UPDATE isc_mail SET run_at=?,last_error='Email queue is unavailable.' WHERE id=? AND run_at=?")
         .bind(now + 120000, mail.id, lease)));
+      throw cause;
     }
     return;
   }
