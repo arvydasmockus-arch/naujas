@@ -20,6 +20,23 @@ const imageImportText = {
   ru: { title: 'Загрузить диаграмму из изображения', button: 'Выбрать изображение', pasteMissing: 'В буфере обмена нет изображения. Скопируйте диаграмму и попробуйте снова.', pasteDenied: 'Браузер не разрешил доступ к буферу обмена. Попробуйте Ctrl+V или выберите файл.', help: 'Перетащите изображение сюда или вставьте через Ctrl+V. На телефоне можно выбрать фото из галереи.', scanning: 'Распознавание диаграмм…', none: 'Диаграммы не найдены. Попробуйте более четкое 2D-изображение.', failed: 'Не удалось прочитать изображение. Попробуйте другой файл.', found: 'Распознанные диаграммы', choose: 'Выберите диаграмму для загрузки на доску.', confidence: 'точность', check: 'Проверьте фигуры: распознавание может ошибаться.', ready: 'Изображение обработано. Выберите диаграмму.' },
 };
 
+async function encodeOcrJpeg(source) {
+  const bitmap = await createImageBitmap(source);
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Canvas 2d context unavailable');
+    context.drawImage(bitmap, 0, 0);
+    const image = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+    if (image?.type !== 'image/jpeg') throw new Error('Could not encode JPEG');
+    return image;
+  } finally {
+    bitmap.close();
+  }
+}
+
 async function recognizeImageBoards(file, recognizer, method = 'auto') {
   const root = await createImageBitmap(file);
   const pending = [{ bitmap: root, x: 0, y: 0, root: true }];
@@ -424,8 +441,6 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   const imageInput = useRef(null);
   const imagePasteTarget = useRef(null);
   const imagePreviewUrlRef = useRef('');
-  const imageSourceRef = useRef(null);
-  const retryRecognitionIndex = useRef(0);
   const scanImageRef = useRef(null);
   const engineEnabledRef = useRef(true);
   const fen = useMemo(() => toFen(pieces, turn, fenMetadata), [pieces, turn, fenMetadata]);
@@ -817,7 +832,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
       setFenError(t.invalidFen);
     }
   }
-  async function scanPositionImage(file) {
+  async function scanPositionImage(file, preferJpeg = false) {
     if (!file?.type?.startsWith('image/')) return;
     if (imagePreviewUrlRef.current) URL.revokeObjectURL(imagePreviewUrlRef.current);
     imagePreviewUrlRef.current = URL.createObjectURL(file);
@@ -849,9 +864,16 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         bitmap.close();
       }
       if (!normalized) throw new Error('Could not normalize image');
-      imageSourceRef.current = normalized;
-      retryRecognitionIndex.current = 0;
-      const items = await recognizeImageBoards(normalized, imageRecognizer.current);
+      let items = [];
+      if (preferJpeg) {
+        try {
+          const jpeg = await encodeOcrJpeg(normalized);
+          items = await recognizeImageBoards(jpeg, imageRecognizer.current);
+        } catch (error) {
+          console.warn('JPEG clipboard recognition failed', error);
+        }
+      }
+      if (!items.length) items = await recognizeImageBoards(normalized, imageRecognizer.current);
       const selected = items.length ? 0 : -1;
       // Never silently place a low-confidence read on the working board.
       // Keep it visible for review, but require an explicit selection.
@@ -860,22 +882,6 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
     } catch (error) {
       console.error('Chess diagram image recognition failed', error);
       setImageImport({ status: 'error', items: [], selected: -1 });
-    }
-  }
-  async function retryPositionRecognition() {
-    const source = imageSourceRef.current;
-    if (!source) return;
-    const methods = ['grid', 'strong-filter', 'soft-focus'];
-    const method = methods[retryRecognitionIndex.current % methods.length];
-    retryRecognitionIndex.current += 1;
-    setImageImport({ status: 'scanning', items: [], selected: -1, method });
-    try {
-      imageRecognizer.current ||= createRecognizer({ modelUrl, wasmPaths: { mjs: wasmMjsUrl, wasm: wasmUrl } });
-      const items = await recognizeImageBoards(source, imageRecognizer.current, method);
-      setImageImport({ status: items.length ? 'done' : 'empty', items, selected: items.length ? 0 : -1, method });
-    } catch (error) {
-      console.error('Alternate chess diagram recognition failed', error);
-      setImageImport({ status: 'error', items: [], selected: -1, method });
     }
   }
   async function pasteClipboardImage() {
@@ -898,7 +904,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
   }
   async function scanClipboardImage(blob, type = 'image/png') {
     try {
-      await scanPositionImage(blob);
+      await scanPositionImage(blob, true);
     } catch (error) {
       console.warn(`Could not decode clipboard image (${type})`, error);
       setImageImport({ status: 'error', items: [], selected: -1, message: imageText.pasteDenied });
@@ -950,7 +956,7 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
       if (!blob) return;
       event.preventDefault();
       setImageImportOpen(true);
-      scanImageRef.current?.(blob);
+      scanImageRef.current?.(blob, true);
     }
     window.addEventListener('paste', onPasteImage);
     return () => window.removeEventListener('paste', onPasteImage);
@@ -1023,62 +1029,6 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         </>}
       </section>}
     </section>}
-    <div className="position-lab__layout">
-      <div className="position-lab__board-panel"><section className="position-lab__board-wrap"><div className="position-lab__board">
-        {ranks.map((rank, r) => boardFiles.map((file, c) => {
-          const square = file + rank; const piece = pieces[square];
-          return <button type="button" key={square} aria-label={square} className={'position-lab__square ' + ((r + c) % 2 ? 'is-dark' : 'is-light') + (selected?.square === square ? ' is-selected' : '')}
-            onClick={() => squareClick(square)} onContextMenu={(event) => {
-              if (!pieces[square]) return;
-              event.preventDefault();
-              setPieces((old) => { const next = { ...old }; delete next[square]; return next; });
-              if (selected?.square === square) setSelected(null);
-              setFenMetadata(null);
-              setFenDraft(null);
-              setFenError('');
-            }}>
-            {c === 0 && <span className="position-lab__coordinate">{rank}</span>}{r === 7 && <span className="position-lab__coordinate position-lab__coordinate--file">{file}</span>}
-            {piece && <img draggable={false} onPointerDown={(event) => startPieceDrag(event, 'square:' + square)} onPointerMove={movePieceDrag} onPointerUp={finishPieceDrag} onPointerCancel={(event) => finishPieceDrag(event, true)} src={pieceImages[piece]} alt={piece} />}
-          </button>;
-        }))}
-      </div></section>
-      <div className="position-lab__board-footer">
-        <button type="button" className="position-lab__ocr-trigger" title={imageText.title} aria-label={imageText.title} onClick={() => setImageImportOpen(true)}>OCR</button>
-        <section className="position-lab__fen-panel" aria-label="FEN">
-          <label htmlFor="position-lab-fen">FEN</label>
-          <button type="button" className="position-lab__flip-button" aria-label={t.flip} title={t.flip} onClick={() => setFlipped((value) => !value)}>⟳</button>
-          <div className="position-lab__fen-controls">
-            <input id="position-lab-fen" type="text" value={fenDraft ?? fen.split(' ')[0]} placeholder={t.fenPlaceholder}
-              aria-invalid={Boolean(fenError)} onChange={(event) => { setFenDraft(event.target.value); setFenError(''); }}
-              onPaste={pasteFen} onKeyDown={(event) => { if (event.key === 'Enter') loadFen(); }} />
-            <button type="button" title={t.copy} aria-label={t.copy} onClick={copyPosition}>{copied ? '✓' : '⧉'}</button>
-          </div>
-          {fenError && <p role="alert">{fenError}</p>}
-        </section>
-      </div>
-      </div>
-      <aside className="position-lab__side">
-        <div className="position-lab__piece-column">
-        <section className="position-lab__card position-lab__pieces"><h2>{t.pieces}</h2>{['w', 'b'].map((color) => <div className="position-lab__piece-row" key={color}>{['K', 'Q', 'R', 'B', 'N', 'P'].map((kind) => {
-          const code = color + kind;
-          return <button type="button" draggable={false} key={code} aria-label={code} className={selected?.code === code ? 'is-active' : ''} onClick={() => setSelected({ type: 'piece', code })}
-            onPointerDown={(event) => startPieceDrag(event, 'piece:' + code)} onPointerMove={movePieceDrag} onPointerUp={finishPieceDrag} onPointerCancel={(event) => finishPieceDrag(event, true)}><img draggable={false} src={pieceImages[code]} alt={code} /></button>;
-        })}</div>)}<button className={'position-lab__erase' + (selected?.type === 'erase' ? ' is-active' : '')} type="button" onClick={() => setSelected({ type: 'erase' })}>⌫ {t.erase}</button></section>
-
-        </div>
-        <section className="position-lab__card position-lab__controls"><h2>{t.title}</h2><div className="position-lab__turn"><button className={turn === 'w' ? 'is-active' : ''} onClick={() => { setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.white}</button><button className={turn === 'b' ? 'is-active' : ''} onClick={() => { setTurn('b'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.black}</button></div>
-          <div className="position-lab__buttons"><button type="button" onClick={() => { setPieces(initialPieces()); setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.start}</button><button type="button" onClick={() => { setPieces({}); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.clear}</button></div>
-          <div className="position-lab__buttons position-lab__board-actions">
-            <button type="button" title={archiveLabels.save} onClick={savePosition} disabled={archiveLoading}>{archiveLabels.saveShort}</button>
-            <button type="button" className={visiblePositions.length ? 'position-lab__archive-toggle is-populated' : 'position-lab__archive-toggle'} title={archiveLabels.archive} aria-label={`${archiveLabels.archive}: ${visiblePositions.length}`} aria-expanded={archiveOpen} aria-controls="position-lab-archive" onClick={() => setArchiveOpen((open) => !open)}>{archiveLabels.archiveShort} ({visiblePositions.length})</button>
-          </div></section>
-        <section className="position-lab__card position-lab__result"><div className="position-lab__analysis-heading"><div className="position-lab__analysis-title"><h2>{language === 'lt' ? 'Geriausios linijos' : language === 'ru' ? 'Лучшие варианты' : 'Best lines'}</h2><button type="button" className={'position-lab__engine-toggle' + (engineEnabled ? ' is-active' : '')} aria-pressed={engineEnabled} onClick={toggleEngine}>{engineEnabled ? t.disableEngine : t.enableEngine}</button><button type="button" className="position-lab__engine-toggle" onClick={restartEngine}>{restartLabel}</button></div><div className="position-lab__analysis-options"><span className="position-lab__engine-version">{engineName}</span><label>{language === 'lt' ? 'Rodyti linijas' : language === 'ru' ? 'Показывать линий' : 'Show lines'}<select value={lineCount} onChange={(event) => setLineCount(Number(event.target.value))}>{[1, 2, 3, 4, 5].map((count) => <option key={count} value={count}>{count}</option>)}</select></label></div></div>
-          {displayedState === 'disabled' && <p>{t.engineOff}</p>}{displayedState === 'loading' && <p>{t.loading}</p>}{displayedState === 'invalid' && <p>{t.invalid}</p>}{displayedState === 'error' && <p>{engineError || 'Stockfish error'}</p>}{displayedState === 'checkmate' && <p>{t.checkmate}</p>}{displayedState === 'stalemate' && <p>{t.stalemate}</p>}
-          <div className="position-lab__lines">{lines.map((line) => <div className="position-lab__line" key={line.number}><span className="position-lab__line-number">{line.number}.</span><strong>{scoreLabel(line)}</strong><span className="position-lab__line-moves">{sanMoves(line.pv).map((move, index) => <span key={index}>{move.prefix && <span className="position-lab__move-number">{move.prefix} </span>}<button type="button" className="position-lab__move-button" title={t.showPosition} onClick={() => showVariationPosition(line.pv, index)}>{move.san}</button>{' '}</span>)}</span></div>)}</div>
-          {displayedState === 'analyzing' && lines.length === 0 && <p>{t.loading}</p>}{displayedState === 'done' && lines.length > 0 && lines.every((line) => line.mate === null) && <p className="position-lab__no-mate">{t.noMate}</p>}
-          <p className="position-lab__depth">{language === 'lt' ? 'Gylis' : language === 'ru' ? 'Глубина' : 'Depth'}: {engineEnabled ? analysis.depth : 0}</p></section>
-      </aside>
-    </div>
     {imageImportOpen && <div className="position-lab__image-import-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setImageImportOpen(false); }}>
       <section ref={imagePasteTarget} tabIndex={-1} className="position-lab__image-import" role="dialog" aria-modal="true" aria-label={imageText.title} onPaste={handleDialogImagePaste} onDragOver={(event) => event.preventDefault()} onDrop={(event) => {
         event.preventDefault();
@@ -1110,11 +1060,62 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         {imageImport.status === 'done' && <>
           <p role="status">{imageText.found}: {imageImport.items.length}. {imageImport.items.length > 1 ? imageText.choose : imageText.ready}</p>
         </>}
-        {imagePreviewUrl && imageImport.status !== 'scanning' && <button type="button" onClick={retryPositionRecognition}>
-          {language === 'lt' ? 'Bandyt kitu atpažinimo būdu' : language === 'ru' ? 'Попробовать другой способ распознавания' : 'Try another recognition method'}
-        </button>}
       </section>
     </div>}
+    <div className="position-lab__workspace">
+    <div className="position-lab__layout">
+      <div className="position-lab__board-panel"><section className="position-lab__board-wrap"><div className="position-lab__board">
+        {ranks.map((rank, r) => boardFiles.map((file, c) => {
+          const square = file + rank; const piece = pieces[square];
+          return <button type="button" key={square} aria-label={square} className={'position-lab__square ' + ((r + c) % 2 ? 'is-dark' : 'is-light') + (selected?.square === square ? ' is-selected' : '')}
+            onClick={() => squareClick(square)} onContextMenu={(event) => {
+              if (!pieces[square]) return;
+              event.preventDefault();
+              setPieces((old) => { const next = { ...old }; delete next[square]; return next; });
+              if (selected?.square === square) setSelected(null);
+              setFenMetadata(null);
+              setFenDraft(null);
+              setFenError('');
+            }}>
+            {c === 0 && <span className="position-lab__coordinate">{rank}</span>}{r === 7 && <span className="position-lab__coordinate position-lab__coordinate--file">{file}</span>}
+            {piece && <img draggable={false} onPointerDown={(event) => startPieceDrag(event, 'square:' + square)} onPointerMove={movePieceDrag} onPointerUp={finishPieceDrag} onPointerCancel={(event) => finishPieceDrag(event, true)} src={pieceImages[piece]} alt={piece} />}
+          </button>;
+        }))}
+      </div></section>
+        <section className="position-lab__fen-panel" aria-label="FEN">
+          <label htmlFor="position-lab-fen">FEN</label>
+          <button type="button" className="position-lab__flip-button" aria-label={t.flip} title={t.flip} onClick={() => setFlipped((value) => !value)}>⟳</button>
+          <div className="position-lab__fen-controls">
+            <input id="position-lab-fen" type="text" value={fenDraft ?? fen.split(' ')[0]} placeholder={t.fenPlaceholder}
+              aria-invalid={Boolean(fenError)} onChange={(event) => { setFenDraft(event.target.value); setFenError(''); }}
+              onPaste={pasteFen} onKeyDown={(event) => { if (event.key === 'Enter') loadFen(); }} />
+            <button type="button" title={t.copy} aria-label={t.copy} onClick={copyPosition}>{copied ? '✓' : '⧉'}</button>
+          </div>
+          {fenError && <p role="alert">{fenError}</p>}
+        </section>
+      </div>
+      <aside className="position-lab__side">
+        <div className="position-lab__piece-column">
+        <section className="position-lab__card position-lab__pieces"><h2>{t.pieces}</h2>{['w', 'b'].map((color) => <div className="position-lab__piece-row" key={color}>{['K', 'Q', 'R', 'B', 'N', 'P'].map((kind) => {
+          const code = color + kind;
+          return <button type="button" draggable={false} key={code} aria-label={code} className={selected?.code === code ? 'is-active' : ''} onClick={() => setSelected({ type: 'piece', code })}
+            onPointerDown={(event) => startPieceDrag(event, 'piece:' + code)} onPointerMove={movePieceDrag} onPointerUp={finishPieceDrag} onPointerCancel={(event) => finishPieceDrag(event, true)}><img draggable={false} src={pieceImages[code]} alt={code} /></button>;
+        })}</div>)}<button className={'position-lab__erase' + (selected?.type === 'erase' ? ' is-active' : '')} type="button" onClick={() => setSelected({ type: 'erase' })}>⌫ {t.erase}</button></section>
+        <button type="button" className="position-lab__ocr-trigger" title={imageText.title} aria-label={imageText.title} onClick={() => setImageImportOpen(true)}>OCR</button>
+        </div>
+        <section className="position-lab__card position-lab__controls"><h2>{t.title}</h2><div className="position-lab__turn"><button className={turn === 'w' ? 'is-active' : ''} onClick={() => { setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.white}</button><button className={turn === 'b' ? 'is-active' : ''} onClick={() => { setTurn('b'); setFenMetadata(null); setFenDraft(null); setFenError(''); }} type="button">{t.black}</button></div>
+          <div className="position-lab__buttons"><button type="button" onClick={() => { setPieces(initialPieces()); setTurn('w'); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.start}</button><button type="button" onClick={() => { setPieces({}); setFenMetadata(null); setFenDraft(null); setFenError(''); setSelected(null); }}>{t.clear}</button></div>
+          <div className="position-lab__buttons position-lab__board-actions">
+            <button type="button" title={archiveLabels.save} onClick={savePosition} disabled={archiveLoading}>{archiveLabels.saveShort}</button>
+            <button type="button" className={visiblePositions.length ? 'position-lab__archive-toggle is-populated' : 'position-lab__archive-toggle'} title={archiveLabels.archive} aria-label={`${archiveLabels.archive}: ${visiblePositions.length}`} aria-expanded={archiveOpen} aria-controls="position-lab-archive" onClick={() => setArchiveOpen((open) => !open)}>{archiveLabels.archiveShort} ({visiblePositions.length})</button>
+          </div></section>
+        <section className="position-lab__card position-lab__result"><div className="position-lab__analysis-heading"><div className="position-lab__analysis-title"><h2>{language === 'lt' ? 'Geriausios linijos' : language === 'ru' ? 'Лучшие варианты' : 'Best lines'}</h2><button type="button" className={'position-lab__engine-toggle' + (engineEnabled ? ' is-active' : '')} aria-pressed={engineEnabled} onClick={toggleEngine}>{engineEnabled ? t.disableEngine : t.enableEngine}</button><button type="button" className="position-lab__engine-toggle" onClick={restartEngine}>{restartLabel}</button></div><div className="position-lab__analysis-options"><span className="position-lab__engine-version">{engineName}</span><label>{language === 'lt' ? 'Rodyti linijas' : language === 'ru' ? 'Показывать линий' : 'Show lines'}<select value={lineCount} onChange={(event) => setLineCount(Number(event.target.value))}>{[1, 2, 3, 4, 5].map((count) => <option key={count} value={count}>{count}</option>)}</select></label></div></div>
+          {displayedState === 'disabled' && <p>{t.engineOff}</p>}{displayedState === 'loading' && <p>{t.loading}</p>}{displayedState === 'invalid' && <p>{t.invalid}</p>}{displayedState === 'error' && <p>{engineError || 'Stockfish error'}</p>}{displayedState === 'checkmate' && <p>{t.checkmate}</p>}{displayedState === 'stalemate' && <p>{t.stalemate}</p>}
+          <div className="position-lab__lines">{lines.map((line) => <div className="position-lab__line" key={line.number}><span className="position-lab__line-number">{line.number}.</span><strong>{scoreLabel(line)}</strong><span className="position-lab__line-moves">{sanMoves(line.pv).map((move, index) => <span key={index}>{move.prefix && <span className="position-lab__move-number">{move.prefix} </span>}<button type="button" className="position-lab__move-button" title={t.showPosition} onClick={() => showVariationPosition(line.pv, index)}>{move.san}</button>{' '}</span>)}</span></div>)}</div>
+          {displayedState === 'analyzing' && lines.length === 0 && <p>{t.loading}</p>}{displayedState === 'done' && lines.length > 0 && lines.every((line) => line.mate === null) && <p className="position-lab__no-mate">{t.noMate}</p>}
+          <p className="position-lab__depth">{language === 'lt' ? 'Gylis' : language === 'ru' ? 'Глубина' : 'Depth'}: {engineEnabled ? analysis.depth : 0}</p></section>
+      </aside>
+    </div>
     <section className="position-lab__card position-lab__problem-solver">
       <div className="position-lab__analysis-heading">
         <label className="position-lab__stipulation">{language === 'lt' ? 'Uždavinio sąlyga' : language === 'ru' ? 'Условие задачи' : 'Stipulation'}
@@ -1152,5 +1153,6 @@ export default function PositionLab({ language = 'en', accountUser = null }) {
         </div>
       </>}
     </section>
+    </div>
   </main>;
 }
