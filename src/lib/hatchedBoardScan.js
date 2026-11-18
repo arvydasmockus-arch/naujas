@@ -74,18 +74,19 @@ export function findStripedGrid(gray) {
     const patch = Math.max(4, Math.round(square * 0.13));
     const margin = Math.max(2, Math.round(square * 0.08));
     const inner = square - margin - patch;
-    const offsets = [margin, inner];
     let lightSquares = 0;
     let darkSquares = 0;
     for (let rank = 0; rank < 8; rank += 1) {
-      const top = y0 + rank * square;
+      const top = Math.round(y0 + rank * square);
       for (let file = 0; file < 8; file += 1) {
-        const left = x0 + file * square;
+        const left = Math.round(x0 + file * square);
+        const farTop = Math.round(y0 + rank * square + inner);
+        const farLeft = Math.round(x0 + file * square + inner);
         const density = (
-          rectSum(left + offsets[0], top + offsets[0], patch, patch)
-          + rectSum(left + offsets[1], top + offsets[0], patch, patch)
-          + rectSum(left + offsets[0], top + offsets[1], patch, patch)
-          + rectSum(left + offsets[1], top + offsets[1], patch, patch)
+          rectSum(left + margin, top + margin, patch, patch)
+          + rectSum(farLeft, top + margin, patch, patch)
+          + rectSum(left + margin, farTop, patch, patch)
+          + rectSum(farLeft, farTop, patch, patch)
         ) / (4 * patch * patch);
         if ((rank + file) % 2) darkSquares += density;
         else lightSquares += density;
@@ -105,7 +106,7 @@ export function findStripedGrid(gray) {
   if (!best) return null;
   const coarseBest = best;
   best = null;
-  for (let square = Math.max(minSquare, coarseBest.square - 2); square <= Math.min(maxSquare, coarseBest.square + 2); square += 1) {
+  for (let square = Math.max(minSquare, coarseBest.square - 2); square <= Math.min(minimum / 8, coarseBest.square + 2); square += 0.25) {
     const boardSize = square * 8;
     for (let y0 = Math.max(0, coarseBest.y0 - 4); y0 <= Math.min(height - boardSize, coarseBest.y0 + 4); y0 += 1) {
       for (let x0 = Math.max(0, coarseBest.x0 - 4); x0 <= Math.min(width - boardSize, coarseBest.x0 + 4); x0 += 1) {
@@ -188,3 +189,4 @@ export async function scanHatchedBoard(source, filteredGuide, guideScale, { mode
 
   return bestStriped || best;
 }
+
